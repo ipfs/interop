@@ -40,7 +40,9 @@ const dirs = [
   100
 ]
 
-describe('exchange files', () => {
+describe('exchange files', function () {
+  this.timeout(20 * 1000)
+
   let goDaemon
   let jsDaemon
   let js2Daemon
