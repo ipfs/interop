@@ -11,8 +11,7 @@ module.exports = {
       served: true,
       included: false
     }],
-    singleRun: true,
-    browserNoActivityTimeout: 100 * 1000
+    singleRun: true
   },
   hooks: {
     browser: {

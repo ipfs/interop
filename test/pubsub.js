@@ -10,6 +10,7 @@ const series = require('async/series')
 const parallel = require('async/parallel')
 
 const DaemonFactory = require('ipfsd-ctl')
+const df = DaemonFactory.create()
 
 /*
  * Wait for a condition to become true.  When its true, callback is called.

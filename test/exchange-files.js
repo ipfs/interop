@@ -54,7 +54,7 @@ describe('exchange files', () => {
   let nodes
 
   before(function (done) {
-    this.timeout(50 * 1000)
+    this.timeout(100 * 1000)
 
     parallel([
       (cb) => df.spawn({ initOptions: { bits: 1024 } }, cb),
@@ -73,7 +73,7 @@ describe('exchange files', () => {
   after((done) => parallel(nodes.map((node) => (cb) => node.stop(cb)), done))
 
   it('connect go <-> js', function (done) {
-    this.timeout(50 * 1000)
+    this.timeout(500 * 1000)
 
     let jsId
     let goId
@@ -103,7 +103,7 @@ describe('exchange files', () => {
   })
 
   it('connect js <-> js', function (done) {
-    this.timeout(50 * 1000)
+    this.timeout(500 * 1000)
 
     let jsId
     let js2Id
@@ -133,8 +133,7 @@ describe('exchange files', () => {
   })
 
   describe('cat file', () => sizes.forEach((size) => {
-    it(`go -> js: ${pretty(size)}`, function (done) {
-      this.timeout(50 * 1000)
+    it(`go -> js: ${pretty(size)}`, (done) => {
       const data = crypto.randomBytes(size)
       waterfall([
         (cb) => goDaemon.api.add(data, cb),
@@ -146,8 +145,7 @@ describe('exchange files', () => {
       })
     })
 
-    it(`js -> go: ${pretty(size)}`, function (done) {
-      this.timeout(50 * 1000)
+    it(`js -> go: ${pretty(size)}`, (done) => {
       const data = crypto.randomBytes(size)
       waterfall([
         (cb) => jsDaemon.api.add(data, cb),
@@ -159,8 +157,7 @@ describe('exchange files', () => {
       })
     })
 
-    it(`js -> js: ${pretty(size)}`, function (done) {
-      this.timeout(20 * 1000)
+    it(`js -> js: ${pretty(size)}`, (done) => {
       const data = crypto.randomBytes(size)
       waterfall([
         (cb) => js2Daemon.api.add(data, cb),
@@ -175,8 +172,7 @@ describe('exchange files', () => {
 
   // TODO these tests are not fetching the full dir??
   describe('get directory', () => dirs.forEach((num) => {
-    it(`go -> js: depth: 5, num: ${num}`, function () {
-      this.timeout(50 * 1000)
+    it(`go -> js: depth: 5, num: ${num}`, () => {
       const dir = tmpDir()
       return randomFs({
         path: dir,
@@ -194,7 +190,7 @@ describe('exchange files', () => {
     })
 
     it(`js -> go: depth: 5, num: ${num}`, function () {
-      this.timeout(50 * 1000)
+      this.timeout(6000)
 
       const dir = tmpDir()
       return randomFs({
@@ -213,7 +209,7 @@ describe('exchange files', () => {
     })
 
     it(`js -> js: depth: 5, num: ${num}`, function () {
-      this.timeout(80 * 1000)
+      this.timeout(6000)
 
       const dir = tmpDir()
       return randomFs({
