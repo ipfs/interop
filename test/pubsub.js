@@ -5,11 +5,12 @@ const chai = require('chai')
 const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
+
 const series = require('async/series')
 const parallel = require('async/parallel')
 
-const GoDaemon = require('./utils/interop-daemon-spawner/go')
-const JSDaemon = require('./utils/interop-daemon-spawner/js')
+const DaemonFactory = require('ipfsd-ctl')
+const df = DaemonFactory.create()
 
 /*
  * Wait for a condition to become true.  When its true, callback is called.
@@ -36,29 +37,25 @@ describe('pubsub', function () {
   let jsId
   let goId
 
+  let nodes = []
   before(function (done) {
     this.timeout(50 * 1000)
 
-    goD = new GoDaemon({
-      disposable: true,
-      init: true,
-      flags: ['--enable-pubsub-experiment']
-    })
-    jsD = new JSDaemon()
-
     parallel([
-      (cb) => goD.start(cb),
-      (cb) => jsD.start(cb)
-    ], (done))
+      (cb) => df.spawn({ args: ['--enable-pubsub-experiment'] }, cb),
+      (cb) => df.spawn({ type: 'js', args: ['--enable-pubsub-experiment'] }, cb)
+    ], (err, n) => {
+      expect(err).to.not.exist()
+      nodes = n
+      goD = nodes[0]
+      jsD = nodes[1]
+      done()
+    })
   })
 
   after(function (done) {
     this.timeout(50 * 1000)
-
-    parallel([
-      (cb) => goD.stop(cb),
-      (cb) => jsD.stop(cb)
-    ], done)
+    parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
   })
 
   it('make connections', (done) => {

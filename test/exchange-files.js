@@ -13,12 +13,18 @@ const pretty = require('pretty-bytes')
 const randomFs = require('random-fs')
 const promisify = require('promisify-es6')
 const rimraf = require('rimraf')
+const join = require('path').join
+const os = require('os')
+const hat = require('hat')
 
 const rmDir = promisify(rimraf)
 
-const tmpDir = require('./utils/interop-daemon-spawner/util').tmpDir
-const GoDaemon = require('./utils/interop-daemon-spawner/go')
-const JsDaemon = require('./utils/interop-daemon-spawner/js')
+const DaemonFactory = require('ipfsd-ctl')
+const df = DaemonFactory.create()
+
+function tmpDir () {
+  return join(os.tmpdir(), `ipfs_${hat()}`)
+}
 
 const sizes = [
   1024,
@@ -40,35 +46,35 @@ const dirs = [
   100
 ]
 
-describe('exchange files', function () {
-  this.timeout(20 * 1000)
-
+describe('exchange files', () => {
   let goDaemon
   let jsDaemon
   let js2Daemon
 
+  let nodes
+
   before(function (done) {
-    this.timeout(15 * 1000)
-    goDaemon = new GoDaemon()
-    jsDaemon = new JsDaemon({port: 1})
-    js2Daemon = new JsDaemon({port: 2})
+    this.timeout(100 * 1000)
 
     parallel([
-      (cb) => goDaemon.start(cb),
-      (cb) => jsDaemon.start(cb),
-      (cb) => js2Daemon.start(cb)
-    ], done)
+      (cb) => df.spawn(cb),
+      (cb) => df.spawn({ isJs: true }, cb),
+      (cb) => df.spawn({ isJs: true }, cb)
+    ], (err, n) => {
+      expect(err).to.not.exist()
+      nodes = n
+      goDaemon = nodes[0]
+      jsDaemon = nodes[1]
+      js2Daemon = nodes[2]
+      done()
+    })
   })
 
-  after((done) => {
-    series([
-      (cb) => goDaemon.stop(cb),
-      (cb) => jsDaemon.stop(cb),
-      (cb) => js2Daemon.stop(cb)
-    ], done)
-  })
+  after((done) => parallel(nodes.map((node) => (cb) => node.stop(cb)), done))
 
-  it('connect go <-> js', (done) => {
+  it('connect go <-> js', function (done) {
+    this.timeout(500 * 1000)
+
     let jsId
     let goId
 
@@ -96,7 +102,9 @@ describe('exchange files', function () {
     ], done)
   })
 
-  it('connect js <-> js', (done) => {
+  it('connect js <-> js', function (done) {
+    this.timeout(500 * 1000)
+
     let jsId
     let js2Id
 
@@ -181,7 +189,9 @@ describe('exchange files', function () {
       })
     })
 
-    it(`js -> go: depth: 5, num: ${num}`, () => {
+    it(`js -> go: depth: 5, num: ${num}`, function () {
+      this.timeout(6000)
+
       const dir = tmpDir()
       return randomFs({
         path: dir,
@@ -198,7 +208,9 @@ describe('exchange files', function () {
       })
     })
 
-    it(`js -> js: depth: 5, num: ${num}`, () => {
+    it(`js -> js: depth: 5, num: ${num}`, function () {
+      this.timeout(6000)
+
       const dir = tmpDir()
       return randomFs({
         path: dir,

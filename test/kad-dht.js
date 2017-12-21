@@ -11,8 +11,8 @@ const parallel = require('async/parallel')
 const waterfall = require('async/waterfall')
 const bl = require('bl')
 
-const GODaemon = require('./utils/interop-daemon-spawner/go')
-const JSDaemon = require('./utils/interop-daemon-spawner/js')
+const DaemonFactory = require('ipfsd-ctl')
+const df = DaemonFactory.create()
 
 describe.skip('kad-dht', () => {
   describe('a JS node in the land of Go', () => {
@@ -22,18 +22,18 @@ describe.skip('kad-dht', () => {
     let goD3
 
     before((done) => {
-      goD1 = new GODaemon()
-      goD2 = new GODaemon()
-      goD3 = new GODaemon()
-
-      jsD = new JSDaemon({ port: 40 })
-
       parallel([
-        (cb) => goD1.start(cb),
-        (cb) => goD2.start(cb),
-        (cb) => goD3.start(cb),
-        (cb) => jsD.start(cb)
-      ], done)
+        (cb) => df.spawn(cb),
+        (cb) => df.spawn(cb),
+        (cb) => df.spawn(cb),
+        (cb) => df.spawn({ type: 'js' }, cb)
+      ], (err, nodes) => {
+        expect(err).to.not.exist()
+        goD1 = nodes[0]
+        goD2 = nodes[1]
+        goD3 = nodes[2]
+        jsD = nodes[3]
+      })
     })
 
     after((done) => {

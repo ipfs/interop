@@ -11,74 +11,83 @@ const os = require('os')
 const path = require('path')
 const hat = require('hat')
 
-const GoDaemon = require('./utils/interop-daemon-spawner/go')
-const JsDaemon = require('./utils/interop-daemon-spawner/js')
+const DaemonFactory = require('ipfsd-ctl')
+const df = DaemonFactory.create()
 
-function catAndCheck (daemon, hash, data, callback) {
-  daemon.api.cat(hash, (err, fileData) => {
+function catAndCheck (api, hash, data, callback) {
+  api.cat(hash, (err, fileData) => {
     expect(err).to.not.exist()
     expect(fileData).to.eql(data)
     callback()
   })
 }
 
-describe('repo', () => {
-  it('read repo: go -> js', (done) => {
+describe.skip('repo', () => {
+  it.skip('read repo: go -> js', function (done) {
+    this.timeout(50 * 1000)
+
     const dir = path.join(os.tmpdir(), hat())
     const data = crypto.randomBytes(1024 * 5)
 
-    const goDaemon = new GoDaemon({
-      init: true,
-      disposable: false,
-      path: dir
-    })
+    let goDaemon
     let jsDaemon
 
     let hash
     waterfall([
-      (cb) => goDaemon.start(cb),
-      (cb) => goDaemon.api.add(data, cb),
+      (cb) => df.spawn({
+        repoPath: dir
+      }, cb),
+      (node, cb) => {
+        goDaemon = node
+        goDaemon.api.add(data, cb)
+      },
       (res, cb) => {
         hash = res[0].hash
-        catAndCheck(goDaemon, hash, data, cb)
+        catAndCheck(goDaemon.api, hash, data, cb)
       },
       (cb) => goDaemon.stop(cb),
-      (cb) => {
-        jsDaemon = new JsDaemon({
-          init: false,
-          disposable: false,
-          path: dir
-        })
-        jsDaemon.start(cb)
+      (cb) => df.spawn({
+        type: 'js',
+        repoPath: dir
+      }, cb),
+      (node, cb) => {
+        console.dir('HERE')
+        cb()
       },
-      (cb) => catAndCheck(goDaemon, hash, data, cb),
+      (cb) => catAndCheck(jsDaemon.api, hash, data, cb),
       (cb) => jsDaemon.stop(cb)
     ], done)
   })
 
   // This was last due to an update on go-ipfs that changed how datastore is
   // configured
-  it.skip('read repo: js -> go', (done) => {
+  it.skip('read repo: js -> go', function (done) {
+    this.timeout(50 * 1000)
     const dir = path.join(os.tmpdir(), hat())
     const data = crypto.randomBytes(1024 * 5)
 
-    const jsDaemon = new JsDaemon({init: true, disposable: false, path: dir})
+    let jsDaemon
     let goDaemon
 
     let hash
     waterfall([
-      (cb) => jsDaemon.start(cb),
+      (cb) => df.spawn({ type: 'js', repoPath: dir }, cb),
+      (node, cb) => {
+        jsDaemon = node
+        cb()
+      },
       (cb) => jsDaemon.api.add(data, cb),
       (res, cb) => {
         hash = res[0].hash
-        catAndCheck(jsDaemon, hash, data, cb)
+        catAndCheck(jsDaemon.api, hash, data, cb)
       },
       (cb) => jsDaemon.stop(cb),
-      (cb) => {
-        goDaemon = new GoDaemon({init: false, disposable: false, path: dir})
-        goDaemon.start(cb)
+      (cb) => df.spawn({ repoPath: dir }, cb),
+      (node, cb) => {
+        goDaemon = node
+        cb()
       },
-      (cb) => catAndCheck(goDaemon, hash, data, cb),
+      (cb) => catAndCheck(goDaemon.api, hash, data, cb),
       (cb) => goDaemon.stop(cb)
     ], done)
   })

@@ -7,7 +7,7 @@ const os = require('os')
 const path = require('path')
 
 const defaultConfig = require('./default-config.json')
-const IPFS = require('../../../src/core')
+const IPFS = require('ipfs')
 const createTempRepo = require('../create-repo-nodejs')
 
 module.exports = Factory
