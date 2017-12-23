@@ -2,5 +2,7 @@
 'use strict'
 
 // require('./exchange-files')
-require('./repo')
+// require('./pubsub')
+// require('./kad-dht')
 require('./circuit-relay')
+require('./repo')

@@ -172,7 +172,8 @@ describe('exchange files', () => {
 
   // TODO these tests are not fetching the full dir??
   describe('get directory', () => dirs.forEach((num) => {
-    it(`go -> js: depth: 5, num: ${num}`, () => {
+    it(`go -> js: depth: 5, num: ${num}`, function () {
+      this.timeout(10 * 1000)
       const dir = tmpDir()
       return randomFs({
         path: dir,
@@ -190,7 +191,7 @@ describe('exchange files', () => {
     })
 
     it(`js -> go: depth: 5, num: ${num}`, function () {
-      this.timeout(6000)
+      this.timeout(10 * 1000)
 
       const dir = tmpDir()
       return randomFs({
@@ -209,7 +210,7 @@ describe('exchange files', () => {
     })
 
     it(`js -> js: depth: 5, num: ${num}`, function () {
-      this.timeout(6000)
+      this.timeout(50 * 1000)
 
       const dir = tmpDir()
       return randomFs({

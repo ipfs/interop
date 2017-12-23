@@ -12,7 +12,8 @@ const series = require('async/series')
 const waterfall = require('async/waterfall')
 const multiaddr = require('multiaddr')
 const crypto = require('crypto')
-const IPFSFactory = require('./utils/ipfs-factory-instance')
+const IPFS = require('ipfs')
+const createRepo = require('./utils/create-repo-nodejs')
 
 const isNode = require('detect-node')
 
@@ -37,19 +38,27 @@ function setupInProcNode (factory, addrs, hop, callback) {
     hop = false
   }
 
-  factory.spawnNode(null, Object.assign({}, baseConf, {
-    Addresses: {
-      Swarm: addrs
-    },
-    EXPERIMENTAL: {
-      relay: {
-        enabled: true,
-        hop: {
-          enabled: hop
+  const node = new IPFS({
+    repo: createRepo(),
+    init: { bits: 1024 },
+    config: Object.assign({}, baseConf, {
+      Addresses: {
+        Swarm: addrs
+      },
+      EXPERIMENTAL: {
+        relay: {
+          enabled: true,
+          hop: {
+            enabled: hop
+          }
         }
       }
-    }
-  }), callback)
+    })
+  })
+
+  node.once('ready', () => {
+    callback(null, node)
+  })
 }
 
 function setUpJsNode (addrs, hop, callback) {
@@ -264,9 +273,7 @@ function tests (relayType) {
       return
     }
 
-    this.timeout(50 * 1000)
-
-    let factory
+    this.timeout(90 * 1000)
 
     let browserNode1
     let browserNode2
@@ -275,11 +282,9 @@ function tests (relayType) {
     let browserNode2Addrs
 
     before(function (done) {
-      factory = new IPFSFactory()
-
       parallel([
-        (cb) => setupInProcNode(factory, [], false, cb),
-        (cb) => setupInProcNode(factory, [], false, cb)
+        (cb) => setupInProcNode([], false, cb),
+        (cb) => setupInProcNode([], false, cb)
       ], (err, nodes) => {
         expect(err).to.not.exist()
         browserNode1 = nodes[0]
@@ -291,8 +296,6 @@ function tests (relayType) {
         })
       })
     })
-
-    after((done) => factory.dismantle(done))
 
     it('should connect and transfer', function (done) {
       const data = crypto.randomBytes(128)
@@ -316,17 +319,13 @@ function tests (relayType) {
 
     this.timeout(50 * 1000)
 
-    let factory
-
     let browserNode1
     let jsTCP
     let jsTCPAddrs
 
     before(function (done) {
-      factory = new IPFSFactory()
-
       parallel([
-        (cb) => setupInProcNode(factory, [], false, cb),
+        (cb) => setupInProcNode([], false, cb),
         (cb) => setUpJsNode([`${base}/35003`], cb)
       ], (err, nodes) => {
         expect(err).to.not.exist()
@@ -339,12 +338,7 @@ function tests (relayType) {
       })
     })
 
-    after((done) => {
-      parallel([
-        (cb) => factory.dismantle(cb),
-        (cb) => jsTCP.stop(cb)
-      ], done)
-    })
+    after((done) => jsTCP.stop(done))
 
     it('should connect and transfer', function (done) {
       const data = crypto.randomBytes(128)
@@ -368,17 +362,13 @@ function tests (relayType) {
 
     this.timeout(50 * 1000)
 
-    let factory
-
     let browserNode1
     let goTCP
     let goTCPAddrs
 
     before(function (done) {
-      factory = new IPFSFactory()
-
       parallel([
-        (cb) => setupInProcNode(factory, [], false, cb),
+        (cb) => setupInProcNode([], false, cb),
         (cb) => setUpGoNode([`${base}/35003`], cb)
       ], (err, nodes) => {
         expect(err).to.not.exist()
@@ -392,12 +382,7 @@ function tests (relayType) {
       })
     })
 
-    after((done) => {
-      parallel([
-        (cb) => factory.dismantle(cb),
-        (cb) => goTCP.stop(cb)
-      ], done)
-    })
+    after((done) => goTCP.stop(done))
 
     it('should connect and transfer', function (done) {
       const data = crypto.randomBytes(128)
