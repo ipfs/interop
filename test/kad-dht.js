@@ -33,6 +33,7 @@ describe.skip('kad-dht', () => {
         goD2 = nodes[1]
         goD3 = nodes[2]
         jsD = nodes[3]
+        done()
       })
     })
 

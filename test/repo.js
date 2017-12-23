@@ -5,7 +5,8 @@ const chai = require('chai')
 const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
-const waterfall = require('async/waterfall')
+
+const series = require('async/series')
 const crypto = require('crypto')
 const os = require('os')
 const path = require('path')
@@ -22,8 +23,8 @@ function catAndCheck (api, hash, data, callback) {
   })
 }
 
-describe.skip('repo', () => {
-  it.skip('read repo: go -> js', function (done) {
+describe('repo', () => {
+  it('read repo: go -> js', function (done) {
     this.timeout(50 * 1000)
 
     const dir = path.join(os.tmpdir(), hat())
@@ -33,29 +34,37 @@ describe.skip('repo', () => {
     let jsDaemon
 
     let hash
-    waterfall([
+    series([
       (cb) => df.spawn({
-        repoPath: dir
-      }, cb),
-      (node, cb) => {
+        repoPath: dir,
+        disposable: false
+      }, (err, node) => {
+        expect(err).to.not.exist()
         goDaemon = node
-        goDaemon.api.add(data, cb)
-      },
-      (res, cb) => {
+        goDaemon.init(cb)
+      }),
+      (cb) => goDaemon.start(cb),
+      (cb) => goDaemon.api.add(data, (err, res) => {
+        expect(err).to.not.exist()
         hash = res[0].hash
-        catAndCheck(goDaemon.api, hash, data, cb)
-      },
+        cb()
+      }),
+      (cb) => catAndCheck(goDaemon.api, hash, data, cb),
       (cb) => goDaemon.stop(cb),
       (cb) => df.spawn({
         type: 'js',
-        repoPath: dir
-      }, cb),
-      (node, cb) => {
-        console.dir('HERE')
+        repoPath: dir,
+        disposable: false
+      }, (err, node) => {
+        expect(err).to.not.exist()
+        jsDaemon = node
         cb()
-      },
+      }),
+      (cb) => jsDaemon.start(cb),
       (cb) => catAndCheck(jsDaemon.api, hash, data, cb),
-      (cb) => jsDaemon.stop(cb)
+      (cb) => jsDaemon.stop(cb),
+      (cb) => setTimeout(cb, 10500),
+      (cb) => jsDaemon.cleanup(cb)
     ], done)
   })
 
@@ -70,7 +79,7 @@ describe.skip('repo', () => {
     let goDaemon
 
     let hash
-    waterfall([
+    series([
       (cb) => df.spawn({ type: 'js', repoPath: dir }, cb),
       (node, cb) => {
         jsDaemon = node
