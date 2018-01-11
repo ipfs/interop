@@ -13,12 +13,13 @@ const waterfall = require('async/waterfall')
 const multiaddr = require('multiaddr')
 const crypto = require('crypto')
 const IPFS = require('ipfs')
-const createRepo = require('./utils/create-repo-nodejs')
 
 const isNode = require('detect-node')
 
 const DaemonFactory = require('ipfsd-ctl')
-const df = DaemonFactory.create()
+const jsDf = DaemonFactory.create({ type: 'js' })
+const goDf = DaemonFactory.create({ type: 'go' })
+const procDf = DaemonFactory.create({ type: 'proc', exec: IPFS })
 
 const baseConf = {
   Bootstrap: [],
@@ -38,37 +39,7 @@ function setupInProcNode (factory, addrs, hop, callback) {
     hop = false
   }
 
-  const node = new IPFS({
-    repo: createRepo(),
-    init: { bits: 1024 },
-    config: Object.assign({}, baseConf, {
-      Addresses: {
-        Swarm: addrs
-      },
-      EXPERIMENTAL: {
-        relay: {
-          enabled: true,
-          hop: {
-            enabled: hop
-          }
-        }
-      }
-    })
-  })
-
-  node.once('ready', () => {
-    callback(null, node)
-  })
-}
-
-function setUpJsNode (addrs, hop, callback) {
-  if (typeof hop === 'function') {
-    callback = hop
-    hop = false
-  }
-
-  df.spawn({
-    type: 'js',
+  procDf.spawn({
     config: Object.assign({}, baseConf, {
       Addresses: {
         Swarm: addrs
@@ -84,8 +55,36 @@ function setUpJsNode (addrs, hop, callback) {
     })
   }, (err, ipfsd) => {
     expect(err).to.not.exist()
-    ipfsd.api.swarm.localAddrs((err, addrs) => {
-      callback(err, { ipfsd, addrs: circuitFilter(addrs) })
+    ipfsd.api.id((err, id) => {
+      callback(err, { ipfsd, addrs: circuitFilter(id.addresses) })
+    })
+  })
+}
+
+function setUpJsNode (addrs, hop, callback) {
+  if (typeof hop === 'function') {
+    callback = hop
+    hop = false
+  }
+
+  jsDf.spawn({
+    config: Object.assign({}, baseConf, {
+      Addresses: {
+        Swarm: addrs
+      },
+      EXPERIMENTAL: {
+        relay: {
+          enabled: true,
+          hop: {
+            enabled: hop
+          }
+        }
+      }
+    })
+  }, (err, ipfsd) => {
+    expect(err).to.not.exist()
+    ipfsd.api.id((err, id) => {
+      callback(err, { ipfsd, addrs: circuitFilter(id.addresses) })
     })
   })
 }
@@ -96,7 +95,7 @@ function setUpGoNode (addrs, hop, callback) {
     hop = false
   }
 
-  df.spawn({
+  goDf.spawn({
     config: Object.assign({}, baseConf, {
       Addresses: {
         Swarm: addrs
@@ -114,17 +113,6 @@ function setUpGoNode (addrs, hop, callback) {
   })
 }
 
-function addAndCat (node1, node2, data, callback) {
-  waterfall([
-    (cb) => node1.files.add(data, cb),
-    (res, cb) => node2.files.cat(res[0].hash, cb),
-    (buffer, cb) => {
-      expect(buffer).to.deep.equal(data)
-      cb()
-    }
-  ], callback)
-}
-
 const circuitFilter = (addrs) => addrs.map((a) => a.toString()).filter((a) => !a.includes('/p2p-circuit'))
 const wsAddr = (addrs) => addrs.map((a) => a.toString()).find((a) => a.includes('/ws'))
 const tcpAddr = (addrs) => addrs.map((a) => a.toString()).find((a) => !a.includes('/ws'))
@@ -135,16 +123,17 @@ function tests (relayType) {
 
     let goTCP
     let goTCPAddr
-    let jsWSAddr
     let jsWS
+    let jsWSAddr
     let jsWSCircuitAddr
 
     let nodes
-    before((done) => {
+
+    before(function (done) {
       parallel([
         (cb) => setUpGoNode([`${base}/35003`], cb),
         (cb) => setUpJsNode([`${base}/35004/ws`], cb)
-      ], (err, res) => {
+      ], function (err, res) {
         expect(err).to.not.exist()
         nodes = res.map((node) => node.ipfsd)
 
@@ -161,18 +150,26 @@ function tests (relayType) {
 
     after((done) => parallel(nodes.map((node) => (cb) => node.stop(cb)), done))
 
-    it('should connect and transfer', function (done) {
-      const data = crypto.randomBytes(128)
+    it('should connect', function (done) {
       series([
         (cb) => this.relay.api.swarm.connect(goTCPAddr, cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => this.relay.api.swarm.connect(jsWSAddr, cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => goTCP.swarm.connect(jsWSCircuitAddr, cb)
-      ], (err) => {
-        expect(err).to.not.exist()
-        addAndCat(goTCP, jsWS, data, done)
-      })
+      ], done)
+    })
+
+    it('should transfer', function (done) {
+      const data = crypto.randomBytes(128)
+      waterfall([
+        (cb) => goTCP.files.add(data, cb),
+        (res, cb) => jsWS.files.cat(res[0].hash, cb),
+        (buffer, cb) => {
+          expect(buffer).to.deep.equal(data)
+          cb()
+        }
+      ], done)
     })
   })
 
@@ -207,18 +204,26 @@ function tests (relayType) {
 
     after((done) => parallel(nodes.map((node) => (cb) => node.stop(cb)), done))
 
-    it('should connect and transfer', function (done) {
-      const data = crypto.randomBytes(128)
+    it('should connect', function (done) {
       series([
         (cb) => this.relay.api.swarm.connect(jsTCPAddr, cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => this.relay.api.swarm.connect(jsWSAddr, cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => jsWS.swarm.connect(jsTCPCircuitAddr, cb)
-      ], (err) => {
-        expect(err).to.not.exist()
-        addAndCat(jsTCP, jsWS, data, done)
-      })
+      ], done)
+    })
+
+    it('should transfer', function (done) {
+      const data = crypto.randomBytes(128)
+      waterfall([
+        (cb) => jsTCP.files.add(data, cb),
+        (res, cb) => jsWS.files.cat(res[0].hash, cb),
+        (buffer, cb) => {
+          expect(buffer).to.deep.equal(data)
+          cb()
+        }
+      ], done)
     })
   })
 
@@ -253,18 +258,26 @@ function tests (relayType) {
 
     after((done) => parallel(nodes.map((node) => (cb) => node.stop(cb)), done))
 
-    it('should connect and transfer', function (done) {
-      const data = crypto.randomBytes(128)
+    it('should connect', function (done) {
       series([
         (cb) => this.relay.api.swarm.connect(goTCPAddr, cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => this.relay.api.swarm.connect(goWSAddr, cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => goWS.swarm.connect(goTCPCircuitAddr, cb)
-      ], (err) => {
-        expect(err).to.not.exist()
-        addAndCat(goTCP, goWS, data, done)
-      })
+      ], done)
+    })
+
+    it('should transfer', function (done) {
+      const data = crypto.randomBytes(128)
+      waterfall([
+        (cb) => goTCP.files.add(data, cb),
+        (res, cb) => goWS.files.cat(res[0].hash, cb),
+        (buffer, cb) => {
+          expect(buffer).to.deep.equal(data)
+          cb()
+        }
+      ], done)
     })
   })
 
@@ -287,28 +300,34 @@ function tests (relayType) {
         (cb) => setupInProcNode([], false, cb)
       ], (err, nodes) => {
         expect(err).to.not.exist()
-        browserNode1 = nodes[0]
-        browserNode2 = nodes[1]
-        browserNode2.id((err, id) => {
-          expect(err).to.not.exist()
-          browserNode2Addrs = id.addresses
-          done()
-        })
+        browserNode1 = nodes[0].ipfsd.api
+        browserNode2 = nodes[1].ipfsd.api
+
+        browserNode2Addrs = nodes[1].addrs
+        done()
       })
     })
 
-    it('should connect and transfer', function (done) {
-      const data = crypto.randomBytes(128)
+    it('should connect', function (done) {
       series([
         (cb) => browserNode1.swarm.connect(wsAddr(this.relayAddrs), cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => browserNode2.swarm.connect(wsAddr(this.relayAddrs), cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => browserNode1.swarm.connect(browserNode2Addrs[0], cb)
-      ], (err) => {
-        expect(err).to.not.exist()
-        addAndCat(browserNode1, browserNode2, data, done)
-      })
+      ], done)
+    })
+
+    it('should transfer', function (done) {
+      const data = crypto.randomBytes(128)
+      waterfall([
+        (cb) => browserNode1.files.add(data, cb),
+        (res, cb) => browserNode2.files.cat(res[0].hash, cb),
+        (buffer, cb) => {
+          expect(buffer).to.deep.equal(data)
+          cb()
+        }
+      ], done)
     })
   })
 
@@ -341,17 +360,25 @@ function tests (relayType) {
     after((done) => jsTCP.stop(done))
 
     it('should connect and transfer', function (done) {
-      const data = crypto.randomBytes(128)
       series([
         (cb) => browserNode1.swarm.connect(wsAddr(this.relayAddrs), cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => jsTCP.api.swarm.connect(tcpAddr(this.relayAddrs), cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => browserNode1.swarm.connect(jsTCPAddrs[0], cb)
-      ], (err) => {
-        expect(err).to.not.exist()
-        addAndCat(browserNode1, jsTCP.api, data, done)
-      })
+      ], done)
+    })
+
+    it('should transfer', function (done) {
+      const data = crypto.randomBytes(128)
+      waterfall([
+        (cb) => browserNode1.files.add(data, cb),
+        (res, cb) => jsTCP.files.cat(res[0].hash, cb),
+        (buffer, cb) => {
+          expect(buffer).to.deep.equal(data)
+          cb()
+        }
+      ], done)
     })
   })
 
@@ -384,31 +411,39 @@ function tests (relayType) {
 
     after((done) => goTCP.stop(done))
 
-    it('should connect and transfer', function (done) {
-      const data = crypto.randomBytes(128)
+    it('should connect', function (done) {
       series([
         (cb) => browserNode1.swarm.connect(wsAddr(this.relayAddrs), cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => goTCP.api.swarm.connect(tcpAddr(this.relayAddrs), cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => browserNode1.swarm.connect(goTCPAddrs[0], cb)
-      ], (err) => {
-        expect(err).to.not.exist()
-        addAndCat(browserNode1, goTCP.api, data, done)
-      })
+      ], done)
+    })
+
+    it('should transfer', function (done) {
+      const data = crypto.randomBytes(128)
+      waterfall([
+        (cb) => browserNode1.files.add(data, cb),
+        (res, cb) => goTCP.files.cat(res[0].hash, cb),
+        (buffer, cb) => {
+          expect(buffer).to.deep.equal(data)
+          cb()
+        }
+      ], done)
     })
   })
 }
 
-describe('circuit', () => {
+describe.only('circuit', () => {
   describe('js relay', function () {
     this.relay = null
     this.relayAddrs = null
 
-    beforeEach(function (done) {
+    before(function (done) {
       this.timeout(50 * 1000)
 
-      setUpJsNode([`${base}/35002`, `${base}/35001/ws`], true, (err, res) => {
+      setUpJsNode([`${base}/35001/ws`, `${base}/35002`], true, (err, res) => {
         expect(err).to.not.exist()
         this.relay = res.ipfsd
         this.relayAddrs = res.addrs
@@ -416,7 +451,7 @@ describe('circuit', () => {
       })
     })
 
-    afterEach(function (done) { this.relay.stop(done) })
+    after(function (done) { this.relay.stop(done) })
 
     describe('test js relay', function () {
       tests('jsRelay')
@@ -427,10 +462,10 @@ describe('circuit', () => {
     this.relay = null
     this.relayAddrs = null
 
-    beforeEach(function (done) {
+    before(function (done) {
       this.timeout(50 * 1000)
 
-      setUpGoNode([`${base}/35002`, `${base}/35001/ws`], true, (err, res) => {
+      setUpGoNode([`${base}/35001/ws`, `${base}/35002`], true, (err, res) => {
         expect(err).to.not.exist()
         this.relay = res.ipfsd
         this.relayAddrs = res.addrs
@@ -438,7 +473,7 @@ describe('circuit', () => {
       })
     })
 
-    afterEach(function (done) { this.relay.stop(done) })
+    after(function (done) { this.relay.stop(done) })
 
     describe('test go relay', function () {
       tests('goRelay')
