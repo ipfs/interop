@@ -435,7 +435,7 @@ function tests (relayType) {
   })
 }
 
-describe.only('circuit', () => {
+describe('circuit', () => {
   describe('js relay', function () {
     this.relay = null
     this.relayAddrs = null
