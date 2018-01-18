@@ -56,7 +56,7 @@ function setupInProcNode (factory, addrs, hop, callback) {
   }, (err, ipfsd) => {
     expect(err).to.not.exist()
     ipfsd.api.id((err, id) => {
-      callback(err, { ipfsd, addrs: circuitFilter(id.addresses) })
+      callback(err, { ipfsd, addrs: id.addresses })
     })
   })
 }
@@ -84,7 +84,7 @@ function setUpJsNode (addrs, hop, callback) {
   }, (err, ipfsd) => {
     expect(err).to.not.exist()
     ipfsd.api.id((err, id) => {
-      callback(err, { ipfsd, addrs: circuitFilter(id.addresses) })
+      callback(err, { ipfsd, addrs: id.addresses })
     })
   })
 }
@@ -108,12 +108,11 @@ function setUpGoNode (addrs, hop, callback) {
   }, (err, ipfsd) => {
     expect(err).to.not.exist()
     ipfsd.api.id((err, id) => {
-      callback(err, { ipfsd, addrs: circuitFilter(id.addresses) })
+      callback(err, { ipfsd, addrs: id.addresses })
     })
   })
 }
 
-const circuitFilter = (addrs) => addrs.map((a) => a.toString()).filter((a) => !a.includes('/p2p-circuit'))
 const wsAddr = (addrs) => addrs.map((a) => a.toString()).find((a) => a.includes('/ws'))
 const tcpAddr = (addrs) => addrs.map((a) => a.toString()).find((a) => !a.includes('/ws'))
 
@@ -340,6 +339,7 @@ function tests (relayType) {
 
     let browserNode1
     let jsTCP
+    let jsTCPNode
     let jsTCPAddrs
 
     before(function (done) {
@@ -348,22 +348,23 @@ function tests (relayType) {
         (cb) => setUpJsNode([`${base}/35003`], cb)
       ], (err, nodes) => {
         expect(err).to.not.exist()
-        browserNode1 = nodes[0]
 
-        jsTCP = nodes[1].ipfsd
+        browserNode1 = nodes[0].ipfsd.api
+        jsTCP = nodes[1].ipfsd.api
+        jsTCPNode = nodes[1].ipfsd
         jsTCPAddrs = nodes[1].addrs
 
         done()
       })
     })
 
-    after((done) => jsTCP.stop(done))
+    after((done) => jsTCPNode.stop(done))
 
-    it('should connect and transfer', function (done) {
+    it('should connect', function (done) {
       series([
         (cb) => browserNode1.swarm.connect(wsAddr(this.relayAddrs), cb),
         (cb) => setTimeout(cb, 1000),
-        (cb) => jsTCP.api.swarm.connect(tcpAddr(this.relayAddrs), cb),
+        (cb) => jsTCP.swarm.connect(tcpAddr(this.relayAddrs), cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => browserNode1.swarm.connect(jsTCPAddrs[0], cb)
       ], done)
@@ -391,6 +392,7 @@ function tests (relayType) {
 
     let browserNode1
     let goTCP
+    let goTCPNode
     let goTCPAddrs
 
     before(function (done) {
@@ -400,22 +402,22 @@ function tests (relayType) {
       ], (err, nodes) => {
         expect(err).to.not.exist()
 
-        browserNode1 = nodes[0]
-
-        goTCP = nodes[1].ipfsd
+        browserNode1 = nodes[0].ipfsd.api
+        goTCP = nodes[1].ipfsd.api
+        goTCPNode = nodes[1].ipfsd
         goTCPAddrs = nodes[1].addrs
 
         done()
       })
     })
 
-    after((done) => goTCP.stop(done))
+    after((done) => goTCPNode.stop(done))
 
     it('should connect', function (done) {
       series([
         (cb) => browserNode1.swarm.connect(wsAddr(this.relayAddrs), cb),
         (cb) => setTimeout(cb, 1000),
-        (cb) => goTCP.api.swarm.connect(tcpAddr(this.relayAddrs), cb),
+        (cb) => goTCP.swarm.connect(tcpAddr(this.relayAddrs), cb),
         (cb) => setTimeout(cb, 1000),
         (cb) => browserNode1.swarm.connect(goTCPAddrs[0], cb)
       ], done)
