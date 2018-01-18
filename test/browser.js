@@ -3,6 +3,6 @@
 
 // require('./exchange-files')
 // require('./pubsub')
-// require('./kad-dht')
+require('./kad-dht')
 require('./circuit-relay')
 require('./repo')
