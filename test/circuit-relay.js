@@ -33,7 +33,7 @@ const baseConf = {
 
 const base = '/ip4/127.0.0.1/tcp'
 
-function setupInProcNode (factory, addrs, hop, callback) {
+function setupInProcNode (addrs, hop, callback) {
   if (typeof hop === 'function') {
     callback = hop
     hop = false
@@ -116,32 +116,32 @@ function setUpGoNode (addrs, hop, callback) {
 const wsAddr = (addrs) => addrs.map((a) => a.toString()).find((a) => a.includes('/ws'))
 const tcpAddr = (addrs) => addrs.map((a) => a.toString()).find((a) => !a.includes('/ws'))
 
-function tests (relayType) {
-  describe(`jsWS <-> ${relayType} <-> goTCP`, function () {
-    this.timeout(50 * 1000)
+function tests (relay, parseAddrA, parseAddrB) {
+  describe(`js <-> ${relay} relay <-> go`, function () {
+    this.timeout(80 * 1000)
 
-    let goTCP
-    let goTCPAddr
-    let jsWS
-    let jsWSAddr
-    let jsWSCircuitAddr
+    let nodeA
+    let nodeAAddr
+    let nodeB
+    let nodeBAddr
+    let nodeBCircuitAddr
 
     let nodes
-
     before(function (done) {
       parallel([
-        (cb) => setUpGoNode([`${base}/35003`], cb),
-        (cb) => setUpJsNode([`${base}/35004/ws`], cb)
+        (cb) => setUpGoNode([this.addrA], cb),
+        (cb) => setUpJsNode([this.addrB], cb)
       ], function (err, res) {
         expect(err).to.not.exist()
         nodes = res.map((node) => node.ipfsd)
 
-        goTCPAddr = tcpAddr(res[0].addrs)
-        goTCP = res[0].ipfsd.api
+        nodeAAddr = parseAddrA(res[0].addrs)
+        nodeA = res[0].ipfsd.api
 
-        jsWSAddr = wsAddr(res[1].addrs)
-        jsWS = res[1].ipfsd.api
-        jsWSCircuitAddr = `/p2p-circuit/ipfs/${multiaddr(jsWSAddr).getPeerId()}`
+        nodeBAddr = parseAddrB(res[1].addrs)
+
+        nodeB = res[1].ipfsd.api
+        nodeBCircuitAddr = `/p2p-circuit/ipfs/${multiaddr(nodeBAddr).getPeerId()}`
 
         done()
       })
@@ -151,19 +151,19 @@ function tests (relayType) {
 
     it('should connect', function (done) {
       series([
-        (cb) => this.relay.api.swarm.connect(goTCPAddr, cb),
+        (cb) => this.relay.api.swarm.connect(nodeAAddr, cb),
         (cb) => setTimeout(cb, 1000),
-        (cb) => this.relay.api.swarm.connect(jsWSAddr, cb),
+        (cb) => this.relay.api.swarm.connect(nodeBAddr, cb),
         (cb) => setTimeout(cb, 1000),
-        (cb) => goTCP.swarm.connect(jsWSCircuitAddr, cb)
+        (cb) => nodeA.swarm.connect(nodeBCircuitAddr, cb)
       ], done)
     })
 
     it('should transfer', function (done) {
       const data = crypto.randomBytes(128)
       waterfall([
-        (cb) => goTCP.files.add(data, cb),
-        (res, cb) => jsWS.files.cat(res[0].hash, cb),
+        (cb) => nodeA.files.add(data, cb),
+        (res, cb) => nodeB.files.cat(res[0].hash, cb),
         (buffer, cb) => {
           expect(buffer).to.deep.equal(data)
           cb()
@@ -172,30 +172,30 @@ function tests (relayType) {
     })
   })
 
-  describe(`jsWS <-> ${relayType} <-> jsTCP`, function () {
-    this.timeout(50 * 1000)
-    let jsTCP
-    let jsTCPAddr
+  describe(`js <-> ${relay} relay <-> js`, function () {
+    this.timeout(80 * 1000)
+    let nodeA
+    let nodeAAddr
 
-    let jsWS
-    let jsWSAddr
-    let jsTCPCircuitAddr
+    let nodeB
+    let nodeBAddr
+    let nodeBCircuitAddr
 
     let nodes
-    before((done) => {
+    before(function (done) {
       parallel([
-        (cb) => setUpJsNode([`${base}/35003`], cb),
-        (cb) => setUpJsNode([`${base}/35004/ws`], cb)
+        (cb) => setUpJsNode([this.addrA], cb),
+        (cb) => setUpJsNode([this.addrB], cb)
       ], (err, res) => {
         expect(err).to.not.exist()
         nodes = res.map((node) => node.ipfsd)
 
-        jsTCP = res[0].ipfsd.api
-        jsTCPAddr = tcpAddr(res[0].addrs)
-        jsTCPCircuitAddr = `/p2p-circuit/ipfs/${multiaddr(jsTCPAddr).getPeerId()}`
+        nodeA = res[0].ipfsd.api
+        nodeAAddr = parseAddrA(res[0].addrs)
+        nodeBCircuitAddr = `/p2p-circuit/ipfs/${multiaddr(nodeAAddr).getPeerId()}`
 
-        jsWS = res[1].ipfsd.api
-        jsWSAddr = wsAddr(res[1].addrs)
+        nodeB = res[1].ipfsd.api
+        nodeBAddr = parseAddrB(res[1].addrs)
 
         done()
       })
@@ -205,19 +205,19 @@ function tests (relayType) {
 
     it('should connect', function (done) {
       series([
-        (cb) => this.relay.api.swarm.connect(jsTCPAddr, cb),
+        (cb) => this.relay.api.swarm.connect(nodeAAddr, cb),
         (cb) => setTimeout(cb, 1000),
-        (cb) => this.relay.api.swarm.connect(jsWSAddr, cb),
+        (cb) => this.relay.api.swarm.connect(nodeBAddr, cb),
         (cb) => setTimeout(cb, 1000),
-        (cb) => jsWS.swarm.connect(jsTCPCircuitAddr, cb)
+        (cb) => nodeB.swarm.connect(nodeBCircuitAddr, cb)
       ], done)
     })
 
     it('should transfer', function (done) {
       const data = crypto.randomBytes(128)
       waterfall([
-        (cb) => jsTCP.files.add(data, cb),
-        (res, cb) => jsWS.files.cat(res[0].hash, cb),
+        (cb) => nodeA.files.add(data, cb),
+        (res, cb) => nodeB.files.cat(res[0].hash, cb),
         (buffer, cb) => {
           expect(buffer).to.deep.equal(data)
           cb()
@@ -226,30 +226,30 @@ function tests (relayType) {
     })
   })
 
-  describe(`goWS <-> ${relayType} <-> goTCP`, function () {
-    this.timeout(50 * 1000)
-    let goTCP
-    let goTCPAddr
-    let goTCPCircuitAddr
+  describe(`go <-> ${relay} relay <-> go`, function () {
+    this.timeout(80 * 1000)
+    let nodeA
+    let nodeAAddr
+    let nodeACircuitAddr
 
-    let goWS
-    let goWSAddr
+    let nodeB
+    let nodeBAddr
 
     let nodes
-    before((done) => {
+    before(function (done) {
       parallel([
-        (cb) => setUpGoNode([`${base}/35003`], cb),
-        (cb) => setUpGoNode([`${base}/35004/ws`], cb)
+        (cb) => setUpGoNode([this.addrA], cb),
+        (cb) => setUpGoNode([this.addrB], cb)
       ], (err, res) => {
         expect(err).to.not.exist()
         nodes = res.map((node) => node.ipfsd)
 
-        goTCP = res[0].ipfsd.api
-        goTCPAddr = tcpAddr(res[0].addrs)
-        goTCPCircuitAddr = `/p2p-circuit/ipfs/${multiaddr(goTCPAddr).getPeerId()}`
+        nodeA = res[0].ipfsd.api
+        nodeAAddr = parseAddrA(res[0].addrs)
+        nodeACircuitAddr = `/p2p-circuit/ipfs/${multiaddr(nodeAAddr).getPeerId()}`
 
-        goWS = res[1].ipfsd.api
-        goWSAddr = wsAddr(res[1].addrs)
+        nodeB = res[1].ipfsd.api
+        nodeBAddr = parseAddrB(res[1].addrs)
 
         done()
       })
@@ -259,19 +259,19 @@ function tests (relayType) {
 
     it('should connect', function (done) {
       series([
-        (cb) => this.relay.api.swarm.connect(goTCPAddr, cb),
+        (cb) => this.relay.api.swarm.connect(nodeAAddr, cb),
         (cb) => setTimeout(cb, 1000),
-        (cb) => this.relay.api.swarm.connect(goWSAddr, cb),
+        (cb) => this.relay.api.swarm.connect(nodeBAddr, cb),
         (cb) => setTimeout(cb, 1000),
-        (cb) => goWS.swarm.connect(goTCPCircuitAddr, cb)
+        (cb) => nodeB.swarm.connect(nodeACircuitAddr, cb)
       ], done)
     })
 
     it('should transfer', function (done) {
       const data = crypto.randomBytes(128)
       waterfall([
-        (cb) => goTCP.files.add(data, cb),
-        (res, cb) => goWS.files.cat(res[0].hash, cb),
+        (cb) => nodeA.files.add(data, cb),
+        (res, cb) => nodeB.files.cat(res[0].hash, cb),
         (buffer, cb) => {
           expect(buffer).to.deep.equal(data)
           cb()
@@ -280,18 +280,124 @@ function tests (relayType) {
     })
   })
 
-  describe(`browser <-> ${relayType} <-> browser`, function () {
+  describe(`js <-> ${relay} relay <-> browser`, function () {
     if (isNode) {
+      return
+    }
+
+    this.timeout(80 * 1000)
+
+    let nodeA
+    let nodeB
+    let nodeBIpfsd
+    let nodeBAddr
+
+    before(function (done) {
+      parallel([
+        (cb) => setupInProcNode([], false, cb),
+        (cb) => setUpJsNode([this.addrA], cb)
+      ], (err, nodes) => {
+        expect(err).to.not.exist()
+
+        nodeA = nodes[0].ipfsd.api
+        nodeB = nodes[1].ipfsd.api
+        nodeBIpfsd = nodes[1].ipfsd
+        nodeBAddr = nodes[1].addrs
+
+        done()
+      })
+    })
+
+    after((done) => nodeBIpfsd.stop(done))
+
+    it('should connect', function (done) {
+      series([
+        (cb) => nodeA.swarm.connect(wsAddr(this.relayAddrs), cb),
+        (cb) => setTimeout(cb, 1000),
+        (cb) => nodeB.swarm.connect(tcpAddr(this.relayAddrs), cb),
+        (cb) => setTimeout(cb, 1000),
+        (cb) => nodeA.swarm.connect(nodeBAddr[0], cb)
+      ], done)
+    })
+
+    it('should transfer', function (done) {
+      const data = crypto.randomBytes(128)
+      waterfall([
+        (cb) => nodeA.files.add(data, cb),
+        (res, cb) => nodeB.files.cat(res[0].hash, cb),
+        (buffer, cb) => {
+          expect(buffer).to.deep.equal(data)
+          cb()
+        }
+      ], done)
+    })
+  })
+
+  describe(`go <-> ${relay} relay <-> browser`, function () {
+    if (isNode) {
+      return
+    }
+
+    this.timeout(80 * 1000)
+
+    let nodeA
+    let nodeB
+    let nodeBIpfsd
+    let nodeBAddrs
+
+    before(function (done) {
+      parallel([
+        (cb) => setupInProcNode([], false, cb),
+        (cb) => setUpGoNode([this.addrA], cb)
+      ], (err, nodes) => {
+        expect(err).to.not.exist()
+
+        nodeA = nodes[0].ipfsd.api
+        nodeB = nodes[1].ipfsd.api
+        nodeBIpfsd = nodes[1].ipfsd
+        nodeBAddrs = nodes[1].addrs
+
+        done()
+      })
+    })
+
+    after((done) => nodeBIpfsd.stop(done))
+
+    it('should connect', function (done) {
+      series([
+        (cb) => nodeA.swarm.connect(wsAddr(this.relayAddrs), cb),
+        (cb) => setTimeout(cb, 1000),
+        (cb) => nodeB.swarm.connect(tcpAddr(this.relayAddrs), cb),
+        (cb) => setTimeout(cb, 1000),
+        (cb) => nodeA.swarm.connect(nodeBAddrs[0], cb)
+      ], done)
+    })
+
+    it('should transfer', function (done) {
+      const data = crypto.randomBytes(128)
+      waterfall([
+        (cb) => nodeA.files.add(data, cb),
+        (res, cb) => nodeB.files.cat(res[0].hash, cb),
+        (buffer, cb) => {
+          expect(buffer).to.deep.equal(data)
+          cb()
+        }
+      ], done)
+    })
+  })
+
+  describe(`browser <-> ${relay} relay <-> browser`, function () {
+    if (isNode || relay === 'browser') {
       return
     }
 
     this.timeout(90 * 1000)
 
-    let browserNode1
-    let browserNode2
+    let nodeA
+    let nodeB
 
-    // let browserNodeId1
-    let browserNode2Addrs
+    // let nodeAId1
+    let nodeBAddrs
 
     before(function (done) {
       parallel([
@@ -299,135 +405,29 @@ function tests (relayType) {
         (cb) => setupInProcNode([], false, cb)
       ], (err, nodes) => {
         expect(err).to.not.exist()
-        browserNode1 = nodes[0].ipfsd.api
-        browserNode2 = nodes[1].ipfsd.api
+        nodeA = nodes[0].ipfsd.api
+        nodeB = nodes[1].ipfsd.api
 
-        browserNode2Addrs = nodes[1].addrs
+        nodeBAddrs = nodes[1].addrs
         done()
       })
     })
 
     it('should connect', function (done) {
       series([
-        (cb) => browserNode1.swarm.connect(wsAddr(this.relayAddrs), cb),
+        (cb) => nodeA.swarm.connect(wsAddr(this.relayAddrs), cb),
         (cb) => setTimeout(cb, 1000),
-        (cb) => browserNode2.swarm.connect(wsAddr(this.relayAddrs), cb),
+        (cb) => nodeB.swarm.connect(wsAddr(this.relayAddrs), cb),
         (cb) => setTimeout(cb, 1000),
-        (cb) => browserNode1.swarm.connect(browserNode2Addrs[0], cb)
+        (cb) => nodeA.swarm.connect(nodeBAddrs[0], cb)
       ], done)
     })
 
     it('should transfer', function (done) {
       const data = crypto.randomBytes(128)
       waterfall([
-        (cb) => browserNode1.files.add(data, cb),
-        (res, cb) => browserNode2.files.cat(res[0].hash, cb),
-        (buffer, cb) => {
-          expect(buffer).to.deep.equal(data)
-          cb()
-        }
-      ], done)
-    })
-  })
-
-  describe(`jsTCP <-> ${relayType} <-> browser`, function () {
-    if (isNode) {
-      return
-    }
-
-    this.timeout(50 * 1000)
-
-    let browserNode1
-    let jsTCP
-    let jsTCPNode
-    let jsTCPAddrs
-
-    before(function (done) {
-      parallel([
-        (cb) => setupInProcNode([], false, cb),
-        (cb) => setUpJsNode([`${base}/35003`], cb)
-      ], (err, nodes) => {
-        expect(err).to.not.exist()
-
-        browserNode1 = nodes[0].ipfsd.api
-        jsTCP = nodes[1].ipfsd.api
-        jsTCPNode = nodes[1].ipfsd
-        jsTCPAddrs = nodes[1].addrs
-
-        done()
-      })
-    })
-
-    after((done) => jsTCPNode.stop(done))
-
-    it('should connect', function (done) {
-      series([
-        (cb) => browserNode1.swarm.connect(wsAddr(this.relayAddrs), cb),
-        (cb) => setTimeout(cb, 1000),
-        (cb) => jsTCP.swarm.connect(tcpAddr(this.relayAddrs), cb),
-        (cb) => setTimeout(cb, 1000),
-        (cb) => browserNode1.swarm.connect(jsTCPAddrs[0], cb)
-      ], done)
-    })
-
-    it('should transfer', function (done) {
-      const data = crypto.randomBytes(128)
-      waterfall([
-        (cb) => browserNode1.files.add(data, cb),
-        (res, cb) => jsTCP.files.cat(res[0].hash, cb),
-        (buffer, cb) => {
-          expect(buffer).to.deep.equal(data)
-          cb()
-        }
-      ], done)
-    })
-  })
-
-  describe(`goTCP <-> ${relayType} <-> browser`, function () {
-    if (isNode) {
-      return
-    }
-
-    this.timeout(50 * 1000)
-
-    let browserNode1
-    let goTCP
-    let goTCPNode
-    let goTCPAddrs
-
-    before(function (done) {
-      parallel([
-        (cb) => setupInProcNode([], false, cb),
-        (cb) => setUpGoNode([`${base}/35003`], cb)
-      ], (err, nodes) => {
-        expect(err).to.not.exist()
-
-        browserNode1 = nodes[0].ipfsd.api
-        goTCP = nodes[1].ipfsd.api
-        goTCPNode = nodes[1].ipfsd
-        goTCPAddrs = nodes[1].addrs
-
-        done()
-      })
-    })
-
-    after((done) => goTCPNode.stop(done))
-
-    it('should connect', function (done) {
-      series([
-        (cb) => browserNode1.swarm.connect(wsAddr(this.relayAddrs), cb),
-        (cb) => setTimeout(cb, 1000),
-        (cb) => goTCP.swarm.connect(tcpAddr(this.relayAddrs), cb),
-        (cb) => setTimeout(cb, 1000),
-        (cb) => browserNode1.swarm.connect(goTCPAddrs[0], cb)
-      ], done)
-    })
-
-    it('should transfer', function (done) {
-      const data = crypto.randomBytes(128)
-      waterfall([
-        (cb) => browserNode1.files.add(data, cb),
-        (res, cb) => goTCP.files.cat(res[0].hash, cb),
+        (cb) => nodeA.files.add(data, cb),
+        (res, cb) => nodeB.files.cat(res[0].hash, cb),
         (buffer, cb) => {
           expect(buffer).to.deep.equal(data)
           cb()
@@ -445,6 +445,9 @@ describe('circuit', () => {
     before(function (done) {
       this.timeout(50 * 1000)
 
+      this.addrA = `${base}/35003`
+      this.addrB = `${base}/35004/ws`
+
       setUpJsNode([`${base}/35001/ws`, `${base}/35002`], true, (err, res) => {
         expect(err).to.not.exist()
         this.relay = res.ipfsd
@@ -455,9 +458,7 @@ describe('circuit', () => {
 
     after(function (done) { this.relay.stop(done) })
 
-    describe('test js relay', function () {
-      tests('jsRelay')
-    })
+    tests('js', tcpAddr, wsAddr)
   })
 
   describe('go relay', function () {
@@ -466,6 +467,9 @@ describe('circuit', () => {
 
     before(function (done) {
       this.timeout(50 * 1000)
+
+      this.addrA = `${base}/35003`
+      this.addrB = `${base}/35004/ws`
 
       setUpGoNode([`${base}/35001/ws`, `${base}/35002`], true, (err, res) => {
         expect(err).to.not.exist()
@@ -477,8 +481,33 @@ describe('circuit', () => {
 
     after(function (done) { this.relay.stop(done) })
 
-    describe('test go relay', function () {
-      tests('goRelay')
+    tests('go', tcpAddr, wsAddr)
+  })
+
+  describe('browser relay', function () {
+    if (isNode) {
+      return
+    }
+
+    this.relay = null
+    this.relayAddrs = null
+
+    before(function (done) {
+      this.timeout(50 * 1000)
+
+      this.addrA = `${base}/35003/ws`
+      this.addrB = `${base}/35004/ws`
+
+      setupInProcNode([], true, (err, res) => {
+        expect(err).to.not.exist()
+        this.relay = res.ipfsd
+        this.relayAddrs = res.addrs
+        done()
+      })
     })
+
+    after(function (done) { this.relay.stop(done) })
+
+    tests('browser', wsAddr, wsAddr)
   })
 })
