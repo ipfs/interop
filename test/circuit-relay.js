@@ -285,7 +285,7 @@ function tests (relay, parseAddrA, parseAddrB) {
       return
     }
 
-    this.timeout(80 * 1000)
+    this.timeout(90 * 1000)
 
     let nodeA
     let nodeB
@@ -338,7 +338,7 @@ function tests (relay, parseAddrA, parseAddrB) {
       return
     }
 
-    this.timeout(80 * 1000)
+    this.timeout(90 * 1000)
 
     let nodeA
     let nodeB
