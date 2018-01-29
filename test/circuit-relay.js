@@ -24,8 +24,8 @@ const procDf = DaemonFactory.create({ type: 'proc', exec: IPFS })
 const baseConf = {
   Bootstrap: [],
   Addresses: {
-    API: '/ipv4/0.0.0.0/tcp/0',
-    Gateway: '/ipv4/0.0.0.0/tcp/0'
+    API: '/ip4/0.0.0.0/tcp/0',
+    Gateway: '/ip4/0.0.0.0/tcp/0'
   },
   Discovery: {
     MDNS: {
