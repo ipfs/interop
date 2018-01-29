@@ -17,6 +17,8 @@ const join = require('path').join
 const os = require('os')
 const hat = require('hat')
 
+const isWindows = os.platform() === 'win32'
+
 const rmDir = promisify(rimraf)
 
 const DaemonFactory = require('ipfsd-ctl')
@@ -175,6 +177,11 @@ describe('exchange files', () => {
 
   // TODO these tests are not fetching the full dir??
   describe('get directory', () => dirs.forEach((num) => {
+    // skipping until https://github.com/ipfs/interop/issues/9 is addressed
+    if (isWindows) {
+      return
+    }
+
     it(`go -> js: depth: 5, num: ${num}`, function () {
       this.timeout(50 * 1000)
       const dir = tmpDir()
