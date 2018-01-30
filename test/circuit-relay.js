@@ -339,7 +339,7 @@ function tests (relay, parseAddrA, parseAddrB) {
   })
 
   describe(`js <-> ${relay} relay <-> browser`, function () {
-    if (relay === 'browser') {
+    if (isNode || relay === 'browser') {
       return
     }
 
@@ -392,7 +392,7 @@ function tests (relay, parseAddrA, parseAddrB) {
   })
 
   describe(`go <-> ${relay} relay <-> browser`, function () {
-    if (relay === 'browser') {
+    if (isNode || relay === 'browser') {
       return
     }
 
@@ -445,7 +445,7 @@ function tests (relay, parseAddrA, parseAddrB) {
   })
 
   describe(`browser <-> ${relay} relay <-> browser`, function () {
-    if (relay === 'browser') {
+    if (isNode || relay === 'browser') {
       return
     }
 
