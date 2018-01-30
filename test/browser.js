@@ -5,4 +5,4 @@
 // require('./pubsub')
 require('./kad-dht')
 require('./circuit-relay')
-require('./repo')
+// require('./repo')
