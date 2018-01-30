@@ -17,7 +17,7 @@
   },
   "scripts": {
     "lint": "aegir lint",
-    "test": "aegir test -t node -t browser --no-cors",
+    "test": "aegir test -t node -t browser --no-cors --timeout 200000",
     "test:node": "aegir test -t node -f test/node.js",
     "test:browser": "aegir test -t browser --no-cors -f test/browser.js"
   },
@@ -57,6 +57,8 @@
     "ipfs-api": "^18.1.1",
     "ipfsd-ctl": "~0.29.1",
     "left-pad": "^1.2.0",
+    "libp2p-websocket-star": "^0.7.2",
+    "libp2p-websocket-star-rendezvous": "^0.2.2",
     "lodash": "^4.17.4",
     "mocha": "^4.0.1",
     "ncp": "^2.0.0",
