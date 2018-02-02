@@ -17,9 +17,9 @@
   },
   "scripts": {
     "lint": "aegir lint",
-    "test": "IPFS_REUSEPORT=false aegir test -t node -t browser --no-cors",
-    "test:node": "IPFS_REUSEPORT=false aegir test -t node -f test/node.js",
-    "test:browser": "IPFS_REUSEPORT=false aegir test -t browser --no-cors -f test/browser.js"
+    "test": "aegir test -t node -t browser --no-cors --timeout 500000",
+    "test:node": "aegir test -t node -f test/node.js",
+    "test:browser": "aegir test -t browser --no-cors -f test/browser.js"
   },
   "pre-commit": [
     "lint"

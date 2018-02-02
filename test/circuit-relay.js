@@ -124,7 +124,7 @@ const tcpAddr = (addrs) => addrs.map((a) => a.toString()).find((a) => !a.include
 
 function tests (relay, parseAddrA, parseAddrB) {
   describe(`js <-> ${relay} relay <-> go`, function () {
-    this.timeout(80 * 1000)
+    // this.timeout(80 * 1000)
 
     let nodeA
     let nodeAAddr
@@ -179,7 +179,7 @@ function tests (relay, parseAddrA, parseAddrB) {
   })
 
   describe(`js <-> ${relay} relay <-> js`, function () {
-    this.timeout(80 * 1000)
+    // this.timeout(80 * 1000)
     let nodeA
     let nodeAAddr
 
@@ -233,7 +233,7 @@ function tests (relay, parseAddrA, parseAddrB) {
   })
 
   describe(`go <-> ${relay} relay <-> go`, function () {
-    this.timeout(80 * 1000)
+    // this.timeout(80 * 1000)
     let nodeA
     let nodeAAddr
     let nodeACircuitAddr
@@ -287,7 +287,7 @@ function tests (relay, parseAddrA, parseAddrB) {
   })
 
   describe(`go <-> ${relay} relay <-> js`, function () {
-    this.timeout(80 * 1000)
+    // this.timeout(80 * 1000)
     let nodeA
     let nodeAAddr
     let nodeACircuitAddr
@@ -347,14 +347,14 @@ describe('circuit', () => {
     this.relayAddrs = null
 
     before(function (done) {
-      this.timeout(50 * 1000)
+      // this.timeout(50 * 1000)
 
-      this.addrA = `${base}/35003`
-      this.addrB = `${base}/35004/ws`
+      this.addrA = `${base}/0`
+      this.addrB = `${base}/0/ws`
 
       setUpJsNode([
-        `${base}/35001/ws`,
-        `${base}/35002`,
+        `${base}/0/ws`,
+        `${base}/0`,
         '/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star'
       ], true, (err, res) => {
         expect(err).to.not.exist()
@@ -374,7 +374,7 @@ describe('circuit', () => {
       }
 
       describe(`js <-> js relay <-> browser`, function () {
-        this.timeout(100 * 1000)
+        // this.timeout(100 * 1000)
 
         let nodeA
         let nodeAAddr
@@ -429,10 +429,10 @@ describe('circuit', () => {
       })
 
       describe(`go <-> js relay <-> browser`, function () {
-        this.timeout(100 * 1000)
+        // this.timeout(100 * 1000)
 
         let nodeA
-        let nodeAAddr
+        // let nodeAAddr
 
         let nodeB
         let nodeBAddr
@@ -448,7 +448,7 @@ describe('circuit', () => {
             nodes = res.map((node) => node.ipfsd)
 
             nodeA = res[0].ipfsd.api
-            nodeAAddr = tcpAddr(res[0].addrs)
+            // nodeAAddr = tcpAddr(res[0].addrs)
 
             nodeB = res[1].ipfsd.api
             nodeBAddr = wsStarAddr(res[1].addrs)
@@ -484,7 +484,7 @@ describe('circuit', () => {
       })
 
       describe(`browser <-> js relay <-> browser`, function () {
-        this.timeout(100 * 1000)
+        // this.timeout(100 * 1000)
 
         let nodeA
         let nodeB
@@ -537,14 +537,14 @@ describe('circuit', () => {
     this.relayAddrs = null
 
     before(function (done) {
-      this.timeout(50 * 1000)
+      // this.timeout(50 * 1000)
 
-      this.addrA = `${base}/35003`
-      this.addrB = `${base}/35004/ws`
+      this.addrA = `${base}/0`
+      this.addrB = `${base}/0/ws`
 
       setUpGoNode([
-        `${base}/35001/ws`,
-        `${base}/35002`
+        `${base}/0/ws`,
+        `${base}/0`
       ], true, (err, res) => {
         expect(err).to.not.exist()
         this.relay = res.ipfsd
@@ -563,7 +563,7 @@ describe('circuit', () => {
       }
 
       describe(`js <-> go relay <-> browser`, function () {
-        this.timeout(100 * 1000)
+        // this.timeout(100 * 1000)
 
         let nodeA
 
@@ -613,7 +613,7 @@ describe('circuit', () => {
       })
 
       describe(`go <-> go relay <-> browser`, function () {
-        this.timeout(100 * 1000)
+        // this.timeout(100 * 1000)
 
         let nodeA
 
@@ -667,7 +667,7 @@ describe('circuit', () => {
           return
         }
 
-        this.timeout(100 * 1000)
+        // this.timeout(100 * 1000)
 
         let nodeA
         let nodeB
@@ -719,10 +719,10 @@ describe('circuit', () => {
     this.relayAddrs = null
 
     before(function (done) {
-      this.timeout(50 * 1000)
+      // this.timeout(50 * 1000)
 
-      this.addrA = `${base}/35003/ws`
-      this.addrB = `${base}/35004/ws`
+      this.addrA = `${base}/0/ws`
+      this.addrB = `${base}/0/ws`
 
       setUpInProcNode(['/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star'], true, (err, res) => {
         expect(err).to.not.exist()
@@ -734,15 +734,15 @@ describe('circuit', () => {
 
     after(function (done) { this.relay.stop(done) })
 
-    tests('go', wsAddr, wsAddr)
+    tests('browser', wsAddr, wsAddr)
 
-    describe(`go browser`, function () {
+    describe(`browser`, function () {
       if (isNode) {
         return
       }
 
       describe(`js <-> browser relay <-> browser`, function () {
-        this.timeout(100 * 1000)
+        // this.timeout(100 * 1000)
 
         let nodeA
         let nodeAAddr
@@ -795,7 +795,7 @@ describe('circuit', () => {
       })
 
       describe(`go <-> browser relay <-> browser`, function () {
-        this.timeout(100 * 1000)
+        // this.timeout(100 * 1000)
 
         let nodeA
         let nodeAAddr
