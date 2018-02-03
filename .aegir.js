@@ -16,28 +16,35 @@ module.exports = {
       included: false
     }],
     singleRun: true,
-    browserNoActivityTimeout: 200 * 1000
+    captureTimeout: 5000 * 1000,
+    // browserDisconnectTolerance: 3, //this one helps
+    browserDisconnectTimeout: 5000 * 1000,
+    browserNoActivityTimeout: 5000 * 1000
   },
   hooks: {
-    pre: (done) => {
-      parallel([
-        (cb) => server.start(cb),
-        (cb) => {
-          rendezvous.start({ port: 24642 }, (err, _rzserver) => {
-            if (err) {
-              return done(err)
-            }
-            rzserver = _rzserver
-            cb()
-          })
-        }
-      ], done)
-    },
-    post: (done) => {
-      parallel([
-        (cb) => server.stop(cb),
-        (cb) => rzserver.stop(cb)
-      ], done)
+    browser: {
+      pre: (done) => {
+        parallel([
+          (cb) => server.start(cb),
+          (cb) => {
+            rendezvous.start({
+              port: 24642
+            }, (err, _rzserver) => {
+              if (err) {
+                return done(err)
+              }
+              rzserver = _rzserver
+              cb()
+            })
+          }
+        ], done)
+      },
+      post: (done) => {
+        parallel([
+          (cb) => server.stop(cb),
+          (cb) => rzserver.stop(cb)
+        ], done)
+      }
     }
   }
 }
