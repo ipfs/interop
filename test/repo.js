@@ -82,7 +82,11 @@ describe('repo', () => {
 
     let hash
     series([
-      (cb) => df.spawn({ type: 'js', repoPath: dir, initOptions: { bits: 512 } }, cb),
+      (cb) => df.spawn({
+        type: 'js',
+        repoPath: dir,
+        initOptions: { bits: 512 }
+      }, cb),
       (node, cb) => {
         jsDaemon = node
         cb()
@@ -93,7 +97,10 @@ describe('repo', () => {
         catAndCheck(jsDaemon.api, hash, data, cb)
       },
       (cb) => jsDaemon.stop(cb),
-      (cb) => df.spawn({ repoPath: dir, initOptions: { bits: 1024 } }, cb),
+      (cb) => df.spawn({
+        repoPath: dir,
+        initOptions: { bits: 1024 }
+      }, cb),
       (node, cb) => {
         goDaemon = node
         cb()
