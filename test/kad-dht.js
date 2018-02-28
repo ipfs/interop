@@ -23,10 +23,10 @@ describe.skip('kad-dht', () => {
 
     before((done) => {
       parallel([
-        (cb) => df.spawn(cb),
-        (cb) => df.spawn(cb),
-        (cb) => df.spawn(cb),
-        (cb) => df.spawn({ type: 'js' }, cb)
+        (cb) => df.spawn({ initOptions: { bits: 1024 } }, cb),
+        (cb) => df.spawn({ initOptions: { bits: 1024 } }, cb),
+        (cb) => df.spawn({ initOptions: { bits: 1024 } }, cb),
+        (cb) => df.spawn({ type: 'js', initOptions: { bits: 512 } }, cb)
       ], (err, nodes) => {
         expect(err).to.not.exist()
         goD1 = nodes[0]

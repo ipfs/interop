@@ -37,7 +37,8 @@ describe('repo', () => {
     series([
       (cb) => df.spawn({
         repoPath: dir,
-        disposable: false
+        disposable: false,
+        initOptions: { bits: 1024 }
       }, (err, node) => {
         expect(err).to.not.exist()
         goDaemon = node
@@ -54,7 +55,8 @@ describe('repo', () => {
       (cb) => df.spawn({
         type: 'js',
         repoPath: dir,
-        disposable: false
+        disposable: false,
+        initOptions: { bits: 512 }
       }, (err, node) => {
         expect(err).to.not.exist()
         jsDaemon = node
@@ -80,7 +82,11 @@ describe('repo', () => {
 
     let hash
     series([
-      (cb) => df.spawn({ type: 'js', repoPath: dir }, cb),
+      (cb) => df.spawn({
+        type: 'js',
+        repoPath: dir,
+        initOptions: { bits: 512 }
+      }, cb),
       (node, cb) => {
         jsDaemon = node
         cb()
@@ -91,7 +97,10 @@ describe('repo', () => {
         catAndCheck(jsDaemon.api, hash, data, cb)
       },
       (cb) => jsDaemon.stop(cb),
-      (cb) => df.spawn({ repoPath: dir }, cb),
+      (cb) => df.spawn({
+        repoPath: dir,
+        initOptions: { bits: 1024 }
+      }, cb),
       (node, cb) => {
         goDaemon = node
         cb()

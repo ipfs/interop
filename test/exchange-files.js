@@ -57,9 +57,9 @@ describe('exchange files', () => {
     this.timeout(50 * 1000)
 
     parallel([
-      (cb) => df.spawn(cb),
-      (cb) => df.spawn({ type: 'js' }, cb),
-      (cb) => df.spawn({ type: 'js' }, cb)
+      (cb) => df.spawn({ initOptions: { bits: 1024 } }, cb),
+      (cb) => df.spawn({ type: 'js', initOptions: { bits: 512 } }, cb),
+      (cb) => df.spawn({ type: 'js', initOptions: { bits: 512 } }, cb)
     ], (err, n) => {
       expect(err).to.not.exist()
       nodes = n
