@@ -2,14 +2,11 @@
 /* eslint-env mocha */
 'use strict'
 
-const chai = require('chai')
-const dirtyChai = require('dirty-chai')
-const expect = chai.expect
-chai.use(dirtyChai)
-
 const parallel = require('async/parallel')
+const series = require('async/series')
 
 const isNode = require('detect-node')
+
 const utils = require('./utils/circuit')
 
 const proc = utils.setUpProcNode
@@ -20,672 +17,247 @@ const ws = utils.wsAddr
 const star = utils.wsStarAddr
 const circuit = utils.circuitAddr
 
-const create = utils.create
-const connect = utils.connect
 const send = utils.send
 
-const base = '/ip4/127.0.0.1/tcp'
+const base = '/ip4/127.0.0.1/tcp/0'
 
-// TODO: (dryajov) circuit tests ended up being
-// more complex than expected, the majority
-// of the complexity comes from spawning and
-// connecting the nodes.
-//
-// I've come up with this little DSL to avoid
-// duplicating code all over the place. Some
-// notable quirks that lead to this:
-//
-// - ipfs-api connect, doesn't support peer ids,
-// only plain addresses, hence we end up filtering
-// addresses (clunky)
-// - not all connect sequences work in all cases
-//   - i.e. cant connect to browser relays since
-//     go doesn't support the star protos, so the
-//     sequence has to be changed to connect the
-//     browser relay to the nodes instead
-//
-// that breaks the flow and also any attempt to
-// generalize and abstract things out
+const connect = (nodeA, nodeB, relay, callback) => {
+  series([
+    (cb) => nodeA.ipfsd.api.swarm.connect(ws(relay.addrs), cb),
+    (cb) => setTimeout(cb, 1000),
+    (cb) => nodeB.ipfsd.api.swarm.connect(ws(relay.addrs), cb),
+    (cb) => setTimeout(cb, 1000),
+    (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
+  ], callback)
+}
 
-/**
- * Legend:
- * - `name`     - the name of the test
- * - `nodes`    - object containing the nodes to spawn
- *  - `key`     - the key of the object is the name
- *  - `exec`    - the method used to spawn the node, there are tree `js`, `go` and `proc`
- *  - `addrs`   - the address to spawn the node with
- * - `connect`  - array of arrays describing how to connect the nodes, reads from left to right
- *                the first element connects to the second. A tuple contains objects of the for of
- *                [{name: 'node1', parser: js}, {name: 'relay'}]
- *  - `name`    - the name of the node
- *  - `parser`  - the parsing function used to extract the address
- * - `send`     - array describing the direction in which to send the data
- *                ['node1', 'node2'] send from node1 to node2
- *
- *
- *  {
- *   name: 'go-go-go',           // name of the test, what shows in the describe
- *   nodes: {                    // describes the nodes section
- *     node1: {                  // name of the node
- *       exec: go,               // the function to create the nodes
- *       addrs: [`${base}/0/ws`] // address of the node
- *     },
- *     relay: {
- *       exec: go,
- *       addrs: [`${base}/0/ws`]
- *     },
- *     node2: {
- *       exec: go,
- *       addrs: [`${base}/0/ws`]
- *     }
- *   },
- *   connect: [                                                // describes how to connect the nodes
- *     [{ name: 'node1', parser: ws }, { name: 'relay' }],     // connect node1 to relay use ws parser to filter the address
- *     [{ name: 'node2', parser: ws }, { name: 'relay' }],     // connect node2 to relay use ws parser to filter the address
- *     [{ name: 'node1', parser: circuit }, { name: 'node2' }] // connect node1 to node2 use circuit parser to filter the address
- *    ],
- *    send: ['node1', 'node2'] // describe the direction which data is sent - node1 to node2
- *    skip: () => true         // method called to determine if the tests should be skipped
- *  }
- */
+const timeout = 30 * 1000
 
-const tests = [
-  {
-    name: 'go-go-go',
-    nodes: {
-      node1: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2']
+const baseTest = {
+  connect,
+  send,
+  timeout
+}
+
+let tests = {
+  'js-go-js': {
+    create: (callback) => series([
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => js([`${base}/ws`], cb)
+    ], callback)
   },
-  {
-    name: 'js-go-go',
-    nodes: {
-      node1: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => true
+  'go-go-js': {
+    create: (callback) => series([
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => js([`${base}/ws`], cb)
+    ], callback)
   },
-  {
-    name: 'js-go-js',
-    nodes: {
-      node1: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2']
+  'go-go-go': {
+    create: (callback) => series([
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => go([`${base}/ws`], cb)
+    ], callback)
   },
-  {
-    name: 'js-js-js',
-    nodes: {
-      node1: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2']
+  'go-js-go': {
+    create: (callback) => series([
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => go([`${base}/ws`], cb)
+    ], callback)
   },
-  {
-    name: 'js-js-go',
-    nodes: {
-      node1: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2']
+  'js-js-go': {
+    create: (callback) => series([
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => go([`${base}/ws`], cb)
+    ], callback),
+    timeout: 50 * 1000
   },
-  {
-    name: 'go-js-go',
-    nodes: {
-      node1: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2']
-  },
-  {
-    name: 'browser-js-go',
-    nodes: {
-      node1: {
-        exec: proc,
-        addrs: []
-      },
-      relay: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'browser-js-js',
-    nodes: {
-      node1: {
-        exec: proc,
-        addrs: []
-      },
-      relay: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'js-js-browser',
-    nodes: {
-      node1: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: proc,
-        addrs: []
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'go-js-browser',
-    nodes: {
-      node1: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: proc,
-        addrs: []
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'browser-js-browser',
-    nodes: {
-      node1: {
-        exec: proc,
-        addrs: []
-      },
-      relay: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: proc,
-        addrs: []
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'browser-go-go',
-    nodes: {
-      node1: {
-        exec: proc,
-        addrs: []
-      },
-      relay: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'browser-go-js',
-    nodes: {
-      node1: {
-        exec: proc,
-        addrs: []
-      },
-      relay: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'js-go-browser',
-    nodes: {
-      node1: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: proc,
-        addrs: []
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'go-go-browser',
-    nodes: {
-      node1: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: proc,
-        addrs: []
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'browser-go-browser',
-    nodes: {
-      node1: {
-        exec: proc,
-        addrs: []
-      },
-      relay: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      node2: {
-        exec: proc,
-        addrs: []
-      }
-    },
-    connect: [
-      [{ name: 'node1', parser: ws }, { name: 'relay' }],
-      [{ name: 'node2', parser: ws }, { name: 'relay' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => true
-  },
-  {
-    name: 'go-browser-browser',
-    nodes: {
-      node1: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: proc,
-        addrs: [`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`],
-        relay: true
-      },
-      node2: {
-        exec: proc,
-        addrs: [`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`]
-      }
-    },
-    connect: [
-      [{ name: 'relay', parser: ws }, { name: 'node1' }],
-      [{ name: 'relay', parser: star }, { name: 'node2' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'go-browser-js',
-    nodes: {
-      node1: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: proc,
-        addrs: []
-      },
-      node2: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'relay', parser: ws }, { name: 'node1' }],
-      [{ name: 'relay', parser: ws }, { name: 'node2' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'go-browser-go',
-    nodes: {
-      node1: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: proc,
-        addrs: []
-      },
-      node2: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'relay', parser: ws }, { name: 'node1' }],
-      [{ name: 'relay', parser: ws }, { name: 'node2' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => true
-  },
-  {
-    name: 'js-browser-js',
-    nodes: {
-      node1: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: proc,
-        addrs: []
-      },
-      node2: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'relay', parser: ws }, { name: 'node1' }],
-      [{ name: 'relay', parser: ws }, { name: 'node2' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'js-browser-go',
-    nodes: {
-      node1: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: proc,
-        addrs: []
-      },
-      node2: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'relay', parser: ws }, { name: 'node1' }],
-      [{ name: 'relay', parser: ws }, { name: 'node2' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'js-browser-browser',
-    nodes: {
-      node1: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      },
-      relay: {
-        exec: proc,
-        addrs: [`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`]
-      },
-      node2: {
-        exec: proc,
-        addrs: [`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`]
-      }
-    },
-    connect: [
-      [{ name: 'relay', parser: ws }, { name: 'node1' }],
-      [{ name: 'relay', parser: star }, { name: 'node2' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'browser-browser-js',
-    nodes: {
-      node1: {
-        exec: proc,
-        addrs: [`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`]
-      },
-      relay: {
-        exec: proc,
-        addrs: [`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`]
-      },
-      node2: {
-        exec: js,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'relay', parser: star }, { name: 'node1' }],
-      [{ name: 'relay', parser: ws }, { name: 'node2' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => isNode
-  },
-  {
-    name: 'browser-browser-go',
-    nodes: {
-      node1: {
-        exec: proc,
-        addrs: [`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`]
-      },
-      relay: {
-        exec: proc,
-        addrs: [`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`]
-      },
-      node2: {
-        exec: go,
-        addrs: [`${base}/0/ws`]
-      }
-    },
-    connect: [
-      [{ name: 'relay', parser: star }, { name: 'node1' }],
-      [{ name: 'relay', parser: ws }, { name: 'node2' }],
-      [{ name: 'node1', parser: circuit }, { name: 'node2' }]
-    ],
-    send: ['node1', 'node2'],
-    skip: () => true
+  'js-js-js': {
+    create: (callback) => series([
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => js([`${base}/ws`], cb)
+    ], callback),
+    timeout: 50 * 1000
   }
-]
+}
 
-describe('circuit', () => {
-  tests.forEach((test) => {
+const browser = {
+  'browser-go-js': {
+    create:
+      (callback) => series([
+        (cb) => proc([], cb),
+        (cb) => go([`${base}/ws`], cb),
+        (cb) => js([`${base}/ws`], cb)
+      ], callback),
+    timeout: 50 * 1000
+  },
+  'browser-go-go': {
+    create: (callback) => series([
+      (cb) => proc([], cb),
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => go([`${base}/ws`], cb)
+    ], callback),
+    timeout: 50 * 1000
+  },
+  'browser-js-js': {
+    create: (callback) => series([
+      (cb) => proc([], cb),
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => js([`${base}/ws`], cb)
+    ], callback),
+    timeout: 50 * 1000
+  },
+  'browser-js-go': {
+    create: (callback) => series([
+      (cb) => proc([], cb),
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => js([`${base}/ws`], cb)
+    ], callback),
+    timeout: 50 * 1000
+  },
+  'js-go-browser': {
+    create: (callback) => series([
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => proc([], cb)
+    ], callback),
+    timeout: 50 * 1000
+  },
+  'go-go-browser': {
+    create: (callback) => series([
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => proc([], cb)
+    ], callback),
+    timeout: 50 * 1000
+  },
+  'js-js-browser': {
+    create: (callback) => series([
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => proc([], cb)
+    ], callback),
+    timeout: 50 * 1000
+  },
+  'go-js-browser': {
+    create: (callback) => series([
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => proc([], cb)
+    ], callback),
+    timeout: 50 * 1000
+  },
+  'go-browser-browser': {
+    create: (callback) => series([
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => setTimeout(cb, 2000),
+      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => setTimeout(cb, 2000),
+      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
+    ], callback),
+    connect: (nodeA, nodeB, relay, callback) => {
+      series([
+        (cb) => relay.ipfsd.api.swarm.connect(ws(nodeA.addrs), cb),
+        (cb) => setTimeout(cb, 2000),
+        (cb) => relay.ipfsd.api.swarm.connect(star(nodeB.addrs), cb),
+        (cb) => setTimeout(cb, 2000),
+        (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
+      ], callback)
+    },
+    timeout: 80 * 1000
+  },
+  'js-browser-browser': {
+    create: (callback) => series([
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
+    ], callback),
+    connect: (nodeA, nodeB, relay, callback) => {
+      series([
+        (cb) => relay.ipfsd.api.swarm.connect(ws(nodeA.addrs), cb),
+        (cb) => setTimeout(cb, 2000),
+        (cb) => relay.ipfsd.api.swarm.connect(star(nodeB.addrs), cb),
+        (cb) => setTimeout(cb, 2000),
+        (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
+      ], callback)
+    },
+    timeout: 80 * 1000
+  },
+  'browser-browser-go': {
+    create: (callback) => series([
+      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => go([`${base}/ws`], cb)
+    ], callback),
+    connect: (nodeA, nodeB, relay, callback) => {
+      series([
+        (cb) => relay.ipfsd.api.swarm.connect(star(nodeA.addrs), cb),
+        (cb) => setTimeout(cb, 2000),
+        (cb) => relay.ipfsd.api.swarm.connect(ws(nodeB.addrs), cb),
+        (cb) => setTimeout(cb, 2000),
+        (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
+      ], callback)
+    },
+    timeout: 80 * 1000
+  },
+  'browser-browser-js': {
+    create: (callback) => series([
+      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => js([`${base}/ws`], cb)
+    ], callback),
+    connect: (nodeA, nodeB, relay, callback) => {
+      series([
+        (cb) => relay.ipfsd.api.swarm.connect(star(nodeA.addrs), cb),
+        (cb) => setTimeout(cb, 2000),
+        (cb) => relay.ipfsd.api.swarm.connect(ws(nodeB.addrs), cb),
+        (cb) => setTimeout(cb, 2000),
+        (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
+      ], callback)
+    }
+  },
+  timeout: 80 * 1000
+}
+
+describe.only('circuit', () => {
+  if (!isNode) {
+    tests = Object.assign([], tests, browser)
+  }
+
+  Object.keys(tests).forEach((test) => {
     let nodes
+    let nodeA
+    let relay
+    let nodeB
 
-    const dsc = test.skip && test.skip() ? describe.skip : describe
-    dsc(test.name, function () {
+    tests[test] = Object.assign({}, baseTest, tests[test])
+    const dsc = tests[test].skip && tests[test].skip() ? describe.skip : describe
+    dsc(test, function () {
+      this.timeout(tests[test].timeout)
+
       before((done) => {
-        create(test.nodes, (err, _nodes) => {
-          expect(err).to.not.exist()
-          nodes = _nodes
+        tests[test].create((err, _nodes) => {
+          nodes = _nodes.map((n) => n.ipfsd)
+          nodeA = _nodes[0]
+          relay = _nodes[1]
+          nodeB = _nodes[2]
           done()
         })
       })
 
-      after((done) => parallel(nodes.map((node) => (cb) => node.node.ipfsd.stop(cb)), done))
+      after((done) => parallel(nodes.map((ipfsd) => (cb) => ipfsd.stop(cb)), done))
 
       it('connect', (done) => {
-        connect(test.connect, nodes, done)
+        tests[test].connect(nodeA, nodeB, relay, done)
       })
 
       it('send', (done) => {
-        send(test.send, nodes, done)
+        tests[test].send(nodeA.ipfsd.api, nodeB.ipfsd.api, done)
       })
     })
   })
