@@ -29,7 +29,7 @@ const base = '/ip4/127.0.0.1/tcp/0'
 const connect = (nodeA, nodeB, relay, timeout, callback) => {
   if (typeof timeout === 'function') {
     callback = timeout
-    timeout = 500
+    timeout = 1000
   }
 
   series([
@@ -41,7 +41,7 @@ const connect = (nodeA, nodeB, relay, timeout, callback) => {
   ], callback)
 }
 
-const timeout = 30 * 1000
+const timeout = 40 * 1000
 const baseTest = {
   connect,
   send,
@@ -124,7 +124,7 @@ const browser = {
         (cb) => js([`${base}/ws`], cb)
       ], callback),
     timeout: 50 * 1000,
-    connect: connWithTimeout(1000)
+    connect: connWithTimeout(1500)
   },
   'browser-go-go': {
     create: (callback) => series([
@@ -133,7 +133,7 @@ const browser = {
       (cb) => go([`${base}/ws`], cb)
     ], callback),
     timeout: 50 * 1000,
-    connect: connWithTimeout(1000)
+    connect: connWithTimeout(1500)
   },
   'browser-js-js': {
     create: (callback) => series([
@@ -142,7 +142,7 @@ const browser = {
       (cb) => js([`${base}/ws`], cb)
     ], callback),
     timeout: 50 * 1000,
-    connect: connWithTimeout(1000)
+    connect: connWithTimeout(1500)
   },
   'browser-js-go': {
     create: (callback) => series([
@@ -151,7 +151,7 @@ const browser = {
       (cb) => js([`${base}/ws`], cb)
     ], callback),
     timeout: 50 * 1000,
-    connect: connWithTimeout(1000)
+    connect: connWithTimeout(1500)
   },
   'js-go-browser': {
     create: (callback) => series([
@@ -160,7 +160,7 @@ const browser = {
       (cb) => proc([], cb)
     ], callback),
     timeout: 50 * 1000,
-    connect: connWithTimeout(1000)
+    connect: connWithTimeout(1500)
   },
   'go-go-browser': {
     create: (callback) => series([
@@ -169,7 +169,7 @@ const browser = {
       (cb) => proc([], cb)
     ], callback),
     timeout: 50 * 1000,
-    connect: connWithTimeout(1000)
+    connect: connWithTimeout(1500)
   },
   'js-js-browser': {
     create: (callback) => series([
@@ -178,7 +178,7 @@ const browser = {
       (cb) => proc([], cb)
     ], callback),
     timeout: 50 * 1000,
-    connect: connWithTimeout(1000)
+    connect: connWithTimeout(1500)
   },
   'go-js-browser': {
     create: (callback) => series([
@@ -187,14 +187,12 @@ const browser = {
       (cb) => proc([], cb)
     ], callback),
     timeout: 50 * 1000,
-    connect: connWithTimeout(1000)
+    connect: connWithTimeout(1500)
   },
   'go-browser-browser': {
     create: (callback) => series([
       (cb) => go([`${base}/ws`], cb),
-      (cb) => setTimeout(cb, 2000),
       (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => setTimeout(cb, 2000),
       (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
@@ -206,8 +204,7 @@ const browser = {
         (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
       ], callback)
     },
-    timeout: 100 * 1000,
-    skip: () => true
+    timeout: 100 * 1000
   },
   'js-browser-browser': {
     create: (callback) => series([
@@ -262,7 +259,7 @@ const browser = {
   }
 }
 
-describe.only('circuit', () => {
+describe('circuit', () => {
   if (!isNode) {
     tests = Object.assign([], tests, browser)
   }
