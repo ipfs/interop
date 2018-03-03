@@ -42,7 +42,6 @@ const connect = (nodeA, nodeB, relay, timeout, callback) => {
 }
 
 const timeout = 30 * 1000
-
 const baseTest = {
   connect,
   send,
@@ -50,11 +49,18 @@ const baseTest = {
 }
 
 let tests = {
-  'js-go-js': {
+  'go-go-go': {
+    create: (callback) => series([
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => go([`${base}/ws`], cb)
+    ], callback)
+  },
+  'js-go-go': {
     create: (callback) => series([
       (cb) => js([`${base}/ws`], cb),
       (cb) => go([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb)
+      (cb) => go([`${base}/ws`], cb)
     ], callback)
   },
   'go-go-js': {
@@ -64,11 +70,11 @@ let tests = {
       (cb) => js([`${base}/ws`], cb)
     ], callback)
   },
-  'go-go-go': {
+  'js-go-js': {
     create: (callback) => series([
+      (cb) => js([`${base}/ws`], cb),
       (cb) => go([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb)
+      (cb) => js([`${base}/ws`], cb)
     ], callback)
   },
   'go-js-go': {
@@ -86,6 +92,14 @@ let tests = {
     ], callback),
     timeout: 50 * 1000
   },
+  'go-js-js': {
+    create: (callback) => series([
+      (cb) => go([`${base}/ws`], cb),
+      (cb) => js([`${base}/ws`], cb),
+      (cb) => js([`${base}/ws`], cb)
+    ], callback),
+    timeout: 50 * 1000
+  },
   'js-js-js': {
     create: (callback) => series([
       (cb) => js([`${base}/ws`], cb),
@@ -96,6 +110,11 @@ let tests = {
   }
 }
 
+const connWithTimeout = (timeout) => {
+  return (nodeA, nodeB, relay, callback) => {
+    connect(nodeA, nodeB, relay, timeout, callback)
+  }
+}
 const browser = {
   'browser-go-js': {
     create:
@@ -104,7 +123,8 @@ const browser = {
         (cb) => go([`${base}/ws`], cb),
         (cb) => js([`${base}/ws`], cb)
       ], callback),
-    timeout: 50 * 1000
+    timeout: 50 * 1000,
+    connect: connWithTimeout(1000)
   },
   'browser-go-go': {
     create: (callback) => series([
@@ -112,7 +132,8 @@ const browser = {
       (cb) => go([`${base}/ws`], cb),
       (cb) => go([`${base}/ws`], cb)
     ], callback),
-    timeout: 50 * 1000
+    timeout: 50 * 1000,
+    connect: connWithTimeout(1000)
   },
   'browser-js-js': {
     create: (callback) => series([
@@ -120,7 +141,8 @@ const browser = {
       (cb) => js([`${base}/ws`], cb),
       (cb) => js([`${base}/ws`], cb)
     ], callback),
-    timeout: 50 * 1000
+    timeout: 50 * 1000,
+    connect: connWithTimeout(1000)
   },
   'browser-js-go': {
     create: (callback) => series([
@@ -128,7 +150,8 @@ const browser = {
       (cb) => js([`${base}/ws`], cb),
       (cb) => js([`${base}/ws`], cb)
     ], callback),
-    timeout: 50 * 1000
+    timeout: 50 * 1000,
+    connect: connWithTimeout(1000)
   },
   'js-go-browser': {
     create: (callback) => series([
@@ -136,7 +159,8 @@ const browser = {
       (cb) => go([`${base}/ws`], cb),
       (cb) => proc([], cb)
     ], callback),
-    timeout: 50 * 1000
+    timeout: 50 * 1000,
+    connect: connWithTimeout(1000)
   },
   'go-go-browser': {
     create: (callback) => series([
@@ -144,7 +168,8 @@ const browser = {
       (cb) => go([`${base}/ws`], cb),
       (cb) => proc([], cb)
     ], callback),
-    timeout: 50 * 1000
+    timeout: 50 * 1000,
+    connect: connWithTimeout(1000)
   },
   'js-js-browser': {
     create: (callback) => series([
@@ -152,7 +177,8 @@ const browser = {
       (cb) => js([`${base}/ws`], cb),
       (cb) => proc([], cb)
     ], callback),
-    timeout: 50 * 1000
+    timeout: 50 * 1000,
+    connect: connWithTimeout(1000)
   },
   'go-js-browser': {
     create: (callback) => series([
@@ -160,7 +186,8 @@ const browser = {
       (cb) => js([`${base}/ws`], cb),
       (cb) => proc([], cb)
     ], callback),
-    timeout: 50 * 1000
+    timeout: 50 * 1000,
+    connect: connWithTimeout(1000)
   },
   'go-browser-browser': {
     create: (callback) => series([
