@@ -665,7 +665,7 @@ const tests = [
   }
 ]
 
-describe.only('circuit', () => {
+describe('circuit', () => {
   tests.forEach((test) => {
     let nodes
 
