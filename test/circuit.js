@@ -2,6 +2,11 @@
 /* eslint-env mocha */
 'use strict'
 
+const chai = require('chai')
+const dirtyChai = require('dirty-chai')
+const expect = chai.expect
+chai.use(dirtyChai)
+
 const parallel = require('async/parallel')
 const series = require('async/series')
 
@@ -21,12 +26,17 @@ const send = utils.send
 
 const base = '/ip4/127.0.0.1/tcp/0'
 
-const connect = (nodeA, nodeB, relay, callback) => {
+const connect = (nodeA, nodeB, relay, timeout, callback) => {
+  if (typeof timeout === 'function') {
+    callback = timeout
+    timeout = 500
+  }
+
   series([
     (cb) => nodeA.ipfsd.api.swarm.connect(ws(relay.addrs), cb),
-    (cb) => setTimeout(cb, 1000),
+    (cb) => setTimeout(cb, timeout),
     (cb) => nodeB.ipfsd.api.swarm.connect(ws(relay.addrs), cb),
-    (cb) => setTimeout(cb, 1000),
+    (cb) => setTimeout(cb, timeout),
     (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
   ], callback)
 }
@@ -169,7 +179,8 @@ const browser = {
         (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
       ], callback)
     },
-    timeout: 80 * 1000
+    timeout: 100 * 1000,
+    skip: () => true
   },
   'js-browser-browser': {
     create: (callback) => series([
@@ -186,7 +197,7 @@ const browser = {
         (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
       ], callback)
     },
-    timeout: 80 * 1000
+    timeout: 100 * 1000
   },
   'browser-browser-go': {
     create: (callback) => series([
@@ -203,7 +214,8 @@ const browser = {
         (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
       ], callback)
     },
-    timeout: 80 * 1000
+    timeout: 100 * 1000,
+    skip: () => true
   },
   'browser-browser-js': {
     create: (callback) => series([
@@ -220,8 +232,7 @@ const browser = {
         (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
       ], callback)
     }
-  },
-  timeout: 80 * 1000
+  }
 }
 
 describe.only('circuit', () => {
@@ -242,6 +253,7 @@ describe.only('circuit', () => {
 
       before((done) => {
         tests[test].create((err, _nodes) => {
+          expect(err).to.not.exist()
           nodes = _nodes.map((n) => n.ipfsd)
           nodeA = _nodes[0]
           relay = _nodes[1]
