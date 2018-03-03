@@ -183,4 +183,3 @@ exports.tcpAddr = (addrs) => addrs
 exports.circuitAddr = (addrs) => addrs
   .map((a) => a.toString())
   .find((a) => a.includes('/p2p-circuit/ipfs'))
-

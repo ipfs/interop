@@ -47,7 +47,6 @@ const base = '/ip4/127.0.0.1/tcp'
 // that breaks the flow and also any attempt to
 // generalize and abstract things out
 
-
 /**
  * Legend:
  * - `name`     - the name of the test
