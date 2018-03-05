@@ -41,7 +41,7 @@ const connect = (nodeA, nodeB, relay, timeout, callback) => {
   ], callback)
 }
 
-const timeout = 60 * 1000
+const timeout = 80 * 1000
 const baseTest = {
   connect,
   send,
