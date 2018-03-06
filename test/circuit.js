@@ -18,9 +18,9 @@ const creatProc = utils.createProcNode
 const createJs = utils.createJsNode
 const createGo = utils.createUpGoNode
 
-const wsAddr = utils.wsAddr
-const wsStarAddr = utils.wsStarAddr
-const circuitAddr = utils.circuitAddr
+const getWsAddr = utils.wsAddr
+const getWsStarAddr = utils.wsStarAddr
+const getCircuitAddr = utils.circuitAddr
 
 const send = utils.send
 
@@ -33,11 +33,11 @@ const connect = (nodeA, nodeB, relay, timeout, callback) => {
   }
 
   series([
-    (cb) => nodeA.ipfsd.api.swarm.connect(wsAddr(relay.addrs), cb),
+    (cb) => nodeA.ipfsd.api.swarm.connect(getWsAddr(relay.addrs), cb),
     (cb) => setTimeout(cb, timeout),
-    (cb) => nodeB.ipfsd.api.swarm.connect(wsAddr(relay.addrs), cb),
+    (cb) => nodeB.ipfsd.api.swarm.connect(getWsAddr(relay.addrs), cb),
     (cb) => setTimeout(cb, timeout),
-    (cb) => nodeA.ipfsd.api.swarm.connect(circuitAddr(nodeB.addrs), cb)
+    (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
   ], callback)
 }
 
@@ -186,11 +186,11 @@ const browser = {
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
-        (cb) => relay.ipfsd.api.swarm.connect(wsAddr(nodeA.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeA.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => relay.ipfsd.api.swarm.connect(wsStarAddr(nodeB.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeB.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => nodeA.ipfsd.api.swarm.connect(circuitAddr(nodeB.addrs), cb)
+        (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
     },
     timeout: 100 * 1000,
@@ -204,11 +204,11 @@ const browser = {
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
-        (cb) => relay.ipfsd.api.swarm.connect(wsAddr(nodeA.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeA.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => relay.ipfsd.api.swarm.connect(wsStarAddr(nodeB.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeB.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => nodeA.ipfsd.api.swarm.connect(circuitAddr(nodeB.addrs), cb)
+        (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
     },
     timeout: 100 * 1000
@@ -221,11 +221,11 @@ const browser = {
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
-        (cb) => relay.ipfsd.api.swarm.connect(wsStarAddr(nodeA.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeA.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => relay.ipfsd.api.swarm.connect(wsAddr(nodeB.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeB.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => nodeA.ipfsd.api.swarm.connect(circuitAddr(nodeB.addrs), cb)
+        (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
     },
     timeout: 100 * 1000,
@@ -239,11 +239,11 @@ const browser = {
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
-        (cb) => relay.ipfsd.api.swarm.connect(wsStarAddr(nodeA.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeA.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => relay.ipfsd.api.swarm.connect(wsAddr(nodeB.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeB.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => nodeA.ipfsd.api.swarm.connect(circuitAddr(nodeB.addrs), cb)
+        (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
     }
   }
