@@ -1,18 +1,12 @@
 /* eslint-env mocha */
 'use strict'
 
-const os = require('os')
 const fs = require('fs')
-const path = require('path')
 const chai = require('chai')
-const hat = require('hat')
 const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
 
-const series = require('async/series')
-const waterfall = require('async/waterfall')
-const parallel = require('async/parallel')
 const DaemonFactory = require('ipfsd-ctl')
 
 const utils = require('./utils/pin-utils')
@@ -23,17 +17,18 @@ describe('pin', function () {
   const filePath = 'test/fixtures/planets/jupiter-from-cassini.jpg'
   const jupiter = [{
     path: filePath,
-    content: fs.readFileSync(filePath),
+    content: fs.readFileSync(filePath)
   }]
   let daemons = []
 
-  function spawnAndStart(type, repoPath) {
+  function spawnAndStart (type, repoPath) {
     if (!repoPath) repoPath = utils.tmpPath()
 
     return new Promise((resolve, reject) => {
-        DaemonFactory.create({ type: type }).spawn({
+      DaemonFactory.create({ type })
+        .spawn({
           repoPath,
-          disposable: false,
+          disposable: false
         }, (err, daemon) => {
           if (err) return reject(err)
           daemons.push(daemon)
@@ -47,14 +42,14 @@ describe('pin', function () {
               daemon.start(err => err ? reject(err) : resolve(daemon))
             })
           }
-      })
+        })
     })
   }
 
   afterEach(function () {
     this.timeout(25 * 1000)
     return utils.stopDaemons(daemons)
-      .then(() => daemons = [])
+      .then(() => { daemons = [] })
   })
 
   describe(`go and js pinset storage are compatible`, () => {
@@ -196,16 +191,16 @@ describe('pin', function () {
     this.timeout(20 * 1000)
     this.slow(20 * 1000)
 
-    let planets
+    let jupiterDir
     function pipeline (daemon) {
       return utils.removeAllPins(daemon)
         .then(() => daemon.api.add(jupiter, { pin: false }))
         .then(chunks => {
-          planets = planets ||
+          jupiterDir = jupiterDir ||
             chunks.find(chunk => chunk.path === 'test/fixtures/planets')
           return daemon.api.pin.add(chunks.map(chunk => chunk.hash))
         })
-        .then(() => daemon.api.pin.rm(planets.hash))
+        .then(() => daemon.api.pin.rm(jupiterDir.hash))
         .then(() => daemon.api.pin.ls())
     }
 
@@ -216,8 +211,9 @@ describe('pin', function () {
       .then(([goPins, jsPins]) => {
         expect(goPins).to.deep.include.members(jsPins)
         expect(jsPins).to.deep.include.members(goPins)
-        expect(goPins.find(pin => pin.hash === planets.hash).type)
-          .to.eql('indirect')
+
+        const dirPin = goPins.find(pin => pin.hash === jupiterDir.hash)
+        expect(dirPin.type).to.eql('indirect')
         // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
       })
   })
