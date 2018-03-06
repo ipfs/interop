@@ -19,11 +19,9 @@ describe('pin', function () {
     path: filePath,
     content: fs.readFileSync(filePath)
   }]
+
   let daemons = []
-
-  function spawnAndStart (type, repoPath) {
-    if (!repoPath) repoPath = utils.tmpPath()
-
+  function spawnAndStart (type, repoPath = utils.tmpPath()) {
     return new Promise((resolve, reject) => {
       DaemonFactory.create({ type })
         .spawn({
@@ -50,61 +48,6 @@ describe('pin', function () {
     this.timeout(25 * 1000)
     return utils.stopDaemons(daemons)
       .then(() => { daemons = [] })
-  })
-
-  describe(`go and js pinset storage are compatible`, () => {
-    function pipeline (daemonType) {
-      // by starting each daemon with the same repoPath, they will read/write
-      // from the same datestore.
-      const repoPath = utils.tmpPath()
-      const content = Buffer.from(String(Math.random()))
-      const nextType = daemonType === 'go' ? 'js' : 'go'
-      const pins = []
-
-      return spawnAndStart(daemonType, repoPath)
-        .then(daemon => {
-          return daemon.api.add(content)
-            .then(() => daemon.api.pin.ls())
-        })
-        .then(ls => pins.push(ls))
-        .then(() => utils.stopDaemons(daemons))
-        .then(() => spawnAndStart(nextType, repoPath))
-        .then(daemon => daemon.api.pin.ls())
-        .then(ls => pins.push(ls))
-        .then(() => pins)
-    }
-
-    // js-ipfs can read pins stored by go-ipfs
-    // tests that go's pin.flush and js' pin.load are compatible
-    it('go -> js', function () {
-      this.timeout(20 * 1000)
-      this.slow(15000)
-
-      return pipeline('go')
-        .then(([goPins, jsPins]) => {
-          expect(goPins.length).to.be.gt(0)
-          expect(jsPins).to.deep.include.members(goPins)
-          expect(goPins).to.deep.include.members(jsPins)
-          // expect(goPins).to.deep.eql(jsPins) // fails due to ordering
-        })
-    })
-
-    // go-ipfs can read pins stored by js-ipfs
-    // tests that js' pin.flush and go's pin.load are compatible
-    it.skip('js -> go', function () {
-      // skipped because go can not be spawned on a js repo due to changes in
-      // the DataStore config [link]
-      this.timeout(20 * 1000)
-      this.slow(15000)
-
-      return pipeline('js')
-        .then(([jsPins, goPins]) => {
-          expect(jsPins.length).to.be.gt(0)
-          expect(goPins).to.deep.include.members(jsPins)
-          expect(jsPins).to.deep.include.members(goPins)
-          // expect(goPins).to.deep.eql(jsPins) // fails due to ordering
-        })
-    })
   })
 
   // tests that each daemon pins large files in the same chunks
@@ -160,7 +103,8 @@ describe('pin', function () {
       })
   })
 
-  // removing root pin removes children not part of another pinset
+  // removing a root pin removes children as long as they're
+  // not part of another pin's dag
   it('pin recursively, remove the root pin', function () {
     this.timeout(20 * 1000)
     this.slow(20 * 1000)
@@ -216,5 +160,60 @@ describe('pin', function () {
         expect(dirPin.type).to.eql('indirect')
         // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
       })
+  })
+
+  describe(`go and js pinset storage are compatible`, () => {
+    function pipeline (daemonType) {
+      // by starting each daemon with the same repoPath, they will read/write
+      // pins from the same datestore.
+      const repoPath = utils.tmpPath()
+      const content = Buffer.from(String(Math.random()))
+      const nextType = daemonType === 'go' ? 'js' : 'go'
+      const pins = []
+
+      return spawnAndStart(daemonType, repoPath)
+        .then(daemon => {
+          return daemon.api.add(content)
+            .then(() => daemon.api.pin.ls())
+        })
+        .then(ls => pins.push(ls))
+        .then(() => utils.stopDaemons(daemons))
+        .then(() => spawnAndStart(nextType, repoPath))
+        .then(daemon => daemon.api.pin.ls())
+        .then(ls => pins.push(ls))
+        .then(() => pins)
+    }
+
+    // js-ipfs can read pins stored by go-ipfs
+    // tests that go's pin.flush and js' pin.load are compatible
+    it('go -> js', function () {
+      this.timeout(20 * 1000)
+      this.slow(15000)
+
+      return pipeline('go')
+        .then(([goPins, jsPins]) => {
+          expect(goPins.length).to.be.gt(0)
+          expect(jsPins).to.deep.include.members(goPins)
+          expect(goPins).to.deep.include.members(jsPins)
+          // expect(goPins).to.deep.eql(jsPins) // fails due to ordering
+        })
+    })
+
+    // go-ipfs can read pins stored by js-ipfs
+    // tests that js' pin.flush and go's pin.load are compatible
+    it.skip('js -> go', function () {
+      // skipped because go can not be spawned on a js repo due to changes in
+      // the DataStore config [link]
+      this.timeout(20 * 1000)
+      this.slow(15000)
+
+      return pipeline('js')
+        .then(([jsPins, goPins]) => {
+          expect(jsPins.length).to.be.gt(0)
+          expect(goPins).to.deep.include.members(jsPins)
+          expect(jsPins).to.deep.include.members(goPins)
+          // expect(goPins).to.deep.eql(jsPins) // fails due to ordering
+        })
+    })
   })
 })
