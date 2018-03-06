@@ -23,7 +23,7 @@ const baseTest = {
   timeout
 }
 
-describe.only('circuit', () => {
+describe('circuit', () => {
   let tests = all
   if (!isNode) {
     tests = Object.assign([], tests, browser)
