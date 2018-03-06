@@ -11,6 +11,10 @@ const createProc = utils.createProcNode
 const createGo = utils.createUpGoNode
 const connWithTimeout = utils.connWithTimeout
 
+const getWsAddr = utils.getWsAddr
+const getWsStarAddr = utils.getWsStarAddr
+const getCircuitAddr = utils.getCircuitAddr
+
 const base = '/ip4/127.0.0.1/tcp/0'
 
 module.exports = {
