@@ -6,6 +6,8 @@ const expect = chai.expect
 chai.use(dirtyChai)
 
 const waterfall = require('async/waterfall')
+const series = require('async/series')
+
 const crypto = require('crypto')
 
 const IPFS = require('ipfs')
@@ -110,24 +112,56 @@ exports.send = (nodeA, nodeB, callback) => {
   ], callback)
 }
 
-exports.wsAddr = (addrs) => addrs
+const getWsAddr = (addrs) => addrs
   .map((a) => a.toString())
   .find((a) => {
     return a.includes('/ws') && !a.includes('/p2p-websocket-star')
   })
 
-exports.wsStarAddr = (addrs) => addrs
+exports.getWsAddr = getWsAddr
+
+const getWsStarAddr = (addrs) => addrs
   .map((a) => a.toString())
   .find((a) => a.includes('/p2p-websocket-star'))
 
-exports.wrtcStarAddr = (addrs) => addrs
+exports.getWsStarAddr = getWsStarAddr
+
+const getWrtcStarAddr = (addrs) => addrs
   .map((a) => a.toString())
   .find((a) => a.includes('/p2p-webrtc-star'))
 
-exports.tcpAddr = (addrs) => addrs
+exports.getWrtcStarAddr = getWrtcStarAddr
+
+const getTcpAddr = (addrs) => addrs
   .map((a) => a.toString())
   .find((a) => !a.includes('/ws') && !a.includes('/p2p-websocket-star'))
 
-exports.circuitAddr = (addrs) => addrs
+exports.getTcpAddr = getTcpAddr
+
+const getCircuitAddr = (addrs) => addrs
   .map((a) => a.toString())
   .find((a) => a.includes('/p2p-circuit/ipfs'))
+
+exports.getCircuitAddr = getCircuitAddr
+
+const connect = (nodeA, nodeB, relay, timeout, callback) => {
+  if (typeof timeout === 'function') {
+    callback = timeout
+    timeout = 1000
+  }
+
+  series([
+    (cb) => nodeA.ipfsd.api.swarm.connect(getWsAddr(relay.addrs), cb),
+    (cb) => nodeB.ipfsd.api.swarm.connect(getWsAddr(relay.addrs), cb),
+    (cb) => setTimeout(cb, timeout),
+    (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
+  ], callback)
+}
+
+exports.connect = connect
+
+exports.connWithTimeout = (timeout) => {
+  return (nodeA, nodeB, relay, callback) => {
+    connect(nodeA, nodeB, relay, timeout, callback)
+  }
+}
