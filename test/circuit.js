@@ -14,13 +14,13 @@ const isNode = require('detect-node')
 
 const utils = require('./utils/circuit')
 
-const getProc = utils.setUpProcNode
-const getJs = utils.setUpJsNode
-const getGo = utils.setUpGoNode
+const creatProc = utils.createProcNode
+const createJs = utils.createJsNode
+const createGo = utils.createUpGoNode
 
-const ws = utils.wsAddr
-const star = utils.wsStarAddr
-const circuit = utils.circuitAddr
+const wsAddr = utils.wsAddr
+const wsStarAddr = utils.wsStarAddr
+const circuitAddr = utils.circuitAddr
 
 const send = utils.send
 
@@ -33,11 +33,11 @@ const connect = (nodeA, nodeB, relay, timeout, callback) => {
   }
 
   series([
-    (cb) => nodeA.ipfsd.api.swarm.connect(ws(relay.addrs), cb),
+    (cb) => nodeA.ipfsd.api.swarm.connect(wsAddr(relay.addrs), cb),
     (cb) => setTimeout(cb, timeout),
-    (cb) => nodeB.ipfsd.api.swarm.connect(ws(relay.addrs), cb),
+    (cb) => nodeB.ipfsd.api.swarm.connect(wsAddr(relay.addrs), cb),
     (cb) => setTimeout(cb, timeout),
-    (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
+    (cb) => nodeA.ipfsd.api.swarm.connect(circuitAddr(nodeB.addrs), cb)
   ], callback)
 }
 
@@ -51,58 +51,58 @@ const baseTest = {
 let tests = {
   'go-go-go': {
     create: (callback) => series([
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getGo([`${base}/ws`], cb)
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => createGo([`${base}/ws`], cb)
     ], callback)
   },
   'js-go-go': {
     create: (callback) => series([
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getGo([`${base}/ws`], cb)
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => createGo([`${base}/ws`], cb)
     ], callback)
   },
   'go-go-js': {
     create: (callback) => series([
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getJs([`${base}/ws`], cb)
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => createJs([`${base}/ws`], cb)
     ], callback)
   },
   'js-go-js': {
     create: (callback) => series([
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getJs([`${base}/ws`], cb)
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => createJs([`${base}/ws`], cb)
     ], callback)
   },
   'go-js-go': {
     create: (callback) => series([
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getGo([`${base}/ws`], cb)
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => createGo([`${base}/ws`], cb)
     ], callback)
   },
   'js-js-go': {
     create: (callback) => series([
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getGo([`${base}/ws`], cb)
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => createGo([`${base}/ws`], cb)
     ], callback)
   },
   'go-js-js': {
     create: (callback) => series([
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getJs([`${base}/ws`], cb)
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => createJs([`${base}/ws`], cb)
     ], callback)
   },
   'js-js-js': {
     create: (callback) => series([
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getJs([`${base}/ws`], cb)
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => createJs([`${base}/ws`], cb)
     ], callback)
   }
 }
@@ -116,81 +116,81 @@ const browser = {
   'browser-go-js': {
     create:
       (callback) => series([
-        (cb) => getProc([], cb),
-        (cb) => getGo([`${base}/ws`], cb),
-        (cb) => getJs([`${base}/ws`], cb)
+        (cb) => creatProc([], cb),
+        (cb) => createGo([`${base}/ws`], cb),
+        (cb) => createJs([`${base}/ws`], cb)
       ], callback),
     connect: connWithTimeout(1500)
   },
   'browser-go-go': {
     create: (callback) => series([
-      (cb) => getProc([], cb),
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getGo([`${base}/ws`], cb)
+      (cb) => creatProc([], cb),
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => createGo([`${base}/ws`], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'browser-js-js': {
     create: (callback) => series([
-      (cb) => getProc([], cb),
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getJs([`${base}/ws`], cb)
+      (cb) => creatProc([], cb),
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => createJs([`${base}/ws`], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'browser-js-go': {
     create: (callback) => series([
-      (cb) => getProc([], cb),
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getJs([`${base}/ws`], cb)
+      (cb) => creatProc([], cb),
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => createJs([`${base}/ws`], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'js-go-browser': {
     create: (callback) => series([
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getProc([], cb)
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => creatProc([], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'go-go-browser': {
     create: (callback) => series([
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getProc([], cb)
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => creatProc([], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'js-js-browser': {
     create: (callback) => series([
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getProc([], cb)
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => creatProc([], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'go-js-browser': {
     create: (callback) => series([
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getProc([], cb)
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => creatProc([], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'go-browser-browser': {
     create: (callback) => series([
-      (cb) => getGo([`${base}/ws`], cb),
-      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
+      (cb) => createGo([`${base}/ws`], cb),
+      (cb) => creatProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => creatProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
-        (cb) => relay.ipfsd.api.swarm.connect(ws(nodeA.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(wsAddr(nodeA.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => relay.ipfsd.api.swarm.connect(star(nodeB.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(wsStarAddr(nodeB.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
+        (cb) => nodeA.ipfsd.api.swarm.connect(circuitAddr(nodeB.addrs), cb)
       ], callback)
     },
     timeout: 100 * 1000,
@@ -198,34 +198,34 @@ const browser = {
   },
   'js-browser-browser': {
     create: (callback) => series([
-      (cb) => getJs([`${base}/ws`], cb),
-      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
+      (cb) => createJs([`${base}/ws`], cb),
+      (cb) => creatProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => creatProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
-        (cb) => relay.ipfsd.api.swarm.connect(ws(nodeA.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(wsAddr(nodeA.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => relay.ipfsd.api.swarm.connect(star(nodeB.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(wsStarAddr(nodeB.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
+        (cb) => nodeA.ipfsd.api.swarm.connect(circuitAddr(nodeB.addrs), cb)
       ], callback)
     },
     timeout: 100 * 1000
   },
   'browser-browser-go': {
     create: (callback) => series([
-      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => getGo([`${base}/ws`], cb)
+      (cb) => creatProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => creatProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => createGo([`${base}/ws`], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
-        (cb) => relay.ipfsd.api.swarm.connect(star(nodeA.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(wsStarAddr(nodeA.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => relay.ipfsd.api.swarm.connect(ws(nodeB.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(wsAddr(nodeB.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
+        (cb) => nodeA.ipfsd.api.swarm.connect(circuitAddr(nodeB.addrs), cb)
       ], callback)
     },
     timeout: 100 * 1000,
@@ -233,17 +233,17 @@ const browser = {
   },
   'browser-browser-js': {
     create: (callback) => series([
-      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => getJs([`${base}/ws`], cb)
+      (cb) => creatProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => creatProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => createJs([`${base}/ws`], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
-        (cb) => relay.ipfsd.api.swarm.connect(star(nodeA.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(wsStarAddr(nodeA.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => relay.ipfsd.api.swarm.connect(ws(nodeB.addrs), cb),
+        (cb) => relay.ipfsd.api.swarm.connect(wsAddr(nodeB.addrs), cb),
         (cb) => setTimeout(cb, 2000),
-        (cb) => nodeA.ipfsd.api.swarm.connect(circuit(nodeB.addrs), cb)
+        (cb) => nodeA.ipfsd.api.swarm.connect(circuitAddr(nodeB.addrs), cb)
       ], callback)
     }
   }

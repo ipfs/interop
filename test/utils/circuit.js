@@ -29,7 +29,7 @@ const baseConf = {
   }
 }
 
-exports.setUpProcNode = (addrs, callback) => {
+exports.createProcNode = (addrs, callback) => {
   procDf.spawn({
     initOptions: { bits: 512 },
     config: Object.assign({}, baseConf, {
@@ -53,7 +53,7 @@ exports.setUpProcNode = (addrs, callback) => {
   })
 }
 
-exports.setUpJsNode = (addrs, callback) => {
+exports.createJsNode = (addrs, callback) => {
   jsDf.spawn({
     initOptions: { bits: 512 },
     config: Object.assign({}, baseConf, {
@@ -77,7 +77,7 @@ exports.setUpJsNode = (addrs, callback) => {
   })
 }
 
-exports.setUpGoNode = (addrs, callback) => {
+exports.createUpGoNode = (addrs, callback) => {
   goDf.spawn({
     initOptions: { bits: 1024 },
     config: Object.assign({}, baseConf, {
