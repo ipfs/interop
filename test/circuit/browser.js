@@ -89,7 +89,7 @@ module.exports = {
       series([
         (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeA.addrs), cb),
         (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeB.addrs), cb),
-        (cb) => setTimeout(cb, 2000),
+        (cb) => setTimeout(cb, 3000),
         (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
     },
@@ -106,7 +106,7 @@ module.exports = {
       series([
         (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeA.addrs), cb),
         (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeB.addrs), cb),
-        (cb) => setTimeout(cb, 2000),
+        (cb) => setTimeout(cb, 3000),
         (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
     },
@@ -122,7 +122,7 @@ module.exports = {
       series([
         (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeA.addrs), cb),
         (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeB.addrs), cb),
-        (cb) => setTimeout(cb, 2000),
+        (cb) => setTimeout(cb, 3000),
         (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
     },
@@ -139,7 +139,7 @@ module.exports = {
       series([
         (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeA.addrs), cb),
         (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeB.addrs), cb),
-        (cb) => setTimeout(cb, 2000),
+        (cb) => setTimeout(cb, 3000),
         (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
     }
