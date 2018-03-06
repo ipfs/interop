@@ -9,8 +9,8 @@ chai.use(dirtyChai)
 
 const parallel = require('async/parallel')
 
-const all = require('./circuit/all-tests')
-const browser = require('./circuit/browser-tests')
+const all = require('./circuit/all')
+const browser = require('./circuit/browser')
 
 const isNode = require('detect-node')
 const send = require('./utils/circuit').send
