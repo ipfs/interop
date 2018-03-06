@@ -7,7 +7,7 @@ const series = require('async/series')
 const utils = require('../utils/circuit')
 
 const createJs = utils.createJsNode
-const createGo = utils.createUpGoNode
+const createGo = utils.createGoNode
 
 const base = '/ip4/127.0.0.1/tcp/0'
 

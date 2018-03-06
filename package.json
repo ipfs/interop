@@ -58,7 +58,7 @@
     "ipfs-api": "^18.1.1",
     "ipfsd-ctl": "~0.29.1",
     "left-pad": "^1.2.0",
-    "libp2p-websocket-star-rendezvous": "^0.2.2",
+    "libp2p-websocket-star-rendezvous": "~0.2.2",
     "lodash": "^4.17.4",
     "mocha": "^4.0.1",
     "ncp": "^2.0.0",

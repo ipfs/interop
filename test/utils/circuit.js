@@ -79,7 +79,7 @@ exports.createJsNode = (addrs, callback) => {
   })
 }
 
-exports.createUpGoNode = (addrs, callback) => {
+exports.createGoNode = (addrs, callback) => {
   goDf.spawn({
     initOptions: { bits: 1024 },
     config: Object.assign({}, baseConf, {

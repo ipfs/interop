@@ -8,7 +8,7 @@ const utils = require('../utils/circuit')
 
 const createJs = utils.createJsNode
 const createProc = utils.createProcNode
-const createGo = utils.createUpGoNode
+const createGo = utils.createGoNode
 const connWithTimeout = utils.connWithTimeout
 
 const getWsAddr = utils.getWsAddr

@@ -24,9 +24,9 @@ const baseTest = {
 }
 
 describe('circuit', () => {
-  let tests = all
+  const tests = all
   if (!isNode) {
-    tests = Object.assign([], tests, browser)
+    Object.assign(tests, browser)
   }
 
   Object.keys(tests).forEach((test) => {
