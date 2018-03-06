@@ -1,375 +1,226 @@
 /* eslint-env mocha */
 'use strict'
 
-const os = require('os')
 const fs = require('fs')
-const path = require('path')
 const chai = require('chai')
-const hat = require('hat')
 const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
 
-const series = require('async/series')
-const waterfall = require('async/waterfall')
-const parallel = require('async/parallel')
-
 const DaemonFactory = require('ipfsd-ctl')
+
+const utils = require('./utils/pin-utils')
 
 describe('pin', function () {
   this.timeout(5 * 1000)
 
-  const daemons = {}
+  const filePath = 'test/fixtures/planets/jupiter-from-cassini.jpg'
+  const jupiter = [{
+    path: filePath,
+    content: fs.readFileSync(filePath)
+  }]
 
-  function spawnAndStart(type, repoPath, cb) {
-    setTimeout(() =>
-      DaemonFactory.create({ type: type }).spawn({
-        repoPath,
-        disposable: false,
-      }, (err, daemon) => {
-        expect(err).to.not.exist()
-        daemons[type] = daemon
+  let daemons = []
+  function spawnAndStart (type, repoPath = utils.tmpPath()) {
+    return new Promise((resolve, reject) => {
+      DaemonFactory.create({ type })
+        .spawn({
+          repoPath,
+          disposable: false
+        }, (err, daemon) => {
+          if (err) return reject(err)
+          daemons.push(daemon)
 
-        if (daemon.initialized) {
-          // repo already exists, no need to init
-          daemon.start(err => cb(err, daemon))
-        } else {
-          daemon.init((err, initRes) => {
-            err && console.log('daemon.init error:', err)
-            expect(err).to.not.exist()
-            daemon.start(err => cb(err, daemon))
-          })
-        }
-      }), 1000)
+          if (daemon.initialized) {
+            // repo already exists, no need to init
+            daemon.start(err => err ? reject(err) : resolve(daemon))
+          } else {
+            daemon.init((err, initRes) => {
+              if (err) return reject(err)
+              daemon.start(err => err ? reject(err) : resolve(daemon))
+            })
+          }
+        })
+    })
   }
 
-  before(function (done) {
-    this.timeout(50 * 1000)
-    // DaemonFactory.create({ type: 'js' }).spawn({ disposable: false, repoPath: jsRepoPath}, cb)
-    done()
-  })
+  function withDaemons (pipeline) {
+    return Promise.all([
+      spawnAndStart('go').then(utils.removeAllPins).then(pipeline),
+      spawnAndStart('js').then(utils.removeAllPins).then(pipeline)
+    ])
+  }
 
-  afterEach(function (done) {
+  afterEach(function () {
     this.timeout(25 * 1000)
-    stopDaemons(daemons, done)
+    return utils.stopDaemons(daemons)
+      .then(() => { daemons = [] })
   })
 
-  describe(`go and js understand each other's stored pins`, () => {
+  describe('pin add', function () {
+    // Pinning a large file recursively results in the same pins
+    it('pin recursively', function () {
+      this.timeout(30 * 1000)
+      this.slow(30 * 1000)
+
+      function pipeline (daemon) {
+        return daemon.api.add(jupiter, { pin: false })
+          .then(chunks => daemon.api.pin.add(chunks[0].hash))
+          .then(() => daemon.api.pin.ls())
+      }
+
+      return withDaemons(pipeline)
+        .then(([goPins, jsPins]) => {
+          expect(goPins.length).to.be.gt(0)
+          expect(jsPins).to.deep.include.members(goPins)
+          expect(goPins).to.deep.include.members(jsPins)
+        })
+    })
+
+    // Pinning a large file with recursive=false results in the same direct pin
+    it('pin directly', function () {
+      this.timeout(30 * 1000)
+      this.slow(20 * 1000)
+
+      function pipeline (daemon) {
+        return daemon.api.add(jupiter, { pin: false })
+          .then(chunks => daemon.api.pin.add(chunks[0].hash, { recursive: false }))
+          .then(() => daemon.api.pin.ls())
+      }
+
+      return withDaemons(pipeline)
+        .then(([goPins, jsPins]) => {
+          expect(goPins.length).to.be.gt(0)
+          expect(jsPins).to.deep.include.members(goPins)
+          expect(goPins).to.deep.include.members(jsPins)
+        })
+    })
+  })
+
+  describe('pin rm', function () {
+    // removing a root pin removes children as long as they're
+    // not part of another pin's dag
+    it('pin recursively, remove the root pin', function () {
+      this.timeout(20 * 1000)
+      this.slow(20 * 1000)
+
+      function pipeline (daemon) {
+        return daemon.api.add(jupiter)
+          .then(chunks => {
+            const testFolder = chunks.find(chunk => chunk.path === 'test')
+            return daemon.api.pin.rm(testFolder.hash)
+          })
+          .then(() => daemon.api.pin.ls())
+      }
+
+      return withDaemons(pipeline)
+        .then(([goPins, jsPins]) => {
+          expect(goPins.length).to.eql(0)
+          expect(jsPins.length).to.eql(0)
+        })
+    })
+
+    // When a pin contains the root of another pin and we remove it, it is
+    // instead kept but its type is changed to 'indirect'
+    it('remove a child shared by multiple pins', function () {
+      this.timeout(20 * 1000)
+      this.slow(20 * 1000)
+
+      let jupiterDir
+      function pipeline (daemon) {
+        return daemon.api.add(jupiter, { pin: false })
+          .then(chunks => {
+            jupiterDir = jupiterDir ||
+              chunks.find(chunk => chunk.path === 'test/fixtures/planets')
+
+            // by separately pinning all the DAG nodes created when adding,
+            // dirs are pinned as type=recursive and
+            // nested pins reference each other
+            return daemon.api.pin.add(chunks.map(chunk => chunk.hash))
+          })
+          .then(() => daemon.api.pin.rm(jupiterDir.hash))
+          .then(() => daemon.api.pin.ls())
+      }
+
+      return withDaemons(pipeline)
+        .then(([goPins, jsPins]) => {
+          expect(goPins.length).to.be.gt(0)
+          expect(goPins).to.deep.include.members(jsPins)
+          expect(jsPins).to.deep.include.members(goPins)
+
+          const dirPin = goPins.find(pin => pin.hash === jupiterDir.hash)
+          expect(dirPin.type).to.eql('indirect')
+        })
+    })
+  })
+
+  describe('ls', function () {
+    it('print same pins', function () {
+      this.timeout(30 * 1000)
+
+      function pipeline (daemon) {
+        return daemon.api.add(jupiter)
+          .then(() => daemon.api.pin.ls())
+      }
+
+      return withDaemons(pipeline)
+        .then(([goPins, jsPins]) => {
+          expect(goPins.length).to.be.gt(0)
+          expect(goPins).to.deep.include.members(jsPins)
+          expect(jsPins).to.deep.include.members(goPins)
+        })
+    })
+  })
+
+  describe(`go and js pinset storage are compatible`, function () {
+    function pipeline (options) {
+      // by starting each daemon with the same repoPath, they
+      // will read/write pins from the same datastore.
+      const repoPath = utils.tmpPath()
+      const content = Buffer.from(String(Math.random()))
+      const pins = []
+
+      return spawnAndStart(options.first, repoPath)
+        .then(daemon => {
+          return daemon.api.add(content)
+            .then(() => daemon.api.pin.ls())
+        })
+        .then(ls => pins.push(ls))
+        .then(() => utils.stopDaemons(daemons))
+        .then(() => spawnAndStart(options.second, repoPath))
+        .then(daemon => daemon.api.pin.ls())
+        .then(ls => pins.push(ls))
+        .then(() => pins)
+    }
+
     // js-ipfs can read pins stored by go-ipfs
     // tests that go's pin.flush and js' pin.load are compatible
-    it.skip('go -> js', function (done) {
-      // DONE?
+    it('go -> js', function () {
       this.timeout(20 * 1000)
       this.slow(15000)
-      const repoPath = genRepoPath()
-      const content = String(Math.random() + Date.now())
-      let contentHash
-      let goPins
-      let jsPins
-      series([
-        cb => spawnAndStart('go', repoPath, cb),
-        cb => daemons.go.api.add(Buffer.from(content), (err, hash) => {
-          contentHash = hash[0].hash
-          cb(err)
-        }),
-        cb => daemons.go.api.pin.ls((err, res) => {
-          goPins = res
-          cb(err)
-        }),
-        cb => daemons.go.stop(cb),
-        cb => spawnAndStart('js', repoPath, cb),
-        cb => daemons.js.api.pin.ls((err, res) => {
-          jsPins = res
-          cb(err)
-        }),
-      ], errs => {
-        expect(errs).to.not.exist()
-        expect(goPins.length > 0).to.eql(true)
-        expect(jsPins).to.deep.include.members(goPins)
-        expect(goPins).to.deep.include.members(jsPins)
-        // expect(goPins).to.deep.eql(jsPins) // fails due to ordering
-      })
+
+      return pipeline({ first: 'go', second: 'js' })
+        .then(([goPins, jsPins]) => {
+          expect(goPins.length).to.be.gt(0)
+          expect(jsPins).to.deep.include.members(goPins)
+          expect(goPins).to.deep.include.members(jsPins)
+        })
     })
 
     // go-ipfs can read pins stored by js-ipfs
     // tests that js' pin.flush and go's pin.load are compatible
-    // skipped because go can not be spawned on a js repo due to changes in DataStore [link]
-    it.skip('js -> go', function (done) {
-      // DONE
+    it.skip('js -> go', function () {
+      // skipped because go can not be spawned on a js repo due to changes in
+      // the DataStore config [link]
       this.timeout(20 * 1000)
       this.slow(15000)
-      const repoPath = genRepoPath()
-      const content = String(Math.random() + Date.now())
-      let contentHash
-      let jsPins
-      let goPins
-      series([
-        cb => spawnAndStart('js', repoPath, cb),
-        cb =>
-          daemons.js.api.add(Buffer.from(content), (err, hash) => {
-            contentHash = hash[0].hash
-            cb(err)
-          }),
-        cb =>
-          daemons.js.api.pin.ls((err, res) => {
-            jsPins = res
-            cb(err)
-          }),
-        cb => daemons.js.stop(cb),
-        cb => spawnAndStart('go', repoPath, cb),
-        cb =>
-          daemons.go.api.pin.ls((err, res) => {
-            goPins = res
-            cb(err)
-          }),
-      ], errs => {
-        expect(errs).to.not.exist()
-        expect(jsPins.length > 0).to.eql(true)
-        expect(jsPins).to.deep.eql(goPins)
-      })
+
+      return pipeline({ first: 'js', second: 'go' })
+        .then(([jsPins, goPins]) => {
+          expect(jsPins.length).to.be.gt(0)
+          expect(goPins).to.deep.include.members(jsPins)
+          expect(jsPins).to.deep.include.members(goPins)
+        })
     })
-
-    // fails! js-ipfs does not add these files to the pinset
-    it.skip('a new repo has the same pins (readme docs)', function (done) {
-      // DONE
-      this.timeout(20 * 1000)
-      parallel([
-        cb =>
-          spawnAndStart('go', genRepoPath(), (err, daemon) => {
-            daemon.api.pin.ls(cb)
-          }),
-        cb =>
-          spawnAndStart('js', genRepoPath(), (err, daemon) => {
-            daemon.api.pin.ls(cb)
-          }),
-      ], (errs, [goLs, jsLs]) => {
-        expect(errs).to.not.exist()
-        expect(goLs).to.deep.eql(jsLs)
-      })
-    })
-  })
-
-  // tests that each daemon pins larger files in the same chunks
-  it.skip('create the same indirect pins', function (done) {
-    // DONE
-    this.timeout(30 * 1000)
-    this.slow(30 * 1000)
-
-    const contentPath = 'test/fixtures/planets/Jupiter_from_Cassini.jpg'
-    const content = [{
-      path: contentPath,
-      content: fs.readFileSync(contentPath),
-    }]
-
-    parallel([
-      cb =>
-        spawnAndStart('go', genRepoPath(), (err, daemon) => {
-          removeAllPins(daemon)
-            .then(() => daemon.api.add(content, { pin: false }))
-            .then(chunks => Promise.all(
-              chunks.map(chunk => daemon.api.pin.add(chunk.hash))
-            ))
-            .then(() => daemon.api.pin.ls())
-            .then(goPins => cb(null, goPins))
-        }),
-      cb =>
-        spawnAndStart('js', genRepoPath(), (err, daemon) => {
-          removeAllPins(daemon)
-            .then(() => daemon.api.add(content, { pin: false }))
-            .then(chunks => Promise.all(
-              chunks.map(chunk => daemon.api.pin.add(chunk.hash))
-            ))
-            .then(pinAddRes => daemon.api.pin.ls())
-            .then(jsPins => cb(null, jsPins))
-        }),
-    ], (errs, [goPins, jsPins]) => {
-      expect(errs).to.not.exist()
-      expect(jsPins).to.deep.include.members(goPins)
-      expect(goPins).to.deep.include.members(jsPins)
-      // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
-    })
-  })
-
-  // Pinning a large file with recursive=false results in the same direct pins
-  it.skip('pin directly', function (done) {
-    // DONE
-    this.timeout(30 * 1000)
-
-    const contentPath = 'test/fixtures/planets/Jupiter_from_Cassini.jpg'
-    const content = [{
-      path: contentPath,
-      content: fs.readFileSync(contentPath),
-    }]
-
-    parallel([
-      cb =>
-        spawnAndStart('go', genRepoPath(), (err, daemon) => {
-          removeAllPins(daemon)
-            .then(() => daemon.api.add(content, { pin: false }))
-            .then(chunks => Promise.all(
-              chunks.map(
-                chunk => daemon.api.pin.add(chunk.hash, { recursive: false })
-              )
-            ))
-            .then(() => daemon.api.pin.ls())
-            .then(goPins => cb(null, goPins))
-        }),
-      cb =>
-        spawnAndStart('js', genRepoPath(), (err, daemon) => {
-          removeAllPins(daemon)
-            .then(() => daemon.api.add(content, { pin: false }))
-            .then(chunks => Promise.all(
-              chunks.map(
-                chunk => daemon.api.pin.add(chunk.hash, { recursive: false })
-              )
-            ))
-            .then(pinAddRes => daemon.api.pin.ls())
-            .then(jsPins => cb(null, jsPins))
-        }),
-    ], (errs, [goPins, jsPins]) => {
-      expect(errs).to.not.exist()
-      expect(jsPins).to.deep.include.members(goPins)
-      expect(goPins).to.deep.include.members(jsPins)
-      // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
-    })
-  })
-
-  // removing root pin removes children not part of another pinset
-  it.skip('pin recursively, remove the root pin', function (done) {
-    // DONE
-    this.timeout(20 * 1000)
-    this.slow(20 * 1000)
-
-    const contentPath = 'test/fixtures/planets/Jupiter_from_Cassini.jpg'
-    const content = [{
-      path: contentPath,
-      content: fs.readFileSync(contentPath),
-    }]
-
-    parallel([
-      cb =>
-        spawnAndStart('go', genRepoPath(), (err, daemon) => {
-          removeAllPins(daemon)
-            .then(() => daemon.api.add(content))
-            .then(chunks => {
-              const testFolder = chunks.find(chunk => chunk.path === 'test').hash
-              return daemon.api.pin.rm(testFolder)
-            })
-            .then(() => daemon.api.pin.ls())
-            .then(goPins => cb(null, goPins))
-            .catch(cb)
-        }),
-      cb =>
-        spawnAndStart('js', genRepoPath(), (err, daemon) => {
-          removeAllPins(daemon)
-            .then(() => daemon.api.add(content))
-            .then(chunks => {
-              const testFolder = chunks.find(chunk => chunk.path === 'test').hash
-              return daemon.api.pin.rm(testFolder)
-            })
-            .then(() => daemon.api.pin.ls())
-            .then(jsPins => cb(null, jsPins))
-            .catch(cb)
-        }),
-    ], (errs, [goPins, jsPins]) => {
-      expect(errs).to.not.exist()
-      expect(goPins.length).to.eql(0)
-      expect(jsPins.length).to.eql(0)
-      // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
-    })
-  })
-
-  // When a pin contains the root pin of another and we remove it, it is
-  // instead kept but its type is changed to 'indirect'
-  it.only('remove a child shared by multiple pins', function (done) {
-    this.timeout(20 * 1000)
-    this.slow(20 * 1000)
-
-    const contentPath = 'test/fixtures/planets/Jupiter_from_Cassini.jpg'
-    const content = [{
-      path: contentPath,
-      content: fs.readFileSync(contentPath),
-    }]
-    let planetsFolder
-
-    parallel([
-      cb =>
-        spawnAndStart('go', genRepoPath(), (err, daemon) => {
-          removeAllPins(daemon)
-            .then(() => daemon.api.add(content, { pin: false }))
-            .then(chunks => {
-              planetsFolder = planetsFolder ||
-                chunks.find(chunk => chunk.path === 'test/fixtures/planets').hash
-              return daemon.api.pin.add(chunks.map(chunk => chunk.hash))
-                .then(() => daemon.api.pin.rm(planetsFolder))
-            })
-            .then(() => daemon.api.pin.ls())
-            .then(goPins => cb(null, goPins))
-            .catch(cb)
-        }),
-      cb =>
-        spawnAndStart('js', genRepoPath(), (err, daemon) => {
-          removeAllPins(daemon)
-            .then(() => daemon.api.add(content, { pin: false }))
-            .then(chunks => {
-              planetsFolder = planetsFolder ||
-                chunks.find(chunk => chunk.path === 'test/fixtures/planets').hash
-              return daemon.api.pin.add(chunks.map(chunk => chunk.hash))
-                .then(() => daemon.api.pin.rm(planetsFolder))
-            })
-            .then(() => daemon.api.pin.ls())
-            .then(jsPins => cb(null, jsPins))
-            .catch(cb)
-        }),
-    ], (errs, [goPins, jsPins]) => {
-      expect(errs).to.not.exist()
-      expect(goPins).to.deep.include.members(jsPins)
-      expect(jsPins).to.deep.include.members(goPins)
-      expect(goPins.find(pin => planetsFolder).type).to.eql('indirect')
-      // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
-      done()
-    })
-  })
-
-  it('follow ipfs-paths', () => {
-    // both follow paths
   })
 })
-
-function genRepoPath () {
-  return path.join(os.tmpdir(), hat())
-}
-
-function stopDaemons (daemons, callback) {
-  parallel(
-    Object.values(daemons).map(daemon => cb => daemon.stop(cb)),
-    callback
-  )
-}
-
-function removeAllPins(daemon) {
-  return daemon.api.pin.ls().then(pins => {
-    const rootPins = pins.filter(
-      pin => pin.type === 'recursive' || pin.type === 'direct'
-    )
-    return Promise.all(rootPins.map(pin => daemon.api.pin.rm(pin.hash)))
-  })
-}
-
-function createFileList(dir) {
-  return fs.readdirSync(dir)
-    .reduce((files, file) => {
-      const filePath = path.join(dir, file)
-      const isDir = fs.statSync(filePath).isDirectory()
-
-      if (isDir)
-        return files.concat(createFileList(filePath))
-      else
-        return files.concat({
-          path: filePath,
-          content: fs.readFileSync(filePath),
-        })
-    }, [])
-}
-
-// const content = createFileList('test/fixtures/planets')

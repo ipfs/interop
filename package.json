@@ -54,7 +54,7 @@
     "form-data": "^2.3.2",
     "go-ipfs-dep": "^0.4.15",
     "hat": "0.0.3",
-    "ipfs": "~0.29.0",
+    "ipfs": "github:ipfs/js-ipfs#pin-api",
     "ipfs-api": "^22.0.0",
     "ipfsd-ctl": "~0.37.0",
     "left-pad": "^1.3.0",
@@ -68,6 +68,5 @@
     "stream-to-promise": "^2.2.0",
     "transform-loader": "^0.2.4"
   },
-  "dependencies": {},
   "contributors": []
 }
