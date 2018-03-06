@@ -14,9 +14,9 @@ const isNode = require('detect-node')
 
 const utils = require('./utils/circuit')
 
-const proc = utils.setUpProcNode
-const js = utils.setUpJsNode
-const go = utils.setUpGoNode
+const getProc = utils.setUpProcNode
+const getJs = utils.setUpJsNode
+const getGo = utils.setUpGoNode
 
 const ws = utils.wsAddr
 const star = utils.wsStarAddr
@@ -51,58 +51,58 @@ const baseTest = {
 let tests = {
   'go-go-go': {
     create: (callback) => series([
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb)
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getGo([`${base}/ws`], cb)
     ], callback)
   },
   'js-go-go': {
     create: (callback) => series([
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb)
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getGo([`${base}/ws`], cb)
     ], callback)
   },
   'go-go-js': {
     create: (callback) => series([
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb)
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getJs([`${base}/ws`], cb)
     ], callback)
   },
   'js-go-js': {
     create: (callback) => series([
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb)
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getJs([`${base}/ws`], cb)
     ], callback)
   },
   'go-js-go': {
     create: (callback) => series([
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb)
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getGo([`${base}/ws`], cb)
     ], callback)
   },
   'js-js-go': {
     create: (callback) => series([
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb)
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getGo([`${base}/ws`], cb)
     ], callback)
   },
   'go-js-js': {
     create: (callback) => series([
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb)
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getJs([`${base}/ws`], cb)
     ], callback)
   },
   'js-js-js': {
     create: (callback) => series([
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb)
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getJs([`${base}/ws`], cb)
     ], callback)
   }
 }
@@ -116,73 +116,73 @@ const browser = {
   'browser-go-js': {
     create:
       (callback) => series([
-        (cb) => proc([], cb),
-        (cb) => go([`${base}/ws`], cb),
-        (cb) => js([`${base}/ws`], cb)
+        (cb) => getProc([], cb),
+        (cb) => getGo([`${base}/ws`], cb),
+        (cb) => getJs([`${base}/ws`], cb)
       ], callback),
     connect: connWithTimeout(1500)
   },
   'browser-go-go': {
     create: (callback) => series([
-      (cb) => proc([], cb),
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb)
+      (cb) => getProc([], cb),
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getGo([`${base}/ws`], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'browser-js-js': {
     create: (callback) => series([
-      (cb) => proc([], cb),
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb)
+      (cb) => getProc([], cb),
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getJs([`${base}/ws`], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'browser-js-go': {
     create: (callback) => series([
-      (cb) => proc([], cb),
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb)
+      (cb) => getProc([], cb),
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getJs([`${base}/ws`], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'js-go-browser': {
     create: (callback) => series([
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => proc([], cb)
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getProc([], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'go-go-browser': {
     create: (callback) => series([
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => proc([], cb)
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getProc([], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'js-js-browser': {
     create: (callback) => series([
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => proc([], cb)
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getProc([], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'go-js-browser': {
     create: (callback) => series([
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => proc([], cb)
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getProc([], cb)
     ], callback),
     connect: connWithTimeout(1500)
   },
   'go-browser-browser': {
     create: (callback) => series([
-      (cb) => go([`${base}/ws`], cb),
-      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
+      (cb) => getGo([`${base}/ws`], cb),
+      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
@@ -198,9 +198,9 @@ const browser = {
   },
   'js-browser-browser': {
     create: (callback) => series([
-      (cb) => js([`${base}/ws`], cb),
-      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
+      (cb) => getJs([`${base}/ws`], cb),
+      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
@@ -215,9 +215,9 @@ const browser = {
   },
   'browser-browser-go': {
     create: (callback) => series([
-      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => go([`${base}/ws`], cb)
+      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => getGo([`${base}/ws`], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
@@ -233,9 +233,9 @@ const browser = {
   },
   'browser-browser-js': {
     create: (callback) => series([
-      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => proc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => js([`${base}/ws`], cb)
+      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => getProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => getJs([`${base}/ws`], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
