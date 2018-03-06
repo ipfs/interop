@@ -57,7 +57,7 @@ describe('pin', function () {
   describe(`go and js understand each other's stored pins`, () => {
     // js-ipfs can read pins stored by go-ipfs
     // tests that go's pin.flush and js' pin.load are compatible
-    it.skip('go -> js', function (done) {
+    it('go -> js', function (done) {
       // DONE?
       this.timeout(20 * 1000)
       this.slow(15000)
@@ -93,9 +93,8 @@ describe('pin', function () {
 
     // go-ipfs can read pins stored by js-ipfs
     // tests that js' pin.flush and go's pin.load are compatible
-    // skipped because go can not be spawned on a js repo due to changes in DataStore [link]
     it.skip('js -> go', function (done) {
-      // DONE
+      // skipped because go can not be spawned on a js repo due to changes in DataStore [link]
       this.timeout(20 * 1000)
       this.slow(15000)
       const repoPath = genRepoPath()
@@ -128,34 +127,15 @@ describe('pin', function () {
         expect(jsPins).to.deep.eql(goPins)
       })
     })
-
-    // fails! js-ipfs does not add these files to the pinset
-    it.skip('a new repo has the same pins (readme docs)', function (done) {
-      // DONE
-      this.timeout(20 * 1000)
-      parallel([
-        cb =>
-          spawnAndStart('go', genRepoPath(), (err, daemon) => {
-            daemon.api.pin.ls(cb)
-          }),
-        cb =>
-          spawnAndStart('js', genRepoPath(), (err, daemon) => {
-            daemon.api.pin.ls(cb)
-          }),
-      ], (errs, [goLs, jsLs]) => {
-        expect(errs).to.not.exist()
-        expect(goLs).to.deep.eql(jsLs)
-      })
-    })
   })
 
   // tests that each daemon pins larger files in the same chunks
-  it.skip('create the same indirect pins', function (done) {
+  it('create the same indirect pins', function (done) {
     // DONE
     this.timeout(30 * 1000)
     this.slow(30 * 1000)
 
-    const contentPath = 'test/fixtures/planets/Jupiter_from_Cassini.jpg'
+    const contentPath = 'test/fixtures/planets/jupiter-from-cassini.jpg'
     const content = [{
       path: contentPath,
       content: fs.readFileSync(contentPath),
@@ -191,11 +171,11 @@ describe('pin', function () {
   })
 
   // Pinning a large file with recursive=false results in the same direct pins
-  it.skip('pin directly', function (done) {
+  it('pin directly', function (done) {
     // DONE
     this.timeout(30 * 1000)
 
-    const contentPath = 'test/fixtures/planets/Jupiter_from_Cassini.jpg'
+    const contentPath = 'test/fixtures/planets/jupiter-from-cassini.jpg'
     const content = [{
       path: contentPath,
       content: fs.readFileSync(contentPath),
@@ -235,12 +215,12 @@ describe('pin', function () {
   })
 
   // removing root pin removes children not part of another pinset
-  it.skip('pin recursively, remove the root pin', function (done) {
+  it('pin recursively, remove the root pin', function (done) {
     // DONE
     this.timeout(20 * 1000)
     this.slow(20 * 1000)
 
-    const contentPath = 'test/fixtures/planets/Jupiter_from_Cassini.jpg'
+    const contentPath = 'test/fixtures/planets/jupiter-from-cassini.jpg'
     const content = [{
       path: contentPath,
       content: fs.readFileSync(contentPath),
@@ -281,11 +261,11 @@ describe('pin', function () {
 
   // When a pin contains the root pin of another and we remove it, it is
   // instead kept but its type is changed to 'indirect'
-  it.only('remove a child shared by multiple pins', function (done) {
+  it('remove a child shared by multiple pins', function (done) {
     this.timeout(20 * 1000)
     this.slow(20 * 1000)
 
-    const contentPath = 'test/fixtures/planets/Jupiter_from_Cassini.jpg'
+    const contentPath = 'test/fixtures/planets/jupiter-from-cassini.jpg'
     const content = [{
       path: contentPath,
       content: fs.readFileSync(contentPath),
@@ -330,22 +310,7 @@ describe('pin', function () {
       done()
     })
   })
-
-  it('follow ipfs-paths', () => {
-    // both follow paths
-  })
 })
-
-function genRepoPath () {
-  return path.join(os.tmpdir(), hat())
-}
-
-function stopDaemons (daemons, callback) {
-  parallel(
-    Object.values(daemons).map(daemon => cb => daemon.stop(cb)),
-    callback
-  )
-}
 
 function removeAllPins(daemon) {
   return daemon.api.pin.ls().then(pins => {
@@ -356,20 +321,13 @@ function removeAllPins(daemon) {
   })
 }
 
-function createFileList(dir) {
-  return fs.readdirSync(dir)
-    .reduce((files, file) => {
-      const filePath = path.join(dir, file)
-      const isDir = fs.statSync(filePath).isDirectory()
-
-      if (isDir)
-        return files.concat(createFileList(filePath))
-      else
-        return files.concat({
-          path: filePath,
-          content: fs.readFileSync(filePath),
-        })
-    }, [])
+function stopDaemons (daemons, callback) {
+  parallel(
+    Object.values(daemons).map(daemon => cb => daemon.stop(cb)),
+    callback
+  )
 }
 
-// const content = createFileList('test/fixtures/planets')
+function genRepoPath () {
+  return path.join(os.tmpdir(), hat())
+}
