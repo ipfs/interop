@@ -34,17 +34,17 @@ const baseConf = {
 exports.createProcNode = (addrs, callback) => {
   procDf.spawn({
     initOptions: { bits: 512 },
+    EXPERIMENTAL: {
+      relay: {
+        enabled: true,
+        hop: {
+          enabled: true
+        }
+      }
+    },
     config: Object.assign({}, baseConf, {
       Addresses: {
         Swarm: addrs
-      },
-      EXPERIMENTAL: {
-        relay: {
-          enabled: true,
-          hop: {
-            enabled: true
-          }
-        }
       }
     })
   }, (err, ipfsd) => {

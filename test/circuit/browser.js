@@ -94,12 +94,12 @@ module.exports = {
         (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeA.addrs), cb),
         (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeB.addrs), cb),
         // TODO: timeout is needed to give the nodes time to send the `CAN_HOP` msg
-        (cb) => setTimeout(cb, 3000),
+        (cb) => setTimeout(cb, 5000),
         (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
     },
     timeout: 100 * 1000,
-    skip: () => true
+    skip: () => false
   },
   'js-browser-browser': {
     create: (callback) => series([
@@ -129,7 +129,7 @@ module.exports = {
         (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeA.addrs), cb),
         (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeB.addrs), cb),
         // TODO: timeout is needed to give the nodes time to send the `CAN_HOP` msg
-        (cb) => setTimeout(cb, 3000),
+        (cb) => setTimeout(cb, 5000),
         (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
     },
