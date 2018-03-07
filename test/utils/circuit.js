@@ -153,7 +153,7 @@ const connect = (nodeA, nodeB, relay, timeout, callback) => {
   series([
     (cb) => nodeA.ipfsd.api.swarm.connect(getWsAddr(relay.addrs), cb),
     (cb) => nodeB.ipfsd.api.swarm.connect(getWsAddr(relay.addrs), cb),
-    // TODO: timeout is needed to give the nodes time to send the `CAN_HOP` msg
+    // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
     (cb) => setTimeout(cb, timeout),
     (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
   ], callback)

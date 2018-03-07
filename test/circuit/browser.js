@@ -93,7 +93,7 @@ module.exports = {
       series([
         (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeA.addrs), cb),
         (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeB.addrs), cb),
-        // TODO: timeout is needed to give the nodes time to send the `CAN_HOP` msg
+        // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
         (cb) => setTimeout(cb, 5000),
         (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
@@ -111,7 +111,7 @@ module.exports = {
       series([
         (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeA.addrs), cb),
         (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeB.addrs), cb),
-        // TODO: timeout is needed to give the nodes time to send the `CAN_HOP` msg
+        // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
         (cb) => setTimeout(cb, 3000),
         (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
@@ -128,7 +128,7 @@ module.exports = {
       series([
         (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeA.addrs), cb),
         (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeB.addrs), cb),
-        // TODO: timeout is needed to give the nodes time to send the `CAN_HOP` msg
+        // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
         (cb) => setTimeout(cb, 5000),
         (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
@@ -146,7 +146,7 @@ module.exports = {
       series([
         (cb) => relay.ipfsd.api.swarm.connect(getWsStarAddr(nodeA.addrs), cb),
         (cb) => relay.ipfsd.api.swarm.connect(getWsAddr(nodeB.addrs), cb),
-        // TODO: timeout is needed to give the nodes time to send the `CAN_HOP` msg
+        // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
         (cb) => setTimeout(cb, 3000),
         (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
