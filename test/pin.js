@@ -109,8 +109,8 @@ describe('pin', function () {
       function pipeline (daemon) {
         return daemon.api.add(jupiter)
           .then(chunks => {
-            const testFolder = chunks.find(chunk => chunk.path === 'test').hash
-            return daemon.api.pin.rm(testFolder)
+            const testFolder = chunks.find(chunk => chunk.path === 'test')
+            return daemon.api.pin.rm(testFolder.hash)
           })
           .then(() => daemon.api.pin.ls())
       }
@@ -161,15 +161,8 @@ describe('pin', function () {
     it('print same pins', function () {
       this.timeout(30 * 1000)
 
-      // const filePath = 'test/fixtures/planets/test.txt'
-      // const testTxt = [{
-      //   path: filePath,
-      //   content: fs.readFileSync(filePath)
-      // }]
-
       function pipeline (daemon) {
         return daemon.api.add(jupiter)
-          // .then(adds => { console.log('added:', adds)})
           .then(() => daemon.api.pin.ls())
       }
 
