@@ -44,109 +44,105 @@ describe('pin', function () {
     })
   }
 
+  function withDaemons (pipeline) {
+    return Promise.all([
+      spawnAndStart('go').then(utils.removeAllPins).then(pipeline),
+      spawnAndStart('js').then(utils.removeAllPins).then(pipeline)
+    ])
+  }
+
   afterEach(function () {
     this.timeout(25 * 1000)
     return utils.stopDaemons(daemons)
       .then(() => { daemons = [] })
   })
 
-  // tests that each daemon pins large files in the same chunks
-  it('create the same indirect pins', function () {
-    this.timeout(30 * 1000)
-    this.slow(30 * 1000)
+  describe('pin add', function () {
+    // Pinning a large file recursively results in the same pins
+    it('pin recursively', function () {
+      this.timeout(30 * 1000)
+      this.slow(30 * 1000)
 
-    function pipeline (daemon) {
-      return utils.removeAllPins(daemon)
-        .then(() => daemon.api.add(jupiter, { pin: false }))
-        .then(chunks => Promise.all(
-          chunks.map(chunk => daemon.api.pin.add(chunk.hash))
-        ))
-        .then(() => daemon.api.pin.ls())
-    }
+      function pipeline (daemon) {
+        return daemon.api.add(jupiter, { pin: false })
+          .then(chunks => daemon.api.pin.add(chunks[0].hash))
+          .then(() => daemon.api.pin.ls())
+      }
 
-    return Promise.all([
-      spawnAndStart('go').then(pipeline),
-      spawnAndStart('js').then(pipeline)
-    ])
-      .then(([goPins, jsPins]) => {
-        expect(goPins.length).to.be.gt(0)
-        expect(jsPins).to.deep.include.members(goPins)
-        expect(goPins).to.deep.include.members(jsPins)
-        // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
-      })
-  })
-
-  // Pinning a large file with recursive=false results in the same direct pins
-  it('pin directly', function () {
-    this.timeout(30 * 1000)
-
-    function pipeline (daemon) {
-      return utils.removeAllPins(daemon)
-        .then(() => daemon.api.add(jupiter, { pin: false }))
-        .then(chunks => Promise.all(
-          chunks.map(
-            chunk => daemon.api.pin.add(chunk.hash, { recursive: false })
-          )
-        ))
-        .then(() => daemon.api.pin.ls())
-    }
-
-    return Promise.all([
-      spawnAndStart('go').then(pipeline),
-      spawnAndStart('js').then(pipeline)
-    ])
-      .then(([goPins, jsPins]) => {
-        expect(goPins.length).to.be.gt(0)
-        expect(jsPins).to.deep.include.members(goPins)
-        expect(goPins).to.deep.include.members(jsPins)
-        // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
-      })
-  })
-
-  // removing a root pin removes children as long as they're
-  // not part of another pin's dag
-  it('pin recursively, remove the root pin', function () {
-    this.timeout(20 * 1000)
-    this.slow(20 * 1000)
-
-    function pipeline (daemon) {
-      return utils.removeAllPins(daemon)
-        .then(() => daemon.api.add(jupiter))
-        .then(chunks => {
-          const testFolder = chunks.find(chunk => chunk.path === 'test').hash
-          return daemon.api.pin.rm(testFolder)
+      return withDaemons(pipeline)
+        .then(([goPins, jsPins]) => {
+          expect(goPins.length).to.be.gt(0)
+          expect(jsPins).to.deep.include.members(goPins)
+          expect(goPins).to.deep.include.members(jsPins)
+          // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
         })
-        .then(() => daemon.api.pin.ls())
-    }
+    })
 
-    return Promise.all([
-      spawnAndStart('go').then(pipeline),
-      spawnAndStart('js').then(pipeline)
-    ])
-      .then(([goPins, jsPins]) => {
-        expect(goPins.length).to.eql(0)
-        expect(jsPins.length).to.eql(0)
-      })
+    // Pinning a large file with recursive=false results in the same direct pin
+    it('pin directly', function () {
+      this.timeout(30 * 1000)
+      this.slow(20 * 1000)
+
+      function pipeline (daemon) {
+        return daemon.api.add(jupiter, { pin: false })
+          .then(chunks => daemon.api.pin.add(chunks[0].hash, { recursive: false }))
+          .then(() => daemon.api.pin.ls())
+      }
+
+      return withDaemons(pipeline)
+        .then(([goPins, jsPins]) => {
+          expect(goPins.length).to.be.gt(0)
+          expect(jsPins).to.deep.include.members(goPins)
+          expect(goPins).to.deep.include.members(jsPins)
+          // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
+        })
+    })
   })
 
-  // When a pin contains the root pin of another and we remove it, it is
-  // instead kept but its type is changed to 'indirect'
-  it('remove a child shared by multiple pins', function () {
-    this.timeout(20 * 1000)
-    this.slow(20 * 1000)
+  describe('pin rm', function () {
+    // removing a root pin removes children as long as they're
+    // not part of another pin's dag
+    it('pin recursively, remove the root pin', function () {
+      this.timeout(20 * 1000)
+      this.slow(20 * 1000)
 
-    let jupiterDir
-    function pipeline (daemon) {
-      return utils.removeAllPins(daemon)
-        .then(() => daemon.api.add(jupiter, { pin: false }))
+      function pipeline (daemon) {
+        return daemon.api.add(jupiter)
+          .then(chunks => {
+            const testFolder = chunks.find(chunk => chunk.path === 'test').hash
+            return daemon.api.pin.rm(testFolder)
+          })
+          .then(() => daemon.api.pin.ls())
+      }
+
+      return withDaemons(pipeline)
+        .then(([goPins, jsPins]) => {
+          expect(goPins.length).to.eql(0)
+          expect(jsPins.length).to.eql(0)
+        })
+    })
+
+    // When a pin contains the root of another pin and we remove it, it is
+    // instead kept but its type is changed to 'indirect'
+    it('remove a child shared by multiple pins', function () {
+      this.timeout(20 * 1000)
+      this.slow(20 * 1000)
+
+      let jupiterDir
+      function pipeline (daemon) {
+        return daemon.api.add(jupiter, { pin: false })
         .then(chunks => {
           jupiterDir = jupiterDir ||
             chunks.find(chunk => chunk.path === 'test/fixtures/planets')
+
+          // by separately pinning all the DAG nodes created when adding,
+          // dirs are pinned as type=recursive and
+          // nested pins reference each other
           return daemon.api.pin.add(chunks.map(chunk => chunk.hash))
         })
         .then(() => daemon.api.pin.rm(jupiterDir.hash))
         .then(() => daemon.api.pin.ls())
-    }
+      }
 
     return Promise.all([
       spawnAndStart('go').then(pipeline),
@@ -162,23 +158,22 @@ describe('pin', function () {
       })
   })
 
-  describe(`go and js pinset storage are compatible`, () => {
-    function pipeline (daemonType) {
-      // by starting each daemon with the same repoPath, they will read/write
-      // pins from the same datestore.
+  describe(`go and js pinset storage are compatible`, function () {
+    function pipeline (options) {
+      // by starting each daemon with the same repoPath, they
+      // will read/write pins from the same datestore.
       const repoPath = utils.tmpPath()
       const content = Buffer.from(String(Math.random()))
-      const nextType = daemonType === 'go' ? 'js' : 'go'
       const pins = []
 
-      return spawnAndStart(daemonType, repoPath)
+      return spawnAndStart(options.first, repoPath)
         .then(daemon => {
           return daemon.api.add(content)
             .then(() => daemon.api.pin.ls())
         })
         .then(ls => pins.push(ls))
         .then(() => utils.stopDaemons(daemons))
-        .then(() => spawnAndStart(nextType, repoPath))
+        .then(() => spawnAndStart(options.second, repoPath))
         .then(daemon => daemon.api.pin.ls())
         .then(ls => pins.push(ls))
         .then(() => pins)
@@ -190,7 +185,7 @@ describe('pin', function () {
       this.timeout(20 * 1000)
       this.slow(15000)
 
-      return pipeline('go')
+      return pipeline({ first: 'go', second: 'js' })
         .then(([goPins, jsPins]) => {
           expect(goPins.length).to.be.gt(0)
           expect(jsPins).to.deep.include.members(goPins)
@@ -207,7 +202,7 @@ describe('pin', function () {
       this.timeout(20 * 1000)
       this.slow(15000)
 
-      return pipeline('js')
+      return pipeline({ first: 'js', second: 'go' })
         .then(([jsPins, goPins]) => {
           expect(jsPins.length).to.be.gt(0)
           expect(goPins).to.deep.include.members(jsPins)
