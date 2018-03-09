@@ -144,18 +144,43 @@ describe('pin', function () {
         .then(() => daemon.api.pin.ls())
       }
 
-    return Promise.all([
-      spawnAndStart('go').then(pipeline),
-      spawnAndStart('js').then(pipeline)
-    ])
-      .then(([goPins, jsPins]) => {
-        expect(goPins).to.deep.include.members(jsPins)
-        expect(jsPins).to.deep.include.members(goPins)
+      return withDaemons(pipeline)
+        .then(([goPins, jsPins]) => {
+          expect(goPins.length).to.be.gt(0)
+          expect(goPins).to.deep.include.members(jsPins)
+          expect(jsPins).to.deep.include.members(goPins)
 
-        const dirPin = goPins.find(pin => pin.hash === jupiterDir.hash)
-        expect(dirPin.type).to.eql('indirect')
-        // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
-      })
+          const dirPin = goPins.find(pin => pin.hash === jupiterDir.hash)
+          expect(dirPin.type).to.eql('indirect')
+          // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
+        })
+    })
+  })
+
+  describe('ls', function () {
+    it('print same pins', function () {
+      this.timeout(30 * 1000)
+
+      // const filePath = 'test/fixtures/planets/test.txt'
+      // const testTxt = [{
+      //   path: filePath,
+      //   content: fs.readFileSync(filePath)
+      // }]
+
+      function pipeline (daemon) {
+        return daemon.api.add(jupiter)
+          // .then(adds => { console.log('added:', adds)})
+          .then(() => daemon.api.pin.ls())
+      }
+
+      return withDaemons(pipeline)
+        .then(([goPins, jsPins]) => {
+          expect(goPins.length).to.be.gt(0)
+          expect(goPins).to.deep.include.members(jsPins)
+          expect(jsPins).to.deep.include.members(goPins)
+          // expect(jsPins).to.deep.eql(goPins) // fails due to ordering
+        })
+    })
   })
 
   describe(`go and js pinset storage are compatible`, function () {

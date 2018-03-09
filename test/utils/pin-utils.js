@@ -12,6 +12,7 @@ exports.removeAllPins = function removeAllPins (daemon) {
       )
       return Promise.all(rootPins.map(pin => daemon.api.pin.rm(pin.hash)))
     })
+    .then(() => daemon)
 }
 
 exports.stopDaemons = function stopDaemons (daemons) {
