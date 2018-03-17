@@ -56,7 +56,7 @@
     "hat": "0.0.3",
     "ipfs": "~0.28.0",
     "ipfs-api": "^18.1.1",
-    "ipfsd-ctl": "~0.29.1",
+    "ipfsd-ctl": "~0.30.3",
     "left-pad": "^1.2.0",
     "libp2p-websocket-star-rendezvous": "~0.2.2",
     "lodash": "^4.17.4",
