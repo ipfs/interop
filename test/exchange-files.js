@@ -5,6 +5,7 @@ const chai = require('chai')
 const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
+
 const series = require('async/series')
 const parallel = require('async/parallel')
 const waterfall = require('async/waterfall')
@@ -20,7 +21,8 @@ const hat = require('hat')
 const rmDir = promisify(rimraf)
 
 const DaemonFactory = require('ipfsd-ctl')
-const df = DaemonFactory.create()
+const goDf = DaemonFactory.create()
+const jsDf = DaemonFactory.create({ type: 'js' })
 
 function tmpDir () {
   return join(os.tmpdir(), `ipfs_${hat()}`)
@@ -57,9 +59,9 @@ describe('exchange files', () => {
     this.timeout(50 * 1000)
 
     parallel([
-      (cb) => df.spawn({ initOptions: { bits: 1024 } }, cb),
-      (cb) => df.spawn({ type: 'js', initOptions: { bits: 512 } }, cb),
-      (cb) => df.spawn({ type: 'js', initOptions: { bits: 512 } }, cb)
+      (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
+      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 } }, cb),
+      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 } }, cb)
     ], (err, n) => {
       expect(err).to.not.exist()
       nodes = n
