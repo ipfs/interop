@@ -60,8 +60,8 @@ describe('exchange files', () => {
 
     parallel([
       (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 } }, cb),
-      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 } }, cb)
+      (cb) => jsDf.spawn({ initOptions: { bits: 512 } }, cb),
+      (cb) => jsDf.spawn({ initOptions: { bits: 512 } }, cb)
     ], (err, n) => {
       expect(err).to.not.exist()
       nodes = n
