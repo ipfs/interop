@@ -5,6 +5,7 @@ const chai = require('chai')
 const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
+
 const series = require('async/series')
 const crypto = require('crypto')
 const parallel = require('async/parallel')
@@ -12,7 +13,8 @@ const waterfall = require('async/waterfall')
 const bl = require('bl')
 
 const DaemonFactory = require('ipfsd-ctl')
-const df = DaemonFactory.create()
+const goDf = DaemonFactory.create()
+const jsDf = DaemonFactory.create({ type: 'js' })
 
 describe.skip('kad-dht', () => {
   describe('a JS node in the land of Go', () => {
@@ -23,10 +25,10 @@ describe.skip('kad-dht', () => {
 
     before((done) => {
       parallel([
-        (cb) => df.spawn({ initOptions: { bits: 1024 } }, cb),
-        (cb) => df.spawn({ initOptions: { bits: 1024 } }, cb),
-        (cb) => df.spawn({ initOptions: { bits: 1024 } }, cb),
-        (cb) => df.spawn({ type: 'js', initOptions: { bits: 512 } }, cb)
+        (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
+        (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
+        (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
+        (cb) => jsDf.spawn({ initOptions: { bits: 512 } }, cb)
       ], (err, nodes) => {
         expect(err).to.not.exist()
         goD1 = nodes[0]

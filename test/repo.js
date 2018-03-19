@@ -13,7 +13,8 @@ const path = require('path')
 const hat = require('hat')
 
 const DaemonFactory = require('ipfsd-ctl')
-const df = DaemonFactory.create()
+const goDf = DaemonFactory.create()
+const jsDf = DaemonFactory.create({ type: 'js' })
 
 function catAndCheck (api, hash, data, callback) {
   api.cat(hash, (err, fileData) => {
@@ -35,7 +36,7 @@ describe('repo', () => {
 
     let hash
     series([
-      (cb) => df.spawn({
+      (cb) => goDf.spawn({
         repoPath: dir,
         disposable: false,
         initOptions: { bits: 1024 }
@@ -52,8 +53,7 @@ describe('repo', () => {
       }),
       (cb) => catAndCheck(goDaemon.api, hash, data, cb),
       (cb) => goDaemon.stop(cb),
-      (cb) => df.spawn({
-        type: 'js',
+      (cb) => jsDf.spawn({
         repoPath: dir,
         disposable: false,
         initOptions: { bits: 512 }
@@ -82,8 +82,7 @@ describe('repo', () => {
 
     let hash
     series([
-      (cb) => df.spawn({
-        type: 'js',
+      (cb) => jsDf.spawn({
         repoPath: dir,
         initOptions: { bits: 512 }
       }, cb),
@@ -97,7 +96,7 @@ describe('repo', () => {
         catAndCheck(jsDaemon.api, hash, data, cb)
       },
       (cb) => jsDaemon.stop(cb),
-      (cb) => df.spawn({
+      (cb) => goDf.spawn({
         repoPath: dir,
         initOptions: { bits: 1024 }
       }, cb),
