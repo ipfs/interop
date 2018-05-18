@@ -21,7 +21,7 @@
     "test:node": "aegir test -t node -f test/node.js",
     "test:browser": "aegir test -t browser --no-cors -f test/browser.js"
   },
-  "pre-commit": [
+  "pre-push": [
     "lint"
   ],
   "repository": {
@@ -60,7 +60,6 @@
     "lodash": "^4.17.10",
     "mocha": "^5.1.1",
     "ncp": "^2.0.0",
-    "pre-commit": "^1.2.2",
     "pretty-bytes": "^5.0.0",
     "random-fs": "^1.0.3",
     "rimraf": "^2.6.2",
