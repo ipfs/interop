@@ -23,7 +23,8 @@ const baseTest = {
   timeout
 }
 
-describe('circuit', () => {
+// TODO: unskip once go-ipfs 0.4.15 is out
+describe.skip('circuit', () => {
   const tests = all
   if (!isNode) {
     Object.assign(tests, browser)
