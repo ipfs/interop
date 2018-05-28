@@ -17,9 +17,9 @@
   },
   "scripts": {
     "lint": "aegir lint",
-    "test": "aegir test -t node -t browser --no-cors",
-    "test:node": "aegir test -t node -f test/node.js",
-    "test:browser": "aegir test -t browser --no-cors -f test/browser.js"
+    "test": "cross-env IPFS_REUSEPORT=false aegir test -t node -t browser --no-cors",
+    "test:node": "cross-env IPFS_REUSEPORT=false aegir test -t node -f test/node.js",
+    "test:browser": "cross-env IPFS_REUSEPORT=false aegir test -t browser --no-cors -f test/browser.js"
   },
   "pre-push": [
     "lint"
@@ -44,7 +44,8 @@
     "bs58": "^4.0.1",
     "buffer-loader": "0.0.1",
     "chai": "^4.1.2",
-    "cids": "^0.5.3",
+    "cross-env": "^5.1.3",
+    "cids": "~0.5.3",
     "detect-node": "^2.0.3",
     "dir-compare": "^1.4.0",
     "dirty-chai": "^2.0.1",
@@ -53,12 +54,13 @@
     "form-data": "^2.3.2",
     "go-ipfs-dep": "^0.4.15",
     "hat": "0.0.3",
-    "ipfs": "~0.28.2",
-    "ipfs-api": "^21.0.0",
-    "ipfsd-ctl": "~0.36.0",
-    "left-pad": "^1.3.0",
-    "lodash": "^4.17.10",
-    "mocha": "^5.1.1",
+    "ipfs": "~0.28.0",
+    "ipfs-api": "^18.1.1",
+    "ipfsd-ctl": "~0.30.3",
+    "left-pad": "^1.2.0",
+    "libp2p-websocket-star-rendezvous": "~0.2.2",
+    "lodash": "^4.17.4",
+    "mocha": "^4.0.1",
     "ncp": "^2.0.0",
     "pretty-bytes": "^5.0.0",
     "random-fs": "^1.0.3",

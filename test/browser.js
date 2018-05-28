@@ -4,4 +4,5 @@
 // require('./exchange-files')
 // require('./pubsub')
 require('./kad-dht')
-require('./repo')
+require('./circuit')
+// require('./repo')
