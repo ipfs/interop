@@ -17,7 +17,7 @@
   },
   "scripts": {
     "lint": "aegir lint",
-    "test": "cross-env IPFS_REUSEPORT=false aegir test -t node -t browser --no-cors",
+    "test": "cross-env IPFS_REUSEPORT=false aegir test -t node",
     "test:node": "cross-env IPFS_REUSEPORT=false aegir test -t node -f test/node.js",
     "test:browser": "cross-env IPFS_REUSEPORT=false aegir test -t browser --no-cors -f test/browser.js"
   },
