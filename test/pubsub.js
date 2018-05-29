@@ -165,7 +165,7 @@ describe('pubsub', function () {
 
       series([
         (cb) => jsD.api.pubsub.subscribe(topic, checkMessage, cb),
-        (cb) => setTimeout(() => { cb() }, 500),
+        (cb) => setTimeout(() => { cb() }, 1000),
         (cb) => goD.api.pubsub.publish(topic, data, cb),
         (cb) => waitFor(() => n === 1, cb)
       ], done)
