@@ -68,6 +68,8 @@
     "stream-to-promise": "^2.2.0",
     "transform-loader": "^0.2.4"
   },
-  "dependencies": {},
+  "dependencies": {
+    "ipfs-unixfs": "^0.1.14"
+  },
   "contributors": []
 }
