@@ -20,6 +20,12 @@ const DaemonFactory = require('ipfsd-ctl')
 const goDf = DaemonFactory.create()
 const jsDf = DaemonFactory.create({ type: 'js' })
 
+// This is for keeping the connection timeouts throttled to avoid
+// tests running too long. Since everything is local and already running
+// they should connect quickly (< 1s), so this should be able to be set
+// relatively low.
+const CONN_TIMEOUT = 2500
+
 // Create network keys
 const networkAKey = Buffer.alloc(95)
 const networkBKey = Buffer.alloc(95)
@@ -134,8 +140,6 @@ describe('Private network', function () {
     let jsId2
 
     before('should be able to connect js <-> js', function (done) {
-      this.timeout(20 * 1000)
-
       series([
         (cb) => parallel([
           (cb) => jsPrivateDaemon.api.id(cb),
@@ -184,8 +188,6 @@ describe('Private network', function () {
     let goId
 
     before('should be able to connect go <-> js', function (done) {
-      this.timeout(20 * 1000)
-
       series([
         (cb) => parallel([
           (cb) => jsPrivateDaemon.api.id(cb),
@@ -246,8 +248,6 @@ describe('Private network', function () {
     let goSameNetId
 
     before('should be able to connect go <-> go', function (done) {
-      this.timeout(20 * 1000)
-
       series([
         (cb) => parallel([
           (cb) => goPrivateDaemon.api.id(cb),
@@ -292,9 +292,15 @@ describe('Private network', function () {
   })
 
   describe('go <-> js on different private networks', () => {
+    // This will either timeout, or error, we need to test both
     it('should NOT be able to connect go <-> js', (done) => {
       let jsId
       let goId
+
+      let timeout = setTimeout(() => {
+        timeout = null
+        done()
+      }, CONN_TIMEOUT)
 
       series([
         (cb) => parallel([
@@ -318,16 +324,27 @@ describe('Private network', function () {
           expect(peers[1].map((p) => p.peer.toB58String())).to.not.include(jsId.id)
           cb(err)
         })
-      ], () => {
-        done()
+      ], (err) => {
+        // If the timeout exists, that means we had an error before timeout so we need to check that
+        if (timeout) {
+          clearTimeout(timeout)
+          expect(err).to.exist()
+          done()
+        }
       })
     })
   })
 
   describe('js <-> js on different private networks', () => {
+    // This will either timeout, or error, we need to test both
     it('should NOT be able to connect js <-> js', (done) => {
       let jsId
       let jsDiffId
+
+      let timeout = setTimeout(() => {
+        timeout = null
+        done()
+      }, CONN_TIMEOUT)
 
       series([
         (cb) => parallel([
@@ -351,17 +368,27 @@ describe('Private network', function () {
           expect(peers[1].map((p) => p.peer.toB58String())).to.not.include(jsId.id)
           cb(err)
         })
-      ], () => {
-        done()
+      ], (err) => {
+        // If the timeout exists, that means we had an error before timeout so we need to check that
+        if (timeout) {
+          clearTimeout(timeout)
+          expect(err).to.exist()
+          done()
+        }
       })
     })
   })
 
-  // This will currently timeout, as go will not error
-  describe.skip('go <-> go on different private networks', () => {
+  describe('go <-> go on different private networks', () => {
+    // This will either timeout, or error, we need to test both
     it('should NOT be able to connect go <-> go', (done) => {
       let goId
       let goDiffId
+
+      let timeout = setTimeout(() => {
+        timeout = null
+        done()
+      }, CONN_TIMEOUT)
 
       series([
         (cb) => parallel([
@@ -385,16 +412,27 @@ describe('Private network', function () {
           expect(peers[1].map((p) => p.peer.toB58String())).to.not.include(goId.id)
           cb(err)
         })
-      ], () => {
-        done()
+      ], (err) => {
+        // If the timeout exists, that means we had an error before timeout so we need to check that
+        if (timeout) {
+          clearTimeout(timeout)
+          expect(err).to.exist()
+          done()
+        }
       })
     })
   })
 
   describe('js private network <-> go public network', () => {
+    // This will either timeout, or error, we need to test both
     it('should NOT be able to connect js <-> go', (done) => {
       let jsId
       let goPubId
+
+      let timeout = setTimeout(() => {
+        timeout = null
+        done()
+      }, CONN_TIMEOUT)
 
       series([
         (cb) => parallel([
@@ -417,16 +455,27 @@ describe('Private network', function () {
           expect(peers[1].map((p) => p.peer.toB58String())).to.not.include(jsId.id)
           cb(err)
         })
-      ], () => {
-        done()
+      ], (err) => {
+        // If the timeout exists, that means we had an error before timeout so we need to check that
+        if (timeout) {
+          clearTimeout(timeout)
+          expect(err).to.exist()
+          done()
+        }
       })
     })
   })
 
   describe('js private network <-> js public network', () => {
+    // This will either timeout, or error, we need to test both
     it('should NOT be able to connect js <-> js', (done) => {
       let jsId
       let jsPubId
+
+      let timeout = setTimeout(() => {
+        timeout = null
+        done()
+      }, CONN_TIMEOUT)
 
       series([
         (cb) => parallel([
@@ -450,17 +499,27 @@ describe('Private network', function () {
           expect(peers[1].map((p) => p.peer.toB58String())).to.not.include(jsId.id)
           cb(err)
         })
-      ], () => {
-        done()
+      ], (err) => {
+        // If the timeout exists, that means we had an error before timeout so we need to check that
+        if (timeout) {
+          clearTimeout(timeout)
+          expect(err).to.exist()
+          done()
+        }
       })
     })
   })
 
-  // This will currently timeout, as go will not error
-  describe.skip('go private network <-> go public network', () => {
+  describe('go private network <-> go public network', () => {
+    // This will either timeout, or error, we need to test both
     it('should NOT be able to connect go <-> go', (done) => {
       let goId
       let goPubId
+
+      let timeout = setTimeout(() => {
+        timeout = null
+        done()
+      }, CONN_TIMEOUT)
 
       series([
         (cb) => parallel([
@@ -484,8 +543,13 @@ describe('Private network', function () {
           expect(peers[1].map((p) => p.peer.toB58String())).to.not.include(goId.id)
           cb(err)
         })
-      ], () => {
-        done()
+      ], (err) => {
+        // If the timeout exists, that means we had an error before timeout so we need to check that
+        if (timeout) {
+          clearTimeout(timeout)
+          expect(err).to.exist()
+          done()
+        }
       })
     })
   })
