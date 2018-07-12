@@ -23,7 +23,7 @@ const baseTest = {
   timeout
 }
 
-// TODO: unskip once go-ipfs 0.4.15 is out
+// TODO: unskip once go-ipfs 0.4.16 is out
 describe.skip('circuit', () => {
   const tests = all
   if (!isNode) {
