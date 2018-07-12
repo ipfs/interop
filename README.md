@@ -44,7 +44,7 @@ This repository will be used for interop tests. Please jump into the issues if y
 
 ```
 > Do the steps in the install section, then
-> IPFS_EXEC=<path to the go-ipfs version you want to try> npm test
+> IPFS_GO_EXEC=<path to the go-ipfs version you want to try> npm test
 ```
 
 ## Contribute
