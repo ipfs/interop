@@ -196,9 +196,6 @@ describe.only('exchange files', () => {
 
   // TODO these tests are not fetching the full dir??
   describe('get directory', () => dirs.forEach((num) => {
-    // skipping until https://github.com/ipfs/interop/issues/9 is addressed
-    if (isWindows) { return }
-
     it(`go -> js: depth: 5, num: ${num}`, function () {
       this.timeout(timeout)
 
