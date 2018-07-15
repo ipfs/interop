@@ -30,27 +30,38 @@ function tmpDir () {
   return join(os.tmpdir(), `ipfs_${hat()}`)
 }
 
+const KB = 1024
+const MB = KB * 1024
+const GB = KB * 1024
+
 const sizes = [
-  1024,
-  1024 * 62,
+  1 * KB,
+  62 * KB,
   // starts failing with spdy
-  1024 * 64,
-  1024 * 512,
-  1024 * 768,
-  1024 * 1023,
-  1024 * 1024,
-  1024 * 1024 * 4,
-  1024 * 1024 * 8
+  64 * KB,
+  512 * KB,
+  768 * KB,
+  1023 * KB,
+  1 * MB,
+  4 * MB,
+  8 * MB,
+  64 * MB,
+  128 * MB,
+  512 * MB,
+  1 * GB
 ]
 
 const dirs = [
   5,
   10,
   50,
-  100
+  100,
+  1000
 ]
 
-describe('exchange files', () => {
+const timeout = 120 * 1000
+
+describe.only('exchange files', () => {
   let goDaemon
   let jsDaemon
   let js2Daemon
@@ -58,7 +69,7 @@ describe('exchange files', () => {
   let nodes
 
   before(function (done) {
-    this.timeout(50 * 1000)
+    this.timeout(timeout)
 
     parallel([
       (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
@@ -77,7 +88,7 @@ describe('exchange files', () => {
   after((done) => parallel(nodes.map((node) => (cb) => node.stop(cb)), done))
 
   it('connect go <-> js', function (done) {
-    this.timeout(50 * 1000)
+    this.timeout(timeout)
 
     let jsId
     let goId
@@ -107,7 +118,7 @@ describe('exchange files', () => {
   })
 
   it('connect js <-> js', function (done) {
-    this.timeout(50 * 1000)
+    this.timeout(timeout)
 
     let jsId
     let js2Id
@@ -138,8 +149,10 @@ describe('exchange files', () => {
 
   describe('cat file', () => sizes.forEach((size) => {
     it(`go -> js: ${pretty(size)}`, function (done) {
-      this.timeout(50 * 1000)
+      this.timeout(timeout)
+
       const data = crypto.randomBytes(size)
+
       waterfall([
         (cb) => goDaemon.api.add(data, cb),
         (res, cb) => jsDaemon.api.cat(res[0].hash, cb)
@@ -151,8 +164,10 @@ describe('exchange files', () => {
     })
 
     it(`js -> go: ${pretty(size)}`, function (done) {
-      this.timeout(50 * 1000)
+      this.timeout(timeout)
+
       const data = crypto.randomBytes(size)
+
       waterfall([
         (cb) => jsDaemon.api.add(data, cb),
         (res, cb) => goDaemon.api.cat(res[0].hash, cb)
@@ -164,8 +179,10 @@ describe('exchange files', () => {
     })
 
     it(`js -> js: ${pretty(size)}`, function (done) {
-      this.timeout(20 * 1000)
+      this.timeout(timeout)
+
       const data = crypto.randomBytes(size)
+
       waterfall([
         (cb) => js2Daemon.api.add(data, cb),
         (res, cb) => jsDaemon.api.cat(res[0].hash, cb)
@@ -180,13 +197,13 @@ describe('exchange files', () => {
   // TODO these tests are not fetching the full dir??
   describe('get directory', () => dirs.forEach((num) => {
     // skipping until https://github.com/ipfs/interop/issues/9 is addressed
-    if (isWindows) {
-      return
-    }
+    if (isWindows) { return }
 
     it(`go -> js: depth: 5, num: ${num}`, function () {
-      this.timeout(50 * 1000)
+      this.timeout(timeout)
+
       const dir = tmpDir()
+
       return randomFs({
         path: dir,
         depth: 5,
@@ -203,7 +220,7 @@ describe('exchange files', () => {
     })
 
     it(`js -> go: depth: 5, num: ${num}`, function () {
-      this.timeout(50 * 1000)
+      this.timeout(timeout)
 
       const dir = tmpDir()
       return randomFs({
@@ -222,7 +239,7 @@ describe('exchange files', () => {
     })
 
     it(`js -> js: depth: 5, num: ${num}`, function () {
-      this.timeout(80 * 1000)
+      this.timeout(timeout)
 
       const dir = tmpDir()
       return randomFs({
