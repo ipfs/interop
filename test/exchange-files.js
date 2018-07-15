@@ -18,7 +18,7 @@ const join = require('path').join
 const os = require('os')
 const hat = require('hat')
 
-const isWindows = os.platform() === 'win32'
+// const isWindows = os.platform() === 'win32'
 
 const rmDir = promisify(rimraf)
 
@@ -35,20 +35,20 @@ const MB = KB * 1024
 const GB = KB * 1024
 
 const sizes = [
-  1 * KB,
+  KB,
   62 * KB,
   // starts failing with spdy
   64 * KB,
   512 * KB,
   768 * KB,
   1023 * KB,
-  1 * MB,
+  MB,
   4 * MB,
   8 * MB,
   64 * MB,
   128 * MB,
   512 * MB,
-  1 * GB
+  GB
 ]
 
 const dirs = [
