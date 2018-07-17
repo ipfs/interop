@@ -197,69 +197,6 @@ describe('ipns', () => {
     ], done)
   })
 
-  it('should publish cenas', function (done) {
-    this.timeout(100 * 1000)
-
-    const dir = path.join(os.tmpdir(), hat())
-    const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
-
-    console.log('dir', dir)
-
-    let goDaemon1
-    let goDaemon2
-    let jsDaemon
-    let peerId
-
-    parallel([
-      (cb) => goDf.spawn({
-        repoPath: dir,
-        disposable: false,
-        initOptions: { bits: 1024 }
-      }, cb),
-      (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb)
-    ], (err, nodes) => {
-      expect(err).to.not.exist()
-
-      goDaemon1 = nodes[0]
-      goDaemon2 = nodes[1]
-
-      series([
-        (cb) => goDaemon1.init(cb),
-        (cb) => goDaemon1.start(cb),
-        (cb) => goDaemon2.start(cb),
-        (cb) => goDaemon1.api.id((err, res) => {
-          expect(err).to.not.exist()
-          peerId = res.id
-          cb()
-        }),
-        // (cb) => goDaemon1.api.name.publish(ipfsRef, { resolve: false }, cb),
-        // (cb) => goDaemon1.api.name.publish(ipfsRef, { resolve: false }, cb),
-        (cb) => goDaemon1.stop(cb),
-        (cb) => goDaemon2.stop(cb),
-        (cb) => jsDf.spawn({
-          repoPath: dir,
-          disposable: false,
-          initOptions: { bits: 512 }
-        }, (err, node) => {
-          expect(err).to.not.exist()
-          jsDaemon = node
-          cb()
-        }),
-        (cb) => jsDaemon.start(cb),
-        (cb) => jsDaemon.api.id((err, res) => {
-          expect(err).to.not.exist()
-          console.log('peer id js', res.id, peerId === res.id)
-          cb()
-        }),
-        (cb) => setTimeout(() => cb(), 2000),
-        (cb) => jsDaemon.api.name.publish(ipfsRef, { resolve: false }, cb),
-        (cb) => jsDaemon.stop(cb),
-        (cb) => setTimeout(cb, 2000),
-        (cb) => jsDaemon.cleanup(cb)
-      ], done)
-    })
-  })
-
   it('should publish an ipns record to a go daemon and resolve it using a js daemon through the reuse of the same repo', function (done) {
     this.timeout(50 * 1000)
 
