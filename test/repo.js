@@ -76,6 +76,8 @@ describe('repo', () => {
     ], done)
   })
 
+  // This was last due to an update on go-ipfs that changed how datastore is
+  // configured
   it('read repo: js -> go', function (done) {
     this.timeout(80 * 1000)
     const dir = path.join(os.tmpdir(), hat())
@@ -97,7 +99,6 @@ describe('repo', () => {
         jsDaemon.init(cb)
       }),
       (cb) => jsDaemon.start(cb),
-
       (cb) => jsDaemon.api.add(data, (err, res) => {
         expect(err).to.not.exist()
 
