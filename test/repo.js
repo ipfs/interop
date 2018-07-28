@@ -26,7 +26,9 @@ function catAndCheck (api, hash, data, callback) {
   })
 }
 
-describe('repo', () => {
+// The repo was again changed on go-ipfs 0.4.16
+// TODO: create spec tests for repo
+describe.skip('repo', () => {
   // skipping until https://github.com/ipfs/interop/issues/8 is addressed
   if (isWindows) {
     return
@@ -77,9 +79,7 @@ describe('repo', () => {
     ], done)
   })
 
-  // This was last due to an update on go-ipfs that changed how datastore is
-  // configured
-  it.skip('read repo: js -> go', function (done) {
+  it('read repo: js -> go', function (done) {
     this.timeout(50 * 1000)
     const dir = path.join(os.tmpdir(), hat())
     const data = crypto.randomBytes(1024 * 5)

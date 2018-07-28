@@ -21,9 +21,6 @@
     "test:node": "cross-env IPFS_REUSEPORT=false aegir test -t node -f test/node.js",
     "test:browser": "cross-env IPFS_REUSEPORT=false aegir test -t browser --no-cors -f test/browser.js"
   },
-  "pre-push": [
-    "lint"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ipfs/interop.git"
@@ -38,35 +35,35 @@
   },
   "homepage": "https://github.com/ipfs/interop#readme",
   "devDependencies": {
-    "aegir": "^13.1.0",
+    "aegir": "^15.1.0",
     "async": "^2.6.1",
-    "bl": "^2.0.0",
+    "bl": "^2.0.1",
     "bs58": "^4.0.1",
     "buffer-loader": "0.0.1",
     "chai": "^4.1.2",
-    "cross-env": "^5.1.6",
+    "cross-env": "^5.2.0",
     "cids": "~0.5.3",
     "detect-node": "^2.0.3",
     "dir-compare": "^1.4.0",
     "dirty-chai": "^2.0.1",
-    "eslint-plugin-react": "^7.8.2",
-    "expose-loader": "^0.7.5",
+    "eslint-plugin-react": "^7.10.0",
+    "expose-loader": "~0.7.5",
     "form-data": "^2.3.2",
-    "go-ipfs-dep": "~0.4.15",
+    "go-ipfs-dep": "~0.4.17",
     "hat": "0.0.3",
-    "ipfs": "~0.30.0",
-    "ipfs-api": "^22.0.0",
-    "ipfsd-ctl": "~0.37.0",
+    "ipfs": "~0.30.1",
+    "ipfs-api": "^22.2.4",
+    "ipfsd-ctl": "~0.39.0",
     "left-pad": "^1.3.0",
     "libp2p-websocket-star-rendezvous": "~0.2.3",
     "lodash": "^4.17.10",
     "mocha": "^5.2.0",
     "ncp": "^2.0.0",
-    "pretty-bytes": "^5.0.0",
+    "pretty-bytes": "^5.1.0",
     "random-fs": "^1.0.3",
     "rimraf": "^2.6.2",
     "stream-to-promise": "^2.2.0",
-    "transform-loader": "^0.2.4"
+    "transform-loader": "~0.2.4"
   },
   "contributors": []
 }
