@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square)](http://ipfs.io/)
 [![](https://img.shields.io/badge/freenode-%23ipfs-blue.svg?style=flat-square)](http://webchat.freenode.net/?channels=%23ipfs)
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
-[![](https://ci.ipfs.team/buildStatus/icon?job=ipfs/js-ipfs-unixfs-engine/master)](https://ci.ipfs.team/job/ipfs/job/js-ipfs-unixfs-engine/job/master/)
+[![](https://ci.ipfs.team/buildStatus/icon?job=ipfs/interop/master)](https://ci.ipfs.team/job/ipfs/job/interop/job/master/)
 
 > Interoperability tests for IPFS Implementations
 
