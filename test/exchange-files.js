@@ -32,7 +32,7 @@ function tmpDir () {
 
 const KB = 1024
 const MB = KB * 1024
-const GB = KB * 1024
+const GB = MB * 1024
 
 const sizes = [
   KB,
@@ -55,8 +55,7 @@ const dirs = [
   5,
   10,
   50,
-  100,
-  1000
+  100
 ]
 
 const timeout = 120 * 1000
