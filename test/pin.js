@@ -172,7 +172,8 @@ describe('pin', function () {
     })
   })
 
-  describe(`go and js pinset storage are compatible`, function () {
+  // FIXME: https://github.com/ipfs/js-ipfs/issues/1467
+  describe.skip('go and js pinset storage are compatible', function () {
     function pipeline (options) {
       // by starting each daemon with the same repoPath, they
       // will read/write pins from the same datastore.

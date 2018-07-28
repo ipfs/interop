@@ -85,7 +85,11 @@ describe('exchange files', () => {
     })
   })
 
-  after((done) => parallel(nodes.map((node) => (cb) => node.stop(cb)), done))
+  after(function (done) {
+    this.timeout(timeout)
+
+    parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
+  })
 
   it('connect go <-> js', function (done) {
     this.timeout(timeout)
