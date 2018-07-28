@@ -21,9 +21,6 @@
     "test:node": "cross-env IPFS_REUSEPORT=false aegir test -t node -f test/node.js",
     "test:browser": "cross-env IPFS_REUSEPORT=false aegir test -t browser --no-cors -f test/browser.js"
   },
-  "pre-push": [
-    "lint"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ipfs/interop.git"
@@ -50,7 +47,7 @@
     "dir-compare": "^1.4.0",
     "dirty-chai": "^2.0.1",
     "eslint-plugin-react": "^7.10.0",
-    "expose-loader": "^0.7.5",
+    "expose-loader": "~0.7.5",
     "form-data": "^2.3.2",
     "go-ipfs-dep": "~0.4.17",
     "hat": "0.0.3",
@@ -66,7 +63,7 @@
     "random-fs": "^1.0.3",
     "rimraf": "^2.6.2",
     "stream-to-promise": "^2.2.0",
-    "transform-loader": "^0.2.4"
+    "transform-loader": "~0.2.4"
   },
   "contributors": []
 }
