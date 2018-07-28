@@ -61,7 +61,7 @@ const dirs = [
 
 const timeout = 120 * 1000
 
-describe.only('exchange files', () => {
+describe('exchange files', () => {
   let goDaemon
   let jsDaemon
   let js2Daemon
