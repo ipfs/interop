@@ -59,7 +59,7 @@ const dirs = [
   // 1000
 ]
 
-const timeout = 120 * 1000
+const timeout = 240 * 1000
 
 describe('exchange files', () => {
   let goDaemon
