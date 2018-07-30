@@ -25,8 +25,7 @@ const baseConf = {
   },
   Discovery: {
     MDNS: {
-      Enabled:
-        false
+      Enabled: false
     }
   }
 }
@@ -38,12 +37,10 @@ exports.createProcNode = (addrs, callback) => {
       Addresses: {
         Swarm: addrs
       },
-      EXPERIMENTAL: {
-        relay: {
-          enabled: true,
-          hop: {
-            enabled: true
-          }
+      relay: {
+        enabled: true,
+        hop: {
+          enabled: true
         }
       }
     })
@@ -62,12 +59,10 @@ exports.createJsNode = (addrs, callback) => {
       Addresses: {
         Swarm: addrs
       },
-      EXPERIMENTAL: {
-        relay: {
-          enabled: true,
-          hop: {
-            enabled: true
-          }
+      relay: {
+        enabled: true,
+        hop: {
+          enabled: true
         }
       }
     })
