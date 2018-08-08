@@ -13,219 +13,118 @@ const path = require('path')
 const hat = require('hat')
 
 const DaemonFactory = require('ipfsd-ctl')
-const goDf = DaemonFactory.create()
-const jsDf = DaemonFactory.create({ type: 'js' })
+
+const spawnJsDaemon = (dir, callback) => {
+  DaemonFactory.create({ type: 'js' })
+    .spawn({
+      repoPath: dir,
+      disposable: false,
+      initOptions: { bits: 512 }
+    }, callback)
+}
+
+const spawnGoDaemon = (dir, callback) => {
+  DaemonFactory.create()
+    .spawn({
+      repoPath: dir,
+      disposable: false,
+      initOptions: { bits: 1024 },
+      args: ['--offline']
+    }, callback)
+}
+
+const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
+
+const publishAndResolve = (publisherDaemon, resolverDaemon, callback) => {
+  let nodeId
+  let sameDaemon = false
+
+  if (typeof resolverDaemon === 'function') {
+    callback = resolverDaemon
+    resolverDaemon = publisherDaemon
+    sameDaemon = true
+  }
+
+  const stopAndStartSecondDaemon = (callback) => {
+    if (sameDaemon) {
+      return callback()
+    }
+    series([
+      (cb) => publisherDaemon.stop(cb),
+      (cb) => setTimeout(cb, 2000),
+      (cb) => resolverDaemon.start(cb)
+    ], callback)
+  }
+
+  series([
+    (cb) => publisherDaemon.init(cb),
+    (cb) => publisherDaemon.start(cb),
+    (cb) => publisherDaemon.api.id((err, res) => {
+      expect(err).to.not.exist()
+      nodeId = res.id
+      cb()
+    }),
+    (cb) => publisherDaemon.api.name.publish(ipfsRef, { resolve: false }, cb),
+    (cb) => stopAndStartSecondDaemon(cb),
+    (cb) => {
+      resolverDaemon.api.name.resolve(nodeId, { local: true }, (err, res) => {
+        expect(err).to.not.exist()
+        expect(res).to.equal(ipfsRef)
+        cb()
+      })
+    },
+    (cb) => resolverDaemon.stop(cb),
+    (cb) => setTimeout(cb, 2000),
+    (cb) => resolverDaemon.cleanup(cb)
+  ], callback)
+}
 
 describe('ipns', () => {
   it('should publish an ipns record to a js daemon and resolve it using the same js daemon', function (done) {
     this.timeout(100 * 1000)
-
     const dir = path.join(os.tmpdir(), hat())
-    const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 
-    let jsDaemon
-    let jsId
-
-    series([
-      (cb) => jsDf.spawn({
-        repoPath: dir,
-        disposable: false,
-        initOptions: { bits: 512 }
-      }, (err, node) => {
-        expect(err).to.not.exist()
-        jsDaemon = node
-        jsDaemon.init(cb)
-      }),
-      (cb) => jsDaemon.start(cb),
-      (cb) => jsDaemon.api.id((err, res) => {
-        expect(err).to.not.exist()
-        jsId = res.id
-        cb()
-      }),
-      (cb) => jsDaemon.api.name.publish(ipfsRef, { resolve: false }, cb),
-      (cb) => {
-        jsDaemon.api.name.resolve(jsId, (err, res) => {
-          expect(err).to.not.exist()
-          expect(res).to.equal(ipfsRef)
-          cb()
-        })
-      },
-      (cb) => jsDaemon.stop(cb)
-      // TODO cleanup repo
-    ], done)
+    spawnJsDaemon(dir, (err, jsDaemon) => {
+      expect(err).to.not.exist()
+      publishAndResolve(jsDaemon, done)
+    })
   })
 
   it('should publish an ipns record to a go daemon and resolve it using the same go daemon', function (done) {
-    this.timeout(100 * 1000)
-
+    this.timeout(120 * 1000)
     const dir = path.join(os.tmpdir(), hat())
-    const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 
-    let goDaemon1
-    let goDaemon2
-    let goId1
-
-    parallel([
-      (cb) => goDf.spawn({
-        repoPath: dir,
-        initOptions: { bits: 1024 }
-      }, cb),
-      (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb)
-    ], (err, nodes) => {
+    spawnGoDaemon(dir, (err, goDaemon) => {
       expect(err).to.not.exist()
-
-      goDaemon1 = nodes[0]
-      goDaemon2 = nodes[1]
-
-      parallel([
-        (cb) => goDaemon1.start(cb),
-        (cb) => goDaemon2.start(cb)
-      ], (err, nodes) => {
-        expect(err).to.not.exist()
-
-        series([
-          (cb) => goDaemon1.api.id((err, res) => {
-            expect(err).to.not.exist()
-            goId1 = res
-            cb()
-          }),
-          (cb) => goDaemon1.api.name.publish(ipfsRef, { resolve: false }, cb),
-          (cb) => {
-            goDaemon1.api.name.resolve(goId1, { resolve: false }, (err, res) => {
-              expect(err).to.not.exist()
-              expect(res).to.equal(ipfsRef)
-              cb()
-            })
-          },
-          (cb) => goDaemon1.stop(cb),
-          (cb) => goDaemon2.stop(cb)
-          // TODO cleanup repo
-          // TODO check need for 2 daemons
-        ], done)
-      })
+      publishAndResolve(goDaemon, done)
     })
   })
 
   it('should publish an ipns record to a js daemon and resolve it using a go daemon through the reuse of the same repo', function (done) {
-    this.timeout(1000 * 1000)
-
+    this.timeout(100 * 1000)
     const dir = path.join(os.tmpdir(), hat())
-    const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 
-    let goDaemon1
-    let goDaemon2
-    let jsDaemon
-    let peerId
+    parallel([
+      (cb) => spawnJsDaemon(dir, cb),
+      (cb) => spawnGoDaemon(dir, cb)
+    ], (err, daemons) => {
+      expect(err).to.not.exist()
 
-    series([
-      (cb) => jsDf.spawn({
-        repoPath: dir,
-        disposable: false,
-        initOptions: { bits: 512 }
-      }, (err, node) => {
-        expect(err).to.not.exist()
-
-        jsDaemon = node
-        jsDaemon.init(cb)
-      }),
-      (cb) => jsDaemon.start(cb),
-      (cb) => jsDaemon.api.id((err, res) => {
-        expect(err).to.not.exist()
-        peerId = res.id
-
-        cb()
-      }),
-      (cb) => jsDaemon.api.name.publish(ipfsRef, { resolve: false }, cb),
-      (cb) => jsDaemon.stop(cb),
-      (cb) => setTimeout(cb, 2000),
-      (cb) => goDf.spawn({
-        repoPath: dir,
-        disposable: false,
-        initOptions: { bits: 1024 }
-      }, (err, node) => {
-        expect(err).to.not.exist()
-        goDaemon1 = node
-        cb()
-      }),
-      (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, (err, node) => {
-        expect(err).to.not.exist()
-        goDaemon2 = node
-        cb()
-      }),
-      (cb) => goDaemon1.start(cb),
-      (cb) => goDaemon2.start(cb),
-      (cb) => {
-        goDaemon1.api.name.resolve(peerId, { resolve: false, local: true }, (err, res) => {
-          expect(err).to.not.exist()
-          expect(res).to.equal(ipfsRef)
-          cb()
-        })
-      },
-      (cb) => goDaemon1.stop(cb),
-      (cb) => goDaemon2.stop(cb)
-      // TODO cleanup repo
-    ], done)
+      publishAndResolve(daemons[0], daemons[1], done)
+    })
   })
 
   it('should publish an ipns record to a go daemon and resolve it using a js daemon through the reuse of the same repo', function (done) {
-    this.timeout(1000 * 1000)
-
+    this.timeout(120 * 1000)
     const dir = path.join(os.tmpdir(), hat())
-    const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
-
-    let goDaemon1
-    let goDaemon2
-    let jsDaemon
-    let peerId
 
     parallel([
-      (cb) => goDf.spawn({
-        repoPath: dir,
-        disposable: false,
-        initOptions: { bits: 1024 }
-      }, cb),
-      (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb)
-    ], (err, nodes) => {
+      (cb) => spawnGoDaemon(dir, cb),
+      (cb) => spawnJsDaemon(dir, cb)
+    ], (err, daemons) => {
       expect(err).to.not.exist()
 
-      goDaemon1 = nodes[0]
-      goDaemon2 = nodes[1]
-
-      series([
-        (cb) => goDaemon1.init(cb),
-        (cb) => goDaemon1.start(cb),
-        (cb) => goDaemon2.start(cb),
-        (cb) => goDaemon1.api.id((err, res) => {
-          expect(err).to.not.exist()
-
-          peerId = res.id
-          cb()
-        }),
-        (cb) => goDaemon1.api.name.publish(ipfsRef, { resolve: false }, cb),
-        (cb) => goDaemon1.stop(cb),
-        (cb) => goDaemon2.stop(cb),
-        (cb) => jsDf.spawn({
-          repoPath: dir,
-          disposable: false,
-          initOptions: { bits: 512 }
-        }, (err, node) => {
-          expect(err).to.not.exist()
-
-          jsDaemon = node
-          cb()
-        }),
-        (cb) => jsDaemon.start(cb),
-        (cb) => {
-          jsDaemon.api.name.resolve(peerId, (err, res) => {
-            expect(err).to.not.exist()
-            expect(res).to.equal(ipfsRef)
-            cb()
-          })
-        },
-        (cb) => jsDaemon.stop(cb),
-        (cb) => setTimeout(cb, 2000)
-        // TODO cleanup repo
-      ], done)
+      publishAndResolve(daemons[0], daemons[1], done)
     })
   })
 })

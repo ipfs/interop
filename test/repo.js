@@ -76,10 +76,8 @@ describe('repo', () => {
     ], done)
   })
 
-  // This was last due to an update on go-ipfs that changed how datastore is
-  // configured
   it('read repo: js -> go', function (done) {
-    this.timeout(80 * 1000)
+    this.timeout(50 * 1000)
     const dir = path.join(os.tmpdir(), hat())
     const data = crypto.randomBytes(1024 * 5)
 
@@ -90,33 +88,26 @@ describe('repo', () => {
     series([
       (cb) => jsDf.spawn({
         repoPath: dir,
-        disposable: false,
         initOptions: { bits: 512 }
-      }, (err, node) => {
-        expect(err).to.not.exist()
-
+      }, cb),
+      (node, cb) => {
         jsDaemon = node
-        jsDaemon.init(cb)
-      }),
-      (cb) => jsDaemon.start(cb),
-      (cb) => jsDaemon.api.add(data, (err, res) => {
-        expect(err).to.not.exist()
-
+        cb()
+      },
+      (cb) => jsDaemon.api.add(data, cb),
+      (res, cb) => {
         hash = res[0].hash
         catAndCheck(jsDaemon.api, hash, data, cb)
-      }),
+      },
       (cb) => jsDaemon.stop(cb),
       (cb) => goDf.spawn({
         repoPath: dir,
-        disposable: false,
         initOptions: { bits: 1024 }
-      }, (err, node) => {
-        expect(err).to.not.exist()
-
+      }, cb),
+      (node, cb) => {
         goDaemon = node
         cb()
-      }),
-      (cb) => goDaemon.start(cb),
+      },
       (cb) => catAndCheck(goDaemon.api, hash, data, cb),
       (cb) => goDaemon.stop(cb)
     ], done)
