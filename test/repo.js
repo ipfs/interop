@@ -26,10 +26,7 @@ function catAndCheck (api, hash, data, callback) {
   })
 }
 
-// The repo was again changed on go-ipfs 0.4.16
-// TODO: create spec tests for repo
-describe.skip('repo', () => {
-  // skipping until https://github.com/ipfs/interop/issues/8 is addressed
+describe('repo', () => {
   if (isWindows) {
     return
   }
