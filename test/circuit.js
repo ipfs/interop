@@ -23,9 +23,9 @@ const baseTest = {
   timeout
 }
 
-// TODO: unskip once go-ipfs 0.4.16 is out
-describe.skip('circuit', () => {
+describe('circuit', () => {
   const tests = all
+
   if (!isNode) {
     Object.assign(tests, browser)
   }
@@ -37,7 +37,11 @@ describe.skip('circuit', () => {
     let nodeB
 
     tests[test] = Object.assign({}, baseTest, tests[test])
-    const dsc = tests[test].skip && tests[test].skip() ? describe.skip : describe
+
+    const dsc = tests[test].skip && tests[test].skip()
+      ? describe.skip
+      : describe
+
     dsc(test, function () {
       this.timeout(tests[test].timeout)
 
