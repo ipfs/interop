@@ -28,7 +28,7 @@ function waitFor (predicate, callback) {
   }, 500)
 }
 
-describe('pubsub', function () {
+describe.skip('pubsub', function () {
   this.timeout(10 * 1000)
 
   let jsD
