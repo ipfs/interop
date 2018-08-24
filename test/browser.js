@@ -6,3 +6,4 @@
 require('./kad-dht')
 require('./circuit')
 // require('./repo')
+require('./files')
