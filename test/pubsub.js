@@ -8,6 +8,8 @@ chai.use(dirtyChai)
 
 const series = require('async/series')
 const parallel = require('async/parallel')
+const retry = require('async/retry')
+const auto = require('async/auto')
 
 const DaemonFactory = require('ipfsd-ctl')
 
@@ -28,7 +30,60 @@ function waitFor (predicate, callback) {
   }, 500)
 }
 
-describe.skip('pubsub', function () {
+const connect = (jsD, goD, callback) => {
+  parallel([
+    (cb) => jsD.api.id(cb),
+    (cb) => goD.api.id(cb)
+  ], (error, ids) => {
+    if (error) {
+      return callback(error)
+    }
+
+    const jsLocalAddr = ids[0].addresses.find(a => a.includes('127.0.0.1'))
+    const goLocalAddr = ids[1].addresses.find(a => a.includes('127.0.0.1'))
+
+    parallel([
+      (cb) => jsD.api.swarm.connect(goLocalAddr, cb),
+      (cb) => goD.api.swarm.connect(jsLocalAddr, cb)
+    ], callback)
+  })
+}
+
+const waitForTopicPeer = (topic, peer, daemon, callback) => {
+  retry({
+    times: 5,
+    interval: 1000
+  }, (next) => {
+    daemon.api.pubsub.peers(topic, (error, peers) => {
+      if (error) {
+        return next(error)
+      }
+
+      if (!peers.includes(peer.id)) {
+        return next(new Error(`Could not find peer ${peer.id}`))
+      }
+
+      return next()
+    })
+  }, callback)
+}
+
+const subscribe = (topic, onMessage, localDaemon, remoteDaemon, callback) => {
+  auto({
+    // get the ID of the local daemon
+    localDaemonId: (cb) => localDaemon.api.id(cb),
+
+    // subscribe to the topic on our local daemon
+    subscribeLocalDaemon: (cb) => localDaemon.api.pubsub.subscribe(topic, onMessage, cb),
+
+    // wait for the local daemon to appear in the peer list for the remote daemon
+    waitForRemotePeer: ['localDaemonId', 'subscribeLocalDaemon', (results, cb) => {
+      waitForTopicPeer(topic, results.localDaemonId, remoteDaemon, cb)
+    }]
+  }, (error) => callback(error))
+}
+
+describe('pubsub', function () {
   this.timeout(10 * 1000)
 
   let jsD
@@ -54,36 +109,26 @@ describe.skip('pubsub', function () {
       nodes = n
       goD = nodes[0]
       jsD = nodes[1]
-      done()
+
+      parallel([
+        (cb) => jsD.api.id(cb),
+        (cb) => goD.api.id(cb)
+      ], (error, ids) => {
+        if (error) {
+          return done(error)
+        }
+
+        jsId = ids[0].id
+        goId = ids[1].id
+
+        done()
+      })
     })
   })
 
   after(function (done) {
     this.timeout(50 * 1000)
     parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
-  })
-
-  it('make connections', (done) => {
-    series([
-      (cb) => jsD.api.id(cb),
-      (cb) => goD.api.id(cb)
-    ], (err, ids) => {
-      expect(err).to.not.exist()
-
-      jsId = ids[0].id
-      goId = ids[1].id
-
-      const jsLocalAddr = ids[0].addresses.find(a => a.includes('127.0.0.1'))
-      const goLocalAddr = ids[1].addresses.find(a => a.includes('127.0.0.1'))
-
-      parallel([
-        (cb) => jsD.api.swarm.connect(goLocalAddr, cb),
-        (cb) => goD.api.swarm.connect(jsLocalAddr, cb),
-        (cb) => setTimeout(() => {
-          cb()
-        }, 1000)
-      ], done)
-    })
   })
 
   describe('ascii data', () => {
@@ -143,8 +188,8 @@ describe.skip('pubsub', function () {
       }
 
       series([
-        (cb) => goD.api.pubsub.subscribe(topic, checkMessage, cb),
-        (cb) => setTimeout(() => { cb() }, 500),
+        (cb) => connect(jsD, goD, cb),
+        (cb) => subscribe(topic, checkMessage, goD, jsD, cb),
         (cb) => jsD.api.pubsub.publish(topic, data, cb),
         (cb) => waitFor(() => n === 1, cb)
       ], done)
@@ -164,8 +209,8 @@ describe.skip('pubsub', function () {
       }
 
       series([
-        (cb) => jsD.api.pubsub.subscribe(topic, checkMessage, cb),
-        (cb) => setTimeout(() => { cb() }, 1000),
+        (cb) => connect(jsD, goD, cb),
+        (cb) => subscribe(topic, checkMessage, jsD, goD, cb),
         (cb) => goD.api.pubsub.publish(topic, data, cb),
         (cb) => waitFor(() => n === 1, cb)
       ], done)
@@ -229,8 +274,8 @@ describe.skip('pubsub', function () {
       }
 
       series([
-        (cb) => goD.api.pubsub.subscribe(topic, checkMessage, cb),
-        (cb) => setTimeout(() => { cb() }, 500),
+        (cb) => connect(jsD, goD, cb),
+        (cb) => subscribe(topic, checkMessage, goD, jsD, cb),
         (cb) => jsD.api.pubsub.publish(topic, data, cb),
         (cb) => waitFor(() => n === 1, cb)
       ], done)
@@ -250,8 +295,8 @@ describe.skip('pubsub', function () {
       }
 
       series([
-        (cb) => jsD.api.pubsub.subscribe(topic, checkMessage, cb),
-        (cb) => setTimeout(() => { cb() }, 500),
+        (cb) => connect(jsD, goD, cb),
+        (cb) => subscribe(topic, checkMessage, jsD, goD, cb),
         (cb) => goD.api.pubsub.publish(topic, data, cb),
         (cb) => waitFor(() => n === 1, cb)
       ], done)
@@ -296,8 +341,8 @@ describe.skip('pubsub', function () {
       }
 
       series([
-        (cb) => jsD.api.pubsub.subscribe(topic, checkMessage, cb),
-        (cb) => setTimeout(() => { cb() }, 500),
+        (cb) => connect(jsD, goD, cb),
+        (cb) => subscribe(topic, checkMessage, jsD, goD, cb),
         (cb) => goD.api.pubsub.publish(topic, data, cb),
         (cb) => waitFor(() => n === 1, cb)
       ], done)
@@ -317,8 +362,8 @@ describe.skip('pubsub', function () {
       }
 
       series([
-        (cb) => goD.api.pubsub.subscribe(topic, checkMessage, cb),
-        (cb) => setTimeout(() => { cb() }, 500),
+        (cb) => connect(jsD, goD, cb),
+        (cb) => subscribe(topic, checkMessage, goD, jsD, cb),
         (cb) => jsD.api.pubsub.publish(topic, data, cb),
         (cb) => waitFor(() => n === 1, cb)
       ], done)
