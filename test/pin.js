@@ -12,7 +12,8 @@ const DaemonFactory = require('ipfsd-ctl')
 const utils = require('./utils/pin-utils')
 
 describe('pin', function () {
-  this.timeout(5 * 1000)
+  this.timeout(60 * 1000)
+  this.slow(30 * 1000)
 
   const filePath = 'test/fixtures/planets/jupiter-from-cassini.jpg'
   const jupiter = [{
@@ -60,9 +61,6 @@ describe('pin', function () {
   describe('pin add', function () {
     // Pinning a large file recursively results in the same pins
     it('pin recursively', function () {
-      this.timeout(30 * 1000)
-      this.slow(30 * 1000)
-
       function pipeline (daemon) {
         return daemon.api.add(jupiter, { pin: false })
           .then(chunks => daemon.api.pin.add(chunks[0].hash))
@@ -79,9 +77,6 @@ describe('pin', function () {
 
     // Pinning a large file with recursive=false results in the same direct pin
     it('pin directly', function () {
-      this.timeout(30 * 1000)
-      this.slow(20 * 1000)
-
       function pipeline (daemon) {
         return daemon.api.add(jupiter, { pin: false })
           .then(chunks => daemon.api.pin.add(chunks[0].hash, { recursive: false }))
@@ -101,9 +96,6 @@ describe('pin', function () {
     // removing a root pin removes children as long as they're
     // not part of another pin's dag
     it('pin recursively, remove the root pin', function () {
-      this.timeout(20 * 1000)
-      this.slow(20 * 1000)
-
       function pipeline (daemon) {
         return daemon.api.add(jupiter)
           .then(chunks => {
@@ -123,9 +115,6 @@ describe('pin', function () {
     // When a pin contains the root of another pin and we remove it, it is
     // instead kept but its type is changed to 'indirect'
     it('remove a child shared by multiple pins', function () {
-      this.timeout(20 * 1000)
-      this.slow(20 * 1000)
-
       let jupiterDir
       function pipeline (daemon) {
         return daemon.api.add(jupiter, { pin: false })
@@ -156,8 +145,6 @@ describe('pin', function () {
 
   describe('ls', function () {
     it('print same pins', function () {
-      this.timeout(30 * 1000)
-
       function pipeline (daemon) {
         return daemon.api.add(jupiter)
           .then(() => daemon.api.pin.ls())
@@ -197,9 +184,6 @@ describe('pin', function () {
     // js-ipfs can read pins stored by go-ipfs
     // tests that go's pin.flush and js' pin.load are compatible
     it('go -> js', function () {
-      this.timeout(20 * 1000)
-      this.slow(15000)
-
       return pipeline({ first: 'go', second: 'js' })
         .then(([goPins, jsPins]) => {
           expect(goPins.length).to.be.gt(0)
@@ -213,9 +197,6 @@ describe('pin', function () {
     it.skip('js -> go', function () {
       // skipped because go can not be spawned on a js repo due to changes in
       // the DataStore config [link]
-      this.timeout(20 * 1000)
-      this.slow(15000)
-
       return pipeline({ first: 'js', second: 'go' })
         .then(([jsPins, goPins]) => {
           expect(jsPins.length).to.be.gt(0)
