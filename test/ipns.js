@@ -81,7 +81,7 @@ const publishAndResolve = (publisherDaemon, resolverDaemon, callback) => {
 
 describe('ipns', () => {
   it('should publish an ipns record to a js daemon and resolve it using the same js daemon', function (done) {
-    this.timeout(100 * 1000)
+    this.timeout(120 * 1000)
     const dir = path.join(os.tmpdir(), hat())
 
     spawnJsDaemon(dir, (err, jsDaemon) => {
@@ -91,7 +91,7 @@ describe('ipns', () => {
   })
 
   it('should publish an ipns record to a go daemon and resolve it using the same go daemon', function (done) {
-    this.timeout(120 * 1000)
+    this.timeout(160 * 1000)
     const dir = path.join(os.tmpdir(), hat())
 
     spawnGoDaemon(dir, (err, goDaemon) => {
@@ -101,7 +101,7 @@ describe('ipns', () => {
   })
 
   it('should publish an ipns record to a js daemon and resolve it using a go daemon through the reuse of the same repo', function (done) {
-    this.timeout(100 * 1000)
+    this.timeout(120 * 1000)
     const dir = path.join(os.tmpdir(), hat())
 
     parallel([
@@ -115,7 +115,7 @@ describe('ipns', () => {
   })
 
   it('should publish an ipns record to a go daemon and resolve it using a js daemon through the reuse of the same repo', function (done) {
-    this.timeout(120 * 1000)
+    this.timeout(160 * 1000)
     const dir = path.join(os.tmpdir(), hat())
 
     parallel([
