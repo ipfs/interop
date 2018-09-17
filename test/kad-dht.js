@@ -3,110 +3,516 @@
 
 const chai = require('chai')
 const dirtyChai = require('dirty-chai')
+const chaiBytes = require('chai-bytes')
 const expect = chai.expect
 chai.use(dirtyChai)
+chai.use(chaiBytes)
 
 const series = require('async/series')
 const crypto = require('crypto')
 const parallel = require('async/parallel')
 const waterfall = require('async/waterfall')
-const bl = require('bl')
 
 const DaemonFactory = require('ipfsd-ctl')
 const goDf = DaemonFactory.create()
 const jsDf = DaemonFactory.create({ type: 'js' })
 
-describe.skip('kad-dht', () => {
-  describe('a JS node in the land of Go', () => {
-    let jsD
-    let goD1
-    let goD2
-    let goD3
+const getConfig = (bootstrap) => ({
+  Bootstrap: bootstrap,
+  Discovery: {
+    MDNS: {
+      Enabled: false
+    },
+    webRTCStar: {
+      Enabled: false
+    }
+  }
+})
 
-    before((done) => {
+const spawnGoDaemon = (bootstrap = [], callback) => {
+  goDf.spawn({
+    initOptions: { bits: 1024 },
+    config: getConfig(bootstrap)
+  }, callback)
+}
+
+const spawnJsDaemon = (bootstrap = [], callback) => {
+  jsDf.spawn({
+    initOptions: { bits: 512 },
+    config: getConfig(bootstrap),
+    args: ['--enable-dht-experiment']
+  }, callback)
+}
+
+const getNodeId = (node, callback) => {
+  node.api.id((err, res) => {
+    expect(err).to.not.exist()
+    expect(res.id).to.exist()
+
+    callback(null, res.addresses[0])
+  })
+}
+
+describe.only('kad-dht', () => {
+  describe.only('a JS network', () => {
+    let bootstrapAddr
+    let node0
+    let node1
+    let node2
+    let node3
+    let data
+
+    // spawn bootstrap daemon and get address
+    before(function (done) {
+      this.timeout(60 * 1000)
+
+      spawnJsDaemon([], (err, node) => {
+        expect(err).to.not.exist()
+        node0 = node
+
+        getNodeId(node0, (err, res) => {
+          expect(err).to.not.exist()
+          bootstrapAddr = res
+          done()
+        })
+      })
+    })
+
+    // spawn daemons
+    before(function (done) {
+      this.timeout(70 * 1000)
+      const bootstrap = [bootstrapAddr]
+
       parallel([
-        (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-        (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-        (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-        (cb) => jsDf.spawn({ initOptions: { bits: 512 } }, cb)
+        (cb) => spawnJsDaemon(bootstrap, cb),
+        (cb) => spawnJsDaemon(bootstrap, cb),
+        (cb) => spawnJsDaemon(bootstrap, cb)
       ], (err, nodes) => {
         expect(err).to.not.exist()
-        goD1 = nodes[0]
-        goD2 = nodes[1]
-        goD3 = nodes[2]
-        jsD = nodes[3]
+        node1 = nodes[0]
+        node2 = nodes[1]
+        node3 = nodes[2]
         done()
       })
     })
 
-    after((done) => {
+    // create data
+    before(function (done) {
+      data = crypto.randomBytes(9001)
+      done()
+    })
+
+    after(function (done) {
+      this.timeout(100 * 1000)
       series([
-        (cb) => goD1.stop(cb),
-        (cb) => goD2.stop(cb),
-        (cb) => goD3.stop(cb),
-        (cb) => jsD.stop(cb)
+        (cb) => node1.stop(cb),
+        (cb) => node2.stop(cb),
+        (cb) => node3.stop(cb),
+        (cb) => node0.stop(cb)
       ], done)
     })
 
-    it('make connections', (done) => {
-      parallel([
-        (cb) => jsD.api.id(cb),
-        (cb) => goD1.api.id(cb),
-        (cb) => goD2.api.id(cb),
-        (cb) => goD3.api.id(cb)
-      ], (err, ids) => {
+    it('should get from the network after being added', function (done) {
+      this.timeout(100 * 1000)
+
+      node1.api.add(data, (err, res) => {
         expect(err).to.not.exist()
+
         parallel([
-          (cb) => jsD.api.swarm.connect(ids[1].addresses[0], cb),
-          (cb) => goD1.api.swarm.connect(ids[2].addresses[0], cb),
-          (cb) => goD2.api.swarm.connect(ids[3].addresses[0], cb)
-        ], done)
-      })
-    })
-
-    it('one hop', (done) => {
-      const data = crypto.randomBytes(9001)
-
-      waterfall([
-        (cb) => goD1.api.add(data, cb),
-        (res, cb) => jsD.api.cat(res[0].hash, cb),
-        (stream, cb) => stream.pipe(bl(cb))
-      ], (err, file) => {
-        expect(err).to.not.exist()
-        expect(file).to.be.eql(data)
-        done()
-      })
-    })
-
-    it('two hops', (done) => {
-      const data = crypto.randomBytes(9001)
-
-      waterfall([
-        (cb) => goD2.api.add(data, cb),
-        (res, cb) => jsD.api.cat(res[0].hash, cb),
-        (stream, cb) => stream.pipe(bl(cb))
-      ], (err, file) => {
-        expect(err).to.not.exist()
-        expect(file).to.be.eql(data)
-        done()
-      })
-    })
-
-    it('three hops', (done) => {
-      const data = crypto.randomBytes(9001)
-
-      waterfall([
-        (cb) => goD3.api.add(data, cb),
-        (res, cb) => jsD.api.cat(res[0].hash, cb),
-        (stream, cb) => stream.pipe(bl(cb))
-      ], (err, file) => {
-        expect(err).to.not.exist()
-        expect(file).to.be.eql(data)
-        done()
+          (cb) => node2.api.cat(res[0].hash, cb),
+          (cb) => node3.api.cat(res[0].hash, cb)
+        ], (err, res) => {
+          expect(err).to.not.exist()
+          expect(res[0]).to.equalBytes(data)
+          expect(res[1]).to.equalBytes(data)
+          done()
+        })
       })
     })
   })
 
-  describe('a Go node in the land of JS', () => {})
-  describe('hybrid', () => {})
+  describe('a GO network', () => {
+    let bootstrapAddr
+    let node0
+    let node1
+    let node2
+    let node3
+    let data
+
+    // spawn bootstrap daemon and get address
+    before(function (done) {
+      this.timeout(60 * 1000)
+
+      spawnGoDaemon([], (err, node) => {
+        expect(err).to.not.exist()
+        node0 = node
+
+        getNodeId(node0, (err, res) => {
+          expect(err).to.not.exist()
+          bootstrapAddr = res
+          done()
+        })
+      })
+    })
+
+    // spawn daemons
+    before(function (done) {
+      this.timeout(70 * 1000)
+      const bootstrap = [bootstrapAddr]
+
+      parallel([
+        (cb) => spawnGoDaemon(bootstrap, cb),
+        (cb) => spawnGoDaemon(bootstrap, cb),
+        (cb) => spawnGoDaemon(bootstrap, cb)
+      ], (err, nodes) => {
+        expect(err).to.not.exist()
+        node1 = nodes[0]
+        node2 = nodes[1]
+        node3 = nodes[2]
+        done()
+      })
+    })
+
+    // create data
+    before(function (done) {
+      data = crypto.randomBytes(9001)
+      done()
+    })
+
+    after(function (done) {
+      this.timeout(100 * 1000)
+      series([
+        (cb) => node1.stop(cb),
+        (cb) => node2.stop(cb),
+        (cb) => node3.stop(cb),
+        (cb) => node0.stop(cb)
+      ], done)
+    })
+
+    it('should get from the network after being added', function (done) {
+      this.timeout(60 * 1000)
+
+      node1.api.add(data, (err, res) => {
+        expect(err).to.not.exist()
+
+        parallel([
+          (cb) => node2.api.cat(res[0].hash, cb),
+          (cb) => node3.api.cat(res[0].hash, cb)
+        ], (err, res) => {
+          expect(err).to.not.exist()
+          expect(res[0]).to.equalBytes(data)
+          expect(res[1]).to.equalBytes(data)
+          done()
+        })
+      })
+    })
+  })
+
+  describe('a JS bootstrap node in the land of Go', () => {
+    let bootstrapAddr
+    let node0
+    let node1
+    let node2
+    let node3
+    let data
+
+    // spawn bootstrap daemon and get address
+    before(function (done) {
+      this.timeout(60 * 1000)
+
+      spawnJsDaemon([], (err, node) => {
+        expect(err).to.not.exist()
+        node0 = node
+
+        getNodeId(node0, (err, res) => {
+          expect(err).to.not.exist()
+          bootstrapAddr = res
+          done()
+        })
+      })
+    })
+
+    // spawn daemons
+    before(function (done) {
+      this.timeout(70 * 1000)
+      const bootstrap = [bootstrapAddr]
+
+      parallel([
+        (cb) => spawnGoDaemon(bootstrap, cb),
+        (cb) => spawnGoDaemon(bootstrap, cb),
+        (cb) => spawnGoDaemon(bootstrap, cb)
+      ], (err, nodes) => {
+        expect(err).to.not.exist()
+        node1 = nodes[0]
+        node2 = nodes[1]
+        node3 = nodes[2]
+        done()
+      })
+    })
+
+    // create data
+    before(function (done) {
+      data = crypto.randomBytes(9001)
+      done()
+    })
+
+    after(function (done) {
+      this.timeout(70 * 1000)
+      series([
+        (cb) => node1.stop(cb),
+        (cb) => node2.stop(cb),
+        (cb) => node3.stop(cb),
+        (cb) => node0.stop(cb)
+      ], done)
+    })
+
+    it('should get from the network after being added', function (done) {
+      this.timeout(60 * 1000)
+
+      node1.api.add(data, (err, res) => {
+        expect(err).to.not.exist()
+
+        parallel([
+          (cb) => node2.api.cat(res[0].hash, cb),
+          (cb) => node3.api.cat(res[0].hash, cb)
+        ], (err, res) => {
+          expect(err).to.not.exist()
+          expect(res[0]).to.equalBytes(data)
+          expect(res[1]).to.equalBytes(data)
+          done()
+        })
+      })
+    })
+  })
+
+  describe('a Go bootstrap node in the land of JS', () => {
+    let bootstrapAddr
+    let node0
+    let node1
+    let node2
+    let node3
+    let data
+
+    // spawn bootstrap daemon and get address
+    before(function (done) {
+      this.timeout(60 * 1000)
+
+      spawnGoDaemon([], (err, node) => {
+        expect(err).to.not.exist()
+        node0 = node
+
+        getNodeId(node0, (err, res) => {
+          expect(err).to.not.exist()
+          bootstrapAddr = res
+          done()
+        })
+      })
+    })
+
+    // spawn daemons
+    before(function (done) {
+      this.timeout(70 * 1000)
+      const bootstrap = [bootstrapAddr]
+
+      parallel([
+        (cb) => spawnJsDaemon(bootstrap, cb),
+        (cb) => spawnJsDaemon(bootstrap, cb),
+        (cb) => spawnJsDaemon(bootstrap, cb)
+      ], (err, nodes) => {
+        expect(err).to.not.exist()
+        node1 = nodes[0]
+        node2 = nodes[1]
+        node3 = nodes[2]
+        done()
+      })
+    })
+
+    // create data
+    before(function (done) {
+      data = crypto.randomBytes(9001)
+      done()
+    })
+
+    after(function (done) {
+      this.timeout(70 * 1000)
+      series([
+        (cb) => node1.stop(cb),
+        (cb) => node2.stop(cb),
+        (cb) => node3.stop(cb),
+        (cb) => node0.stop(cb)
+      ], done)
+    })
+
+    it('should get from the network after being added', function (done) {
+      this.timeout(100 * 1000)
+
+      node1.api.add(data, (err, res) => {
+        expect(err).to.not.exist()
+
+        parallel([
+          (cb) => node2.api.cat(res[0].hash, cb),
+          (cb) => node3.api.cat(res[0].hash, cb)
+        ], (err, res) => {
+          expect(err).to.not.exist()
+          expect(res[0]).to.equalBytes(data)
+          expect(res[1]).to.equalBytes(data)
+          done()
+        })
+      })
+    })
+  })
+
+  describe('a JS bootstrap node in an hybrid land', () => {
+    let bootstrapAddr
+    let node0
+    let node1
+    let node2
+    let node3
+    let data
+
+    // spawn bootstrap daemon and get address
+    before(function (done) {
+      this.timeout(60 * 1000)
+
+      spawnJsDaemon([], (err, node) => {
+        expect(err).to.not.exist()
+        node0 = node
+
+        getNodeId(node0, (err, res) => {
+          expect(err).to.not.exist()
+          bootstrapAddr = res
+          done()
+        })
+      })
+    })
+
+    // spawn daemons
+    before(function (done) {
+      this.timeout(70 * 1000)
+      const bootstrap = [bootstrapAddr]
+
+      parallel([
+        (cb) => spawnGoDaemon(bootstrap, cb),
+        (cb) => spawnJsDaemon(bootstrap, cb),
+        (cb) => spawnGoDaemon(bootstrap, cb)
+      ], (err, nodes) => {
+        expect(err).to.not.exist()
+        node1 = nodes[0]
+        node2 = nodes[1]
+        node3 = nodes[2]
+        done()
+      })
+    })
+
+    // create data
+    before(function (done) {
+      data = crypto.randomBytes(9001)
+      done()
+    })
+
+    after(function (done) {
+      this.timeout(70 * 1000)
+      series([
+        (cb) => node1.stop(cb),
+        (cb) => node2.stop(cb),
+        (cb) => node3.stop(cb),
+        (cb) => node0.stop(cb)
+      ], done)
+    })
+
+    it('should get from the network after being added', function (done) {
+      this.timeout(60 * 1000)
+
+      node1.api.add(data, (err, res) => {
+        expect(err).to.not.exist()
+
+        parallel([
+          (cb) => node2.api.cat(res[0].hash, cb),
+          (cb) => node3.api.cat(res[0].hash, cb)
+        ], (err, res) => {
+          expect(err).to.not.exist()
+          expect(res[0]).to.equalBytes(data)
+          expect(res[1]).to.equalBytes(data)
+          done()
+        })
+      })
+    })
+  })
+
+  describe('a Go bootstrap node in an hybrid land', () => {
+    let bootstrapAddr
+    let node0
+    let node1
+    let node2
+    let node3
+    let data
+
+    // spawn bootstrap daemon and get address
+    before(function (done) {
+      this.timeout(60 * 1000)
+
+      spawnGoDaemon([], (err, node) => {
+        expect(err).to.not.exist()
+        node0 = node
+
+        getNodeId(node0, (err, res) => {
+          expect(err).to.not.exist()
+          bootstrapAddr = res
+          done()
+        })
+      })
+    })
+
+    // spawn daemons
+    before(function (done) {
+      this.timeout(70 * 1000)
+      const bootstrap = [bootstrapAddr]
+
+      parallel([
+        (cb) => spawnJsDaemon(bootstrap, cb),
+        (cb) => spawnGoDaemon(bootstrap, cb),
+        (cb) => spawnJsDaemon(bootstrap, cb)
+      ], (err, nodes) => {
+        expect(err).to.not.exist()
+        node1 = nodes[0]
+        node2 = nodes[1]
+        node3 = nodes[2]
+        done()
+      })
+    })
+
+    // create data
+    before(function (done) {
+      data = crypto.randomBytes(9001)
+      done()
+    })
+
+    after(function (done) {
+      this.timeout(70 * 1000)
+      series([
+        (cb) => node1.stop(cb),
+        (cb) => node2.stop(cb),
+        (cb) => node3.stop(cb),
+        (cb) => node0.stop(cb)
+      ], done)
+    })
+
+    it('should get from the network after being added', function (done) {
+      this.timeout(60 * 1000)
+
+      node1.api.add(data, (err, res) => {
+        expect(err).to.not.exist()
+
+        parallel([
+          (cb) => node2.api.cat(res[0].hash, cb),
+          (cb) => node3.api.cat(res[0].hash, cb)
+        ], (err, res) => {
+          expect(err).to.not.exist()
+          expect(res[0]).to.equalBytes(data)
+          expect(res[1]).to.equalBytes(data)
+          done()
+        })
+      })
+    })
+  })
 })
