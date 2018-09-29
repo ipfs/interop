@@ -77,7 +77,7 @@ describe('repo', () => {
   })
 
   it('read repo: js -> go', function (done) {
-    this.timeout(50 * 1000)
+    this.timeout(80 * 1000)
     const dir = path.join(os.tmpdir(), hat())
     const data = crypto.randomBytes(1024 * 5)
 
@@ -88,26 +88,34 @@ describe('repo', () => {
     series([
       (cb) => jsDf.spawn({
         repoPath: dir,
+        disposable: false,
         initOptions: { bits: 512 }
-      }, cb),
-      (node, cb) => {
+      }, (err, node) => {
+        expect(err).to.not.exist()
+
         jsDaemon = node
-        cb()
-      },
-      (cb) => jsDaemon.api.add(data, cb),
-      (res, cb) => {
+        jsDaemon.init(cb)
+      }),
+      (cb) => jsDaemon.start(cb),
+
+      (cb) => jsDaemon.api.add(data, (err, res) => {
+        expect(err).to.not.exist()
+
         hash = res[0].hash
         catAndCheck(jsDaemon.api, hash, data, cb)
-      },
+      }),
       (cb) => jsDaemon.stop(cb),
       (cb) => goDf.spawn({
         repoPath: dir,
+        disposable: false,
         initOptions: { bits: 1024 }
-      }, cb),
-      (node, cb) => {
+      }, (err, node) => {
+        expect(err).to.not.exist()
+
         goDaemon = node
         cb()
-      },
+      }),
+      (cb) => goDaemon.start(cb),
       (cb) => catAndCheck(goDaemon.api, hash, data, cb),
       (cb) => goDaemon.stop(cb)
     ], done)

@@ -45,7 +45,7 @@ const publishAndResolve = (publisherDaemon, resolverDaemon, callback) => {
     sameDaemon = true
   }
 
-  const stopAndStartSecondDaemon = (callback) => {
+  const stopPublisherAndStartResolverDaemon = (callback) => {
     if (sameDaemon) {
       return callback()
     }
@@ -65,7 +65,7 @@ const publishAndResolve = (publisherDaemon, resolverDaemon, callback) => {
       cb()
     }),
     (cb) => publisherDaemon.api.name.publish(ipfsRef, { resolve: false }, cb),
-    (cb) => stopAndStartSecondDaemon(cb),
+    (cb) => stopPublisherAndStartResolverDaemon(cb),
     (cb) => {
       resolverDaemon.api.name.resolve(nodeId, { local: true }, (err, res) => {
         expect(err).to.not.exist()
