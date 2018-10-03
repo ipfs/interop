@@ -42,7 +42,7 @@
     "bs58": "^4.0.1",
     "buffer-loader": "~0.1.0",
     "chai": "^4.2.0",
-    "chai-bytes": "^0.1.1",
+    "chai-bytes": "~0.1.1",
     "cids": "~0.7.1",
     "cross-env": "^5.2.0",
     "detect-node": "^2.0.4",
