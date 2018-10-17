@@ -7,7 +7,6 @@ const expect = chai.expect
 chai.use(dirtyChai)
 
 const series = require('async/series')
-const parallel = require('async/parallel')
 const os = require('os')
 const path = require('path')
 const hat = require('hat')
@@ -19,7 +18,8 @@ const spawnJsDaemon = (dir, callback) => {
     .spawn({
       repoPath: dir,
       disposable: false,
-      initOptions: { bits: 512 }
+      initOptions: { bits: 512 },
+      args: ['--offline']
     }, callback)
 }
 
@@ -46,9 +46,6 @@ const publishAndResolve = (publisherDaemon, resolverDaemon, callback) => {
   }
 
   const stopPublisherAndStartResolverDaemon = (callback) => {
-    if (sameDaemon) {
-      return callback()
-    }
     series([
       (cb) => publisherDaemon.stop(cb),
       (cb) => setTimeout(cb, 2000),
@@ -65,7 +62,7 @@ const publishAndResolve = (publisherDaemon, resolverDaemon, callback) => {
       cb()
     }),
     (cb) => publisherDaemon.api.name.publish(ipfsRef, { resolve: false }, cb),
-    (cb) => stopPublisherAndStartResolverDaemon(cb),
+    (cb) => sameDaemon ? cb() : stopPublisherAndStartResolverDaemon(cb),
     (cb) => {
       resolverDaemon.api.name.resolve(nodeId, { local: true }, (err, res) => {
         expect(err).to.not.exist()
@@ -79,7 +76,7 @@ const publishAndResolve = (publisherDaemon, resolverDaemon, callback) => {
   ], callback)
 }
 
-describe('ipns', () => {
+describe('ipns locally using the same repo across implementations', () => {
   it('should publish an ipns record to a js daemon and resolve it using the same js daemon', function (done) {
     this.timeout(120 * 1000)
     const dir = path.join(os.tmpdir(), hat())
@@ -104,7 +101,7 @@ describe('ipns', () => {
     this.timeout(120 * 1000)
     const dir = path.join(os.tmpdir(), hat())
 
-    parallel([
+    series([
       (cb) => spawnJsDaemon(dir, cb),
       (cb) => spawnGoDaemon(dir, cb)
     ], (err, daemons) => {
@@ -118,7 +115,7 @@ describe('ipns', () => {
     this.timeout(160 * 1000)
     const dir = path.join(os.tmpdir(), hat())
 
-    parallel([
+    series([
       (cb) => spawnGoDaemon(dir, cb),
       (cb) => spawnJsDaemon(dir, cb)
     ], (err, daemons) => {
