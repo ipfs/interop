@@ -25,7 +25,7 @@ const spawnInitAndStartDaemon = (factory) => {
         instance = node
         instance.init(cb)
       },
-      (cb) => instance.start((error) => cb(error, instance))
+      (_, cb) => instance.start((error) => cb(error, instance))
     ], (error) => {
       if (error) {
         return reject(error)
