@@ -94,6 +94,20 @@ const compareErrors = (...ops) => {
     })
 }
 
+// TODO: remove after https://github.com/crypto-browserify/randombytes/pull/16 released
+const MAX_BYTES = 65536
+function randomBytes (num) {
+  if (num < 1) return Buffer.alloc(0)
+  if (num <= MAX_BYTES) return crypto.randomBytes(num)
+
+  const chunks = Array(Math.floor(num / MAX_BYTES))
+    .fill(MAX_BYTES)
+    .concat(num % MAX_BYTES)
+    .map(n => crypto.randomBytes(n))
+
+  return Buffer.concat(chunks)
+}
+
 describe('files', function () {
   this.timeout(50 * 1000)
 
@@ -141,7 +155,7 @@ describe('files', function () {
   })
 
   it('uses raw nodes for leaf data', () => {
-    const data = crypto.randomBytes(1024 * 300)
+    const data = randomBytes(1024 * 300)
     const testLeavesAreRaw = (daemon) => {
       return addFile(daemon, data)
         .then(file => checkNodeTypes(daemon, file))
@@ -166,8 +180,8 @@ describe('files', function () {
     const path = `/test-dir-${Math.random()}`
 
     return compare(
-      go.api.files.mkdir(path).then(() => go.api.files.mkdir(path, {p: true})),
-      js.api.files.mkdir(path).then(() => js.api.files.mkdir(path, {p: true}))
+      go.api.files.mkdir(path).then(() => go.api.files.mkdir(path, { p: true })),
+      js.api.files.mkdir(path).then(() => js.api.files.mkdir(path, { p: true }))
     )
   })
 
@@ -229,7 +243,7 @@ describe('files', function () {
     })
 
     it('big files', () => {
-      const data = crypto.randomBytes(1024 * 3000)
+      const data = randomBytes(1024 * 3000)
 
       return compare(
         testHashesAreEqual(go, data),
@@ -238,8 +252,8 @@ describe('files', function () {
     })
 
     it('files that have had data appended', () => {
-      const initialData = crypto.randomBytes(1024 * 300)
-      const appendedData = crypto.randomBytes(1024 * 300)
+      const initialData = randomBytes(1024 * 300)
+      const appendedData = randomBytes(1024 * 300)
 
       return compare(
         appendData(go, initialData, appendedData),
@@ -249,8 +263,8 @@ describe('files', function () {
 
     it('files that have had data overwritten', () => {
       const bytes = 1024 * 300
-      const initialData = crypto.randomBytes(bytes)
-      const newData = crypto.randomBytes(bytes)
+      const initialData = randomBytes(bytes)
+      const newData = randomBytes(bytes)
 
       return compare(
         overwriteData(go, initialData, newData),
@@ -271,7 +285,7 @@ describe('files', function () {
     })
 
     it('big files with CIDv1', () => {
-      const data = crypto.randomBytes(1024 * 3000)
+      const data = randomBytes(1024 * 3000)
       const options = {
         cidVersion: 1
       }
