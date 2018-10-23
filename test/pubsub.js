@@ -17,7 +17,7 @@ const DaemonFactory = require('ipfsd-ctl')
  * Wait for a condition to become true.  When its true, callback is called.
  */
 function waitFor (predicate, callback) {
-  const ttl = Date.now() + (50 * 1000)
+  const ttl = Date.now() + (10 * 1000)
   const self = setInterval(() => {
     if (predicate()) {
       clearInterval(self)
