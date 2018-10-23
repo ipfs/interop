@@ -134,7 +134,7 @@ describe('pubsub', function () {
   describe('ascii data', () => {
     const data = Buffer.from('hello world')
 
-    it('publish from Go, subscribe on Go', function (done) {
+    it('publish from Go, subscribe on Go', (done) => {
       const topic = 'pubsub-go-go'
       let n = 0
 
@@ -154,7 +154,7 @@ describe('pubsub', function () {
       ], done)
     })
 
-    it('publish from JS, subscribe on JS', function (done) {
+    it('publish from JS, subscribe on JS', (done) => {
       const topic = 'pubsub-js-js'
       let n = 0
 
@@ -174,7 +174,7 @@ describe('pubsub', function () {
       ], done)
     })
 
-    it('publish from JS, subscribe on Go', function (done) {
+    it('publish from JS, subscribe on Go', (done) => {
       const topic = 'pubsub-js-go'
       let n = 0
 
@@ -195,7 +195,7 @@ describe('pubsub', function () {
       ], done)
     })
 
-    it('publish from Go, subscribe on JS', function (done) {
+    it('publish from Go, subscribe on JS', (done) => {
       const topic = 'pubsub-go-js'
       let n = 0
 
@@ -220,7 +220,7 @@ describe('pubsub', function () {
   describe('non-ascii data', () => {
     const data = Buffer.from('你好世界')
 
-    it('publish from Go, subscribe on Go', function (done) {
+    it('publish from Go, subscribe on Go', (done) => {
       const topic = 'pubsub-non-ascii-go-go'
       let n = 0
 
@@ -240,7 +240,7 @@ describe('pubsub', function () {
       ], done)
     })
 
-    it('publish from JS, subscribe on JS', function (done) {
+    it('publish from JS, subscribe on JS', (done) => {
       const topic = 'pubsub-non-ascii-js-js'
       let n = 0
 
@@ -260,7 +260,7 @@ describe('pubsub', function () {
       ], done)
     })
 
-    it('publish from JS, subscribe on Go', function (done) {
+    it('publish from JS, subscribe on Go', (done) => {
       const topic = 'pubsub-non-ascii-js-go'
       let n = 0
 
@@ -281,7 +281,7 @@ describe('pubsub', function () {
       ], done)
     })
 
-    it('publish from Go, subscribe on JS', function (done) {
+    it('publish from Go, subscribe on JS', (done) => {
       const topic = 'pubsub-non-ascii-go-js'
       let n = 0
 
@@ -306,7 +306,7 @@ describe('pubsub', function () {
   describe('binary data', () => {
     const data = Buffer.from('a36161636179656162830103056164a16466666666f400010203040506070809', 'hex')
 
-    it('publish from Go, subscribe on Go', function (done) {
+    it('publish from Go, subscribe on Go', (done) => {
       const topic = 'pubsub-binary-go-go'
       let n = 0
 
@@ -327,7 +327,7 @@ describe('pubsub', function () {
       ], done)
     })
 
-    it('publish from Go, subscribe on JS', function (done) {
+    it('publish from Go, subscribe on JS', (done) => {
       const topic = 'pubsub-binary-go-js'
       let n = 0
 
@@ -348,7 +348,7 @@ describe('pubsub', function () {
       ], done)
     })
 
-    it('publish from JS, subscribe on Go', function (done) {
+    it('publish from JS, subscribe on Go', (done) => {
       const topic = 'pubsub-binary-js-go'
       let n = 0
 
@@ -369,7 +369,7 @@ describe('pubsub', function () {
       ], done)
     })
 
-    it('publish from JS, subscribe on JS', function (done) {
+    it('publish from JS, subscribe on JS', (done) => {
       const topic = 'pubsub-binary-js-js'
       let n = 0
 
