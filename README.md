@@ -26,6 +26,12 @@ This repository will be used for interop tests. Please jump into the issues if y
 > npm test
 ```
 
+Alternatively, you can run tests matching a specific pattern with:
+
+```
+> npm test -- --grep=something
+```
+
 ### Test with a non yet released version of js-ipfs
 
 ```
