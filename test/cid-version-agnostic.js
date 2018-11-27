@@ -13,7 +13,7 @@ const {
   stopDaemon
 } = require('./utils/daemon')
 
-describe.only('CID version agnostic', () => {
+describe('CID version agnostic', () => {
   const daemons = {}
 
   before(async function () {
