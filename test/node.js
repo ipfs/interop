@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 'use strict'
 
+require('./cid-version-agnostic')
 require('./pubsub')
 require('./circuit')
 require('./repo')
