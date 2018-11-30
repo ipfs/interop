@@ -26,7 +26,7 @@ function checkNodeTypes (daemon, file) {
       expect(node.links.length).to.equal(2)
 
       return Promise.all(
-        node.links.map(link => daemon.api.object.get(link.toJSON().multihash).then(child => {
+        node.links.map(link => daemon.api.object.get(link.toJSON().cid).then(child => {
           const childMeta = UnixFs.unmarshal(child.data)
 
           expect(childMeta.type).to.equal('raw')
