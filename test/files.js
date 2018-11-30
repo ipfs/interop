@@ -26,7 +26,7 @@ function checkNodeTypes (daemon, file) {
       expect(node.links.length).to.equal(2)
 
       return Promise.all(
-        node.links.map(link => daemon.api.object.get(link.toJSON().multihash).then(child => {
+        node.links.map(link => daemon.api.object.get(link.toJSON().cid).then(child => {
           const childMeta = UnixFs.unmarshal(child.data)
 
           expect(childMeta.type).to.equal('raw')
@@ -196,7 +196,7 @@ describe('files', function () {
 
   describe('has the same hashes for', () => {
     const testHashesAreEqual = (daemon, data, options) => {
-      return daemon.api.files.add(data, options)
+      return daemon.api.add(data, options)
         .then(files => files[0].hash)
     }
 
