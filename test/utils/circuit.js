@@ -98,8 +98,8 @@ exports.createGoNode = (addrs, callback) => {
 const data = crypto.randomBytes(128)
 exports.send = (nodeA, nodeB, callback) => {
   waterfall([
-    (cb) => nodeA.files.add(data, cb),
-    (res, cb) => nodeB.files.cat(res[0].hash, cb),
+    (cb) => nodeA.add(data, cb),
+    (res, cb) => nodeB.cat(res[0].hash, cb),
     (buffer, cb) => {
       expect(buffer).to.deep.equal(data)
       cb()
