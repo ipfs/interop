@@ -196,7 +196,7 @@ describe('files', function () {
 
   describe('has the same hashes for', () => {
     const testHashesAreEqual = (daemon, data, options) => {
-      return daemon.api.files.add(data, options)
+      return daemon.api.add(data, options)
         .then(files => files[0].hash)
     }
 
