@@ -67,11 +67,11 @@ const compare = (...ops) => {
     })
 }
 
-const compareErrors = (...ops) => {
+const compareErrors = (expectedMessage, ...ops) => {
   expect(ops.length).to.be.above(1)
 
   return Promise.all(
-    // even if operations fail, their errors should be the same
+    // even if operations fail, their errors should be similar
     ops.map(op => op.then(() => {
       throw new ExpectedError('Expected operation to fail')
     }).catch(error => {
@@ -88,9 +88,17 @@ const compareErrors = (...ops) => {
     .then(results => {
       expect(results.length).to.equal(ops.length)
 
+      // all implementations should have similar error messages
+      results.forEach(res => {
+        expect(res.message.toLowerCase()).to.contain(expectedMessage.toLowerCase())
+      })
+
       const result = results.pop()
 
-      results.forEach(res => expect(res).to.deep.equal(result))
+      // all implementations should have the same error code
+      results.forEach(res => {
+        expect(res.code).to.equal(result.code)
+      })
     })
 }
 
@@ -138,6 +146,7 @@ describe('files', function () {
     }
 
     return compareErrors(
+      'does not exist',
       readNonExistentFile(go),
       readNonExistentFile(js)
     )
@@ -149,6 +158,7 @@ describe('files', function () {
     }
 
     return compareErrors(
+      'does not exist',
       readNonExistentFile(go),
       readNonExistentFile(js)
     )
@@ -171,6 +181,7 @@ describe('files', function () {
     const path = `/test-dir-${Math.random()}`
 
     return compareErrors(
+      'already exists',
       go.api.files.mkdir(path).then(() => go.api.files.mkdir(path)),
       js.api.files.mkdir(path).then(() => js.api.files.mkdir(path))
     )
@@ -189,6 +200,7 @@ describe('files', function () {
     const path = '/'
 
     return compareErrors(
+      'already exists',
       go.api.files.mkdir(path).then(() => go.api.files.mkdir(path)),
       js.api.files.mkdir(path).then(() => js.api.files.mkdir(path))
     )
