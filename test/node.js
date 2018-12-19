@@ -1,6 +1,8 @@
 /* eslint-env mocha */
 'use strict'
 
+process.env.DEBUG = '*'
+
 require('./pubsub')
 require('./circuit')
 require('./repo')
