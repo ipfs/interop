@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 'use strict'
 
-process.env.DEBUG = '*'
+process.env.DEBUG = '*,-mplex,-mplex:*,-mss,-mss:*'
 
 require('./pubsub')
 require('./circuit')
