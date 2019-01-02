@@ -10,13 +10,16 @@ chai.use(dirtyChai)
 chai.use(chaiBytes)
 
 const crypto = require('crypto')
+const each = require('async/each')
 const parallel = require('async/parallel')
+const times = require('async/times')
+
+const waitFor = require('./utils/wait-for-fn')
 
 const DaemonFactory = require('ipfsd-ctl')
 const IPFS = require('ipfs')
 const goDf = DaemonFactory.create()
 const jsDf = DaemonFactory.create({ type: 'proc', exec: IPFS })
-// const jsDf = DaemonFactory.create({ type: 'js' }) CHANGE TO HERE once UPDATED
 
 const getConfig = (bootstrap) => ({
   Bootstrap: bootstrap,
@@ -40,8 +43,7 @@ const spawnGoDaemon = (bootstrap = [], callback) => {
 const spawnJsDaemon = (bootstrap = [], callback) => {
   jsDf.spawn({
     initOptions: { bits: 512 },
-    config: getConfig(bootstrap),
-    args: ['--enable-dht-experiment']
+    config: getConfig(bootstrap)
   }, callback)
 }
 
@@ -55,16 +57,16 @@ const getBootstrapAddr = (node, callback) => {
 }
 
 const addFileAndCat = (addDaemon, catDaemons, data, callback) => {
-  addDaemon.api.files.add(data, (err, res) => {
+  addDaemon.api.add(data, (err, res) => {
     expect(err).to.not.exist()
 
-    parallel(catDaemons.map((daemon) => (cb) => daemon.api.files.cat(res[0].hash, cb)), (err, res) => {
-      expect(err).to.not.exist()
-      res.forEach((resData) => {
-        expect(resData).to.equalBytes(data)
+    each(catDaemons, (daemon, cb) => {
+      daemon.api.cat(res[0].hash, (err, res) => {
+        expect(err).to.not.exist()
+        expect(res).to.equalBytes(data)
+        cb()
       })
-      callback()
-    })
+    }, callback)
   })
 }
 
@@ -94,22 +96,41 @@ describe('kad-dht', () => {
       // spawn daemons
       before(function (done) {
         this.timeout(70 * 1000)
-        const bootstrap = [bootstrapAddr]
+        const peersToSpawn = 3
+        const bootstrap = bootstrapAddr ? [bootstrapAddr] : []
 
-        parallel([
-          (cb) => spawnJsDaemon(bootstrap, cb),
-          (cb) => spawnJsDaemon(bootstrap, cb),
-          (cb) => spawnJsDaemon(bootstrap, cb)
-        ], (err, spawnedNodes) => {
+        times(peersToSpawn, (_, next) => {
+          spawnJsDaemon(bootstrap, (err, node) => {
+            expect(err).to.not.exist()
+            nodes.push(node)
+            next(err, node)
+          })
+        }, (err) => {
           expect(err).to.not.exist()
-          spawnedNodes.forEach((node) => nodes.push(node))
-          setTimeout(done, 25000) // Wait for peers to have each other on the DHT
+
+          const testDhtReady = (cb) => {
+            nodes[0].api.swarm.peers((err, peers) => {
+              if (err) {
+                return cb(err)
+              }
+              cb(null, peers.length === peersToSpawn)
+            })
+          }
+
+          // Wait for peers to have each other on the DHT
+          waitFor(testDhtReady, {
+            name: 'dht peers ready',
+            timeout: 30 * 1000,
+            interval: 5 * 1000
+          }, done)
         })
       })
 
       after(function (done) {
         this.timeout(80 * 1000)
-        parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
+        each(nodes, (node, cb) => {
+          node.stop(cb)
+        }, done)
       })
 
       it('should get from the network after being added', function (done) {
@@ -119,6 +140,7 @@ describe('kad-dht', () => {
     })
 
     describe('a GO network', () => {
+      const peersToSpawn = 3
       let bootstrapAddr
       let nodes = []
       let data = crypto.randomBytes(9001)
@@ -142,22 +164,40 @@ describe('kad-dht', () => {
       // spawn daemons
       before(function (done) {
         this.timeout(70 * 1000)
-        const bootstrap = [bootstrapAddr]
+        const bootstrap = bootstrapAddr ? [bootstrapAddr] : []
 
-        parallel([
-          (cb) => spawnGoDaemon(bootstrap, cb),
-          (cb) => spawnGoDaemon(bootstrap, cb),
-          (cb) => spawnGoDaemon(bootstrap, cb)
-        ], (err, spawnedNodes) => {
+        times(peersToSpawn, (_, next) => {
+          spawnGoDaemon(bootstrap, (err, node) => {
+            expect(err).to.not.exist()
+            nodes.push(node)
+            next(err, node)
+          })
+        }, (err) => {
           expect(err).to.not.exist()
-          spawnedNodes.forEach((node) => nodes.push(node))
-          setTimeout(done, 25000) // Wait for peers to have each other on the DHT
+
+          const testDhtReady = (cb) => {
+            nodes[0].api.swarm.peers((err, peers) => {
+              if (err) {
+                return cb(err)
+              }
+              cb(null, peers.length === peersToSpawn)
+            })
+          }
+
+          // Wait for peers to have each other on the DHT
+          waitFor(testDhtReady, {
+            name: 'dht peers ready',
+            timeout: 30 * 1000,
+            interval: 5 * 1000
+          }, done)
         })
       })
 
       after(function (done) {
         this.timeout(80 * 1000)
-        parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
+        each(nodes, (node, cb) => {
+          node.stop(cb)
+        }, done)
       })
 
       it('should get from the network after being added', function (done) {
@@ -167,6 +207,7 @@ describe('kad-dht', () => {
     })
 
     describe('a JS bootstrap node in the land of Go', () => {
+      const peersToSpawn = 3
       let bootstrapAddr
       let nodes = []
       let data = crypto.randomBytes(9001)
@@ -190,22 +231,40 @@ describe('kad-dht', () => {
       // spawn daemons
       before(function (done) {
         this.timeout(70 * 1000)
-        const bootstrap = [bootstrapAddr]
+        const bootstrap = bootstrapAddr ? [bootstrapAddr] : []
 
-        parallel([
-          (cb) => spawnGoDaemon(bootstrap, cb),
-          (cb) => spawnGoDaemon(bootstrap, cb),
-          (cb) => spawnGoDaemon(bootstrap, cb)
-        ], (err, spawnedNodes) => {
+        times(peersToSpawn, (_, next) => {
+          spawnGoDaemon(bootstrap, (err, node) => {
+            expect(err).to.not.exist()
+            nodes.push(node)
+            next(err, node)
+          })
+        }, (err) => {
           expect(err).to.not.exist()
-          spawnedNodes.forEach((node) => nodes.push(node))
-          setTimeout(done, 25000) // Wait for peers to have each other on the DHT
+
+          const testDhtReady = (cb) => {
+            nodes[0].api.swarm.peers((err, peers) => {
+              if (err) {
+                return cb(err)
+              }
+              cb(null, peers.length === peersToSpawn)
+            })
+          }
+
+          // Wait for peers to have each other on the DHT
+          waitFor(testDhtReady, {
+            name: 'dht peers ready',
+            timeout: 30 * 1000,
+            interval: 5 * 1000
+          }, done)
         })
       })
 
       after(function (done) {
         this.timeout(80 * 1000)
-        parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
+        each(nodes, (node, cb) => {
+          node.stop(cb)
+        }, done)
       })
 
       it('should get from the network after being added', function (done) {
@@ -215,13 +274,14 @@ describe('kad-dht', () => {
     })
 
     describe('a Go bootstrap node in the land of JS', () => {
+      const peersToSpawn = 3
       let bootstrapAddr
       let nodes = []
       let data = crypto.randomBytes(9001)
 
       // spawn bootstrap daemon and get address
       before(function (done) {
-        this.timeout(60 * 1000)
+        this.timeout(80 * 1000)
 
         spawnGoDaemon([], (err, node) => {
           expect(err).to.not.exist()
@@ -238,26 +298,44 @@ describe('kad-dht', () => {
       // spawn daemons
       before(function (done) {
         this.timeout(70 * 1000)
-        const bootstrap = [bootstrapAddr]
+        const bootstrap = bootstrapAddr ? [bootstrapAddr] : []
 
-        parallel([
-          (cb) => spawnJsDaemon(bootstrap, cb),
-          (cb) => spawnJsDaemon(bootstrap, cb),
-          (cb) => spawnJsDaemon(bootstrap, cb)
-        ], (err, spawnedNodes) => {
+        times(peersToSpawn, (_, next) => {
+          spawnJsDaemon(bootstrap, (err, node) => {
+            expect(err).to.not.exist()
+            nodes.push(node)
+            next(err, node)
+          })
+        }, (err) => {
           expect(err).to.not.exist()
-          spawnedNodes.forEach((node) => nodes.push(node))
-          setTimeout(done, 25000) // Wait for peers to have each other on the DHT
+
+          const testDhtReady = (cb) => {
+            nodes[0].api.swarm.peers((err, peers) => {
+              if (err) {
+                return cb(err)
+              }
+              cb(null, peers.length === peersToSpawn)
+            })
+          }
+
+          // Wait for peers to have each other on the DHT
+          waitFor(testDhtReady, {
+            name: 'dht peers ready',
+            timeout: 30 * 1000,
+            interval: 5 * 1000
+          }, done)
         })
       })
 
       after(function (done) {
         this.timeout(80 * 1000)
-        parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
+        each(nodes, (node, cb) => {
+          node.stop(cb)
+        }, done)
       })
 
       it('should get from the network after being added', function (done) {
-        this.timeout(100 * 1000)
+        this.timeout(120 * 1000)
         addFileAndCat(nodes[1], [nodes[2], nodes[3]], data, done)
       })
     })
@@ -286,26 +364,43 @@ describe('kad-dht', () => {
       // spawn daemons
       before(function (done) {
         this.timeout(70 * 1000)
-        const bootstrap = [bootstrapAddr]
+        const bootstrap = bootstrapAddr ? [bootstrapAddr] : []
 
         parallel([
-          (cb) => spawnGoDaemon(bootstrap, cb),
           (cb) => spawnJsDaemon(bootstrap, cb),
-          (cb) => spawnGoDaemon(bootstrap, cb)
+          (cb) => spawnGoDaemon(bootstrap, cb),
+          (cb) => spawnJsDaemon(bootstrap, cb)
         ], (err, spawnedNodes) => {
           expect(err).to.not.exist()
           spawnedNodes.forEach((node) => nodes.push(node))
-          setTimeout(done, 25000) // Wait for peers to have each other on the DHT
+
+          const testDhtReady = (cb) => {
+            nodes[0].api.swarm.peers((err, peers) => {
+              if (err) {
+                return cb(err)
+              }
+              cb(null, peers.length === 3)
+            })
+          }
+
+          // Wait for peers to have each other on the DHT
+          waitFor(testDhtReady, {
+            name: 'dht peers ready',
+            timeout: 30 * 1000,
+            interval: 5 * 1000
+          }, done)
         })
       })
 
       after(function (done) {
         this.timeout(80 * 1000)
-        parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
+        each(nodes, (node, cb) => {
+          node.stop(cb)
+        }, done)
       })
 
       it('should get from the network after being added', function (done) {
-        this.timeout(60 * 1000)
+        this.timeout(140 * 1000)
 
         addFileAndCat(nodes[1], [nodes[2], nodes[3]], data, done)
       })
@@ -335,7 +430,7 @@ describe('kad-dht', () => {
       // spawn daemons
       before(function (done) {
         this.timeout(70 * 1000)
-        const bootstrap = [bootstrapAddr]
+        const bootstrap = bootstrapAddr ? [bootstrapAddr] : []
 
         parallel([
           (cb) => spawnJsDaemon(bootstrap, cb),
@@ -344,13 +439,30 @@ describe('kad-dht', () => {
         ], (err, spawnedNodes) => {
           expect(err).to.not.exist()
           spawnedNodes.forEach((node) => nodes.push(node))
-          setTimeout(done, 25000) // Wait for peers to have each other on the DHT
+
+          const testDhtReady = (cb) => {
+            nodes[0].api.swarm.peers((err, peers) => {
+              if (err) {
+                return cb(err)
+              }
+              cb(null, peers.length === 3)
+            })
+          }
+
+          // Wait for peers to have each other on the DHT
+          waitFor(testDhtReady, {
+            name: 'dht peers ready',
+            timeout: 30 * 1000,
+            interval: 5 * 1000
+          }, done)
         })
       })
 
       after(function (done) {
         this.timeout(80 * 1000)
-        parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
+        each(nodes, (node, cb) => {
+          node.stop(cb)
+        }, done)
       })
 
       it('should get from the network after being added', function (done) {
@@ -381,7 +493,18 @@ describe('kad-dht', () => {
         })
       })
 
-      // make connections
+      /**
+       * Make connections between nodes
+       * +-+       +-+
+       * |0+-----> |1|
+       * +++       +++
+       *  ^         |
+       *  |         |
+       *  |         v
+       * +++       +++
+       * |3|       |2|
+       * +-+       +-+
+       */
       before(function (done) {
         this.timeout(60 * 1000)
 
@@ -397,7 +520,9 @@ describe('kad-dht', () => {
 
       after(function (done) {
         this.timeout(80 * 1000)
-        parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
+        each(nodes, (node, cb) => {
+          node.stop(cb)
+        }, done)
       })
 
       it('one hop', function (done) {
@@ -441,7 +566,18 @@ describe('kad-dht', () => {
         })
       })
 
-      // make connections
+      /**
+       * Make connections between nodes
+       * +-+       +-+
+       * |0+-----> |1|
+       * +++       +++
+       *  ^         |
+       *  |         |
+       *  |         v
+       * +++       +++
+       * |3|       |2|
+       * +-+       +-+
+       */
       before(function (done) {
         this.timeout(60 * 1000)
 
@@ -457,7 +593,9 @@ describe('kad-dht', () => {
 
       after(function (done) {
         this.timeout(80 * 1000)
-        parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
+        each(nodes, (node, cb) => {
+          node.stop(cb)
+        }, done)
       })
 
       it('one hop', function (done) {
@@ -517,7 +655,9 @@ describe('kad-dht', () => {
 
       after(function (done) {
         this.timeout(80 * 1000)
-        parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
+        each(nodes, (node, cb) => {
+          node.stop(cb)
+        }, done)
       })
 
       it('one hop', function (done) {
