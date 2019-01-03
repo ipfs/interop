@@ -32,7 +32,6 @@ const spawnJsDaemon = (callback) => {
   DaemonFactory.create({ type: 'js' })
     .spawn({
       disposable: true,
-      initOptions: { bits: 512 },
       args: ['--enable-namesys-pubsub'], // enable ipns over pubsub
       config
     }, callback)
@@ -42,7 +41,6 @@ const spawnGoDaemon = (callback) => {
   DaemonFactory.create()
     .spawn({
       disposable: true,
-      initOptions: { bits: 1024 },
       args: ['--enable-namesys-pubsub'], // enable ipns over pubsub
       config
     }, callback)
@@ -87,7 +85,10 @@ describe('ipns-pubsub', () => {
       nodeAId = ids[0]
       nodeBId = ids[1]
 
-      nodes[0].api.swarm.connect(ids[1].addresses[0], () => {
+      nodes[0].api.swarm.connect(ids[1].addresses[0], (err) => {
+        expect(err).to.not.exist()
+
+        console.log('wait for republish as we can receive the republish message first')
         setTimeout(done, 60000) // wait for republish as we can receive the republish message first
       })
     })
@@ -130,12 +131,14 @@ const subscribeToReceiveByPubsub = (nodeA, nodeB, id, callback) => {
   const keys = ipns.getIdKeys(fromB58String(id))
   const topic = `${namespace}${base64url.encode(keys.routingKey.toBuffer())}`
 
-  nodeB.api.name.resolve(id, () => {
+  // try to resolve a unpublished record (will subscribe it)
+  nodeB.api.name.resolve(id, (err) => {
+    expect(err).to.exist() // not found
+
     series([
       (cb) => waitForPeerToSubscribe(nodeB.api, topic, cb),
       (cb) => nodeB.api.pubsub.subscribe(topic, checkMessage, cb),
       (cb) => nodeA.api.name.publish(ipfsRef, { resolve: false }, cb),
-      (cb) => nodeA.api.name.resolve(id, cb),
       (cb) => waitFor(() => subscribed === true, (50 * 1000), cb),
       (cb) => nodeB.api.name.resolve(id, cb)
     ], (err, res) => {
@@ -143,8 +146,7 @@ const subscribeToReceiveByPubsub = (nodeA, nodeB, id, callback) => {
       expect(res).to.exist()
 
       expect(res[2].name).to.equal(id) // Published to Node A ID
-      expect(res[3]).to.equal(ipfsRef) // TODO: remove path once not using proc daemon
-      expect(res[5]).to.equal(ipfsRef)
+      expect(res[4]).to.equal(ipfsRef)
 
       callback()
     })

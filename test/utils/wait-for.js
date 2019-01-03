@@ -20,5 +20,5 @@ module.exports = (predicate, ttl, callback) => {
       clearInterval(self)
       return callback(new Error('waitFor time expired'))
     }
-  }, 500)
+  }, 50)
 }
