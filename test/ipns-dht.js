@@ -8,9 +8,6 @@ chai.use(dirtyChai)
 
 const series = require('async/series')
 const parallel = require('async/parallel')
-const os = require('os')
-const path = require('path')
-const hat = require('hat')
 
 const DaemonFactory = require('ipfsd-ctl')
 
@@ -21,8 +18,14 @@ const spawnJsDaemon = (callback) => {
     .spawn({
       disposable: true,
       initOptions: { bits: 512 },
-      args: ['--enable-dht-experiment'], // enable dht
-      config: { Bootstrap: [] }
+      config: { Bootstrap: [] },
+      libp2p: {
+        config: {
+          dht: {
+            enabled: true
+          }
+        }
+      }
     }, callback)
 }
 
@@ -35,7 +38,7 @@ const spawnGoDaemon = (callback) => {
     }, callback)
 }
 
-describe.only('ipns over dht', () => {
+describe('ipns over dht', () => {
   let nodeAId
   let nodeBId
   let nodes = []
