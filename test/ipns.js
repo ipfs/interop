@@ -12,7 +12,11 @@ const path = require('path')
 const hat = require('hat')
 
 const DaemonFactory = require('ipfsd-ctl')
-const { config } = require('./utils/daemon')
+const {
+  spawnInitAndStartGoDaemon,
+  config,
+  stopDaemon
+} = require('./utils/daemon')
 
 const spawnJsDaemon = (dir, callback) => {
   DaemonFactory.create({ type: 'js' })
@@ -59,12 +63,17 @@ const publishAndResolve = (publisherDaemon, resolverDaemon, callback) => {
   series([
     (cb) => publisherDaemon.init(cb),
     (cb) => publisherDaemon.start(cb),
+    // Go needs to have at least 1 peer before performing an ipns publish,
+    // so lets connect for the publish
+    (cb) => publisherDaemon.api.swarm.connect(goStaticNodeId.addresses[0], cb),
     (cb) => publisherDaemon.api.id((err, res) => {
       expect(err).to.not.exist()
       nodeId = res.id
       cb()
     }),
     (cb) => publisherDaemon.api.name.publish(ipfsRef, { resolve: false }, cb),
+    // disconnect from the static node before we attempt to resolve
+    (cb) => publisherDaemon.api.swarm.disconnect(goStaticNodeId.addresses[0], cb),
     (cb) => sameDaemon ? cb() : stopPublisherAndStartResolverDaemon(cb),
     (cb) => {
       resolverDaemon.api.name.resolve(nodeId, { local: true }, (err, res) => {
@@ -79,7 +88,28 @@ const publishAndResolve = (publisherDaemon, resolverDaemon, callback) => {
   ], callback)
 }
 
+let goStaticNode
+let goStaticNodeId
+
 describe('ipns locally using the same repo across implementations', () => {
+  before(function() {
+    return spawnInitAndStartGoDaemon()
+      .then((node) => {
+        goStaticNode = node
+        return new Promise((resolve, reject) => {
+          goStaticNode.api.id((err, id) => {
+            if (err) return reject
+
+            goStaticNodeId = id
+            resolve()
+          })
+        })
+      })
+  })
+  after(function () {
+    return stopDaemon(goStaticNode)
+  })
+
   it('should publish an ipns record to a js daemon and resolve it using the same js daemon', function (done) {
     this.timeout(120 * 1000)
     const dir = path.join(os.tmpdir(), hat())
