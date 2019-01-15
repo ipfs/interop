@@ -23,9 +23,11 @@ const os = require('os')
 
 const rmDir = promisify(rimraf)
 
-const DaemonFactory = require('ipfsd-ctl')
-const goDf = DaemonFactory.create()
-const jsDf = DaemonFactory.create({ type: 'js' })
+const {
+  spawnInitAndStartGoDaemon,
+  spawnInitAndStartJsDaemon,
+  stopDaemon
+} = require('./utils/daemon')
 
 function tmpDir () {
   return join(os.tmpdir(), `ipfs_${hat()}`)
@@ -107,29 +109,30 @@ describe('exchange files', () => {
 
   let nodes
 
-  before(function (done) {
+  before(function () {
     this.timeout(timeout)
 
-    parallel([
-      (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-      (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 } }, cb),
-      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 } }, cb)
-    ], (err, n) => {
-      expect(err).to.not.exist()
-      nodes = n
-      goDaemon = nodes[0]
-      goDaemon2 = nodes[1]
-      jsDaemon = nodes[2]
-      jsDaemon2 = nodes[3]
-      done()
+    return Promise.all([
+      spawnInitAndStartGoDaemon(),
+      spawnInitAndStartGoDaemon(),
+      spawnInitAndStartJsDaemon(),
+      spawnInitAndStartJsDaemon()
+    ]).then(([go1, go2, js1, js2]) => {
+      goDaemon = go1
+      goDaemon2 = go2
+      jsDaemon = js1
+      jsDaemon2 = js2
     })
   })
 
-  after(function (done) {
+  after(function () {
     this.timeout(timeout)
-
-    parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
+    return Promise.all([
+      stopDaemon(goDaemon),
+      stopDaemon(goDaemon2),
+      stopDaemon(jsDaemon),
+      stopDaemon(jsDaemon2)
+    ])
   })
 
   it('connect go <-> js', function (done) {

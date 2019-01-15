@@ -12,6 +12,7 @@ const retry = require('async/retry')
 const auto = require('async/auto')
 
 const DaemonFactory = require('ipfsd-ctl')
+const { config } = require('./utils/daemon')
 
 /*
  * Wait for a condition to become true.  When its true, callback is called.
@@ -98,11 +99,13 @@ describe('pubsub', function () {
     parallel([
       (cb) => DaemonFactory.create().spawn({
         args: ['--enable-pubsub-experiment'],
-        initOptions: { bits: 1024 }
+        initOptions: { bits: 1024 },
+        config
       }, cb),
       (cb) => DaemonFactory.create({ type: 'js' }).spawn({
         args: ['--enable-pubsub-experiment'],
-        initOptions: { bits: 512 }
+        initOptions: { bits: 512 },
+        config
       }, cb)
     ], (err, n) => {
       expect(err).to.not.exist()

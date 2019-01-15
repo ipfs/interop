@@ -26,6 +26,9 @@ const baseConf = {
   Discovery: {
     MDNS: {
       Enabled: false
+    },
+    webRTCStar: {
+      Enabled: false
     }
   }
 }

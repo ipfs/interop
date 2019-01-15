@@ -8,7 +8,7 @@ const expect = chai.expect
 chai.use(dirtyChai)
 
 const DaemonFactory = require('ipfsd-ctl')
-
+const { config } = require('./utils/daemon')
 const utils = require('./utils/pin-utils')
 
 describe('pin', function () {
@@ -27,7 +27,8 @@ describe('pin', function () {
       DaemonFactory.create({ type })
         .spawn({
           repoPath,
-          disposable: false
+          disposable: false,
+          config
         }, (err, daemon) => {
           if (err) return reject(err)
           daemons.push(daemon)

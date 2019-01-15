@@ -17,6 +17,7 @@ const isWindows = os.platform() === 'win32'
 const DaemonFactory = require('ipfsd-ctl')
 const goDf = DaemonFactory.create()
 const jsDf = DaemonFactory.create({ type: 'js' })
+const { config } = require('./utils/daemon')
 
 function catAndCheck (api, hash, data, callback) {
   api.cat(hash, (err, fileData) => {
@@ -45,7 +46,8 @@ describe('repo', () => {
       (cb) => goDf.spawn({
         repoPath: dir,
         disposable: false,
-        initOptions: { bits: 1024 }
+        initOptions: { bits: 1024 },
+        config
       }, (err, node) => {
         expect(err).to.not.exist()
         goDaemon = node
@@ -62,7 +64,8 @@ describe('repo', () => {
       (cb) => jsDf.spawn({
         repoPath: dir,
         disposable: false,
-        initOptions: { bits: 512 }
+        initOptions: { bits: 512 },
+        config
       }, (err, node) => {
         expect(err).to.not.exist()
         jsDaemon = node
@@ -89,7 +92,8 @@ describe('repo', () => {
       (cb) => jsDf.spawn({
         repoPath: dir,
         disposable: false,
-        initOptions: { bits: 512 }
+        initOptions: { bits: 512 },
+        config
       }, (err, node) => {
         expect(err).to.not.exist()
 
@@ -108,7 +112,8 @@ describe('repo', () => {
       (cb) => goDf.spawn({
         repoPath: dir,
         disposable: false,
-        initOptions: { bits: 1024 }
+        initOptions: { bits: 1024 },
+        config
       }, (err, node) => {
         expect(err).to.not.exist()
 

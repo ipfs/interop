@@ -15,6 +15,7 @@ const bl = require('bl')
 const DaemonFactory = require('ipfsd-ctl')
 const goDf = DaemonFactory.create()
 const jsDf = DaemonFactory.create({ type: 'js' })
+const { config } = require('./utils/daemon')
 
 describe.skip('kad-dht', () => {
   describe('a JS node in the land of Go', () => {
@@ -25,10 +26,10 @@ describe.skip('kad-dht', () => {
 
     before((done) => {
       parallel([
-        (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-        (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-        (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-        (cb) => jsDf.spawn({ initOptions: { bits: 512 } }, cb)
+        (cb) => goDf.spawn({ initOptions: { bits: 1024 }, config }, cb),
+        (cb) => goDf.spawn({ initOptions: { bits: 1024 }, config }, cb),
+        (cb) => goDf.spawn({ initOptions: { bits: 1024 }, config }, cb),
+        (cb) => jsDf.spawn({ initOptions: { bits: 512 }, config }, cb)
       ], (err, nodes) => {
         expect(err).to.not.exist()
         goD1 = nodes[0]

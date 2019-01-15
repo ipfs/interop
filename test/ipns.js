@@ -12,6 +12,7 @@ const path = require('path')
 const hat = require('hat')
 
 const DaemonFactory = require('ipfsd-ctl')
+const { config } = require('./utils/daemon')
 
 const spawnJsDaemon = (dir, callback) => {
   DaemonFactory.create({ type: 'js' })
@@ -19,7 +20,8 @@ const spawnJsDaemon = (dir, callback) => {
       repoPath: dir,
       disposable: false,
       initOptions: { bits: 512 },
-      args: ['--offline']
+      args: ['--offline'],
+      config
     }, callback)
 }
 
@@ -29,7 +31,8 @@ const spawnGoDaemon = (dir, callback) => {
       repoPath: dir,
       disposable: false,
       initOptions: { bits: 1024 },
-      args: ['--offline']
+      args: ['--offline'],
+      config
     }, callback)
 }
 
