@@ -92,7 +92,7 @@ let goStaticNode
 let goStaticNodeId
 
 describe('ipns locally using the same repo across implementations', () => {
-  before(function() {
+  before(function () {
     return spawnInitAndStartGoDaemon()
       .then((node) => {
         goStaticNode = node

@@ -107,8 +107,6 @@ describe('exchange files', () => {
   let jsDaemon
   let jsDaemon2
 
-  let nodes
-
   before(function () {
     this.timeout(timeout)
 
