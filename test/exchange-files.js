@@ -111,10 +111,10 @@ describe('exchange files', () => {
     this.timeout(timeout)
 
     parallel([
-      (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-      (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 } }, cb),
-      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 } }, cb)
+      (cb) => goDf.spawn({ initOptions: { bits: 1024 }, config: { Bootstrap: [] } }, cb),
+      (cb) => goDf.spawn({ initOptions: { bits: 1024 }, config: { Bootstrap: [] } }, cb),
+      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 }, config: { Bootstrap: [] } }, cb),
+      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 }, config: { Bootstrap: [] } }, cb)
     ], (err, n) => {
       expect(err).to.not.exist()
       nodes = n
