@@ -50,12 +50,8 @@
     "form-data": "^2.3.3",
     "go-ipfs-dep": "~0.4.18",
     "hat": "0.0.3",
-<<<<<<< HEAD
     "ipfs": "~0.34.0",
-=======
-    "ipfs": "~0.34.0-rc.1",
     "ipfs-http-client": "^29.0.0",
->>>>>>> chore: update dependencies
     "ipfs-unixfs": "~0.1.16",
     "ipfsd-ctl": "~0.40.0",
     "is-ci": "^1.2.1",
