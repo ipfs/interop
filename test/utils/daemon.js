@@ -9,7 +9,8 @@ const spawnInitAndStartDaemon = (factory) => {
     factory.spawn({
       initOptions: {
         bits: 1024
-      }
+      },
+      config: { Bootstrap: [] }
     }, (error, instance) => {
       if (error) {
         return reject(error)

@@ -111,10 +111,10 @@ describe('exchange files', () => {
     this.timeout(timeout)
 
     parallel([
-      (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-      (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 } }, cb),
-      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 } }, cb)
+      (cb) => goDf.spawn({ initOptions: { bits: 1024 }, config: { Bootstrap: [] } }, cb),
+      (cb) => goDf.spawn({ initOptions: { bits: 1024 }, config: { Bootstrap: [] } }, cb),
+      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 }, config: { Bootstrap: [] } }, cb),
+      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 }, config: { Bootstrap: [] } }, cb)
     ], (err, n) => {
       expect(err).to.not.exist()
       nodes = n
@@ -284,7 +284,7 @@ describe('exchange files', () => {
     })
   }))
 
-  if (isWindows) { return }
+  if (isWindows()) { return }
   // TODO fix dir tests on Windows
 
   describe('get directory', () => depth.forEach((d) => dirs.forEach((num) => {
@@ -297,10 +297,10 @@ describe('exchange files', () => {
         depth: d,
         number: num
       }).then(() => {
-        return goDaemon.api.util.addFromFs(dir, { recursive: true })
+        return goDaemon.api.addFromFs(dir, { recursive: true })
       }).then((res) => {
         const hash = res[res.length - 1].hash
-        return jsDaemon.api.files.get(hash)
+        return jsDaemon.api.get(hash)
       }).then((res) => {
         expect(res).to.exist()
         return rmDir(dir)
@@ -316,10 +316,10 @@ describe('exchange files', () => {
         depth: d,
         number: num
       }).then(() => {
-        return jsDaemon.api.util.addFromFs(dir, { recursive: true })
+        return jsDaemon.api.addFromFs(dir, { recursive: true })
       }).then((res) => {
         const hash = res[res.length - 1].hash
-        return goDaemon.api.files.get(hash)
+        return goDaemon.api.get(hash)
       }).then((res) => {
         expect(res).to.exist()
         return rmDir(dir)
@@ -335,10 +335,10 @@ describe('exchange files', () => {
         depth: d,
         number: num
       }).then(() => {
-        return jsDaemon2.api.util.addFromFs(dir, { recursive: true })
+        return jsDaemon2.api.addFromFs(dir, { recursive: true })
       }).then((res) => {
         const hash = res[res.length - 1].hash
-        return jsDaemon.api.files.get(hash)
+        return jsDaemon.api.get(hash)
       }).then((res) => {
         expect(res).to.exist()
         return rmDir(dir)
@@ -354,10 +354,10 @@ describe('exchange files', () => {
         depth: d,
         number: num
       }).then(() => {
-        return goDaemon2.api.util.addFromFs(dir, { recursive: true })
+        return goDaemon2.api.addFromFs(dir, { recursive: true })
       }).then((res) => {
         const hash = res[res.length - 1].hash
-        return goDaemon.api.files.get(hash)
+        return goDaemon.api.get(hash)
       }).then((res) => {
         expect(res).to.exist()
         return rmDir(dir)
