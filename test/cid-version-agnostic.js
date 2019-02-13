@@ -17,7 +17,7 @@ describe('CID version agnostic', () => {
   const daemons = {}
 
   before(async function () {
-    this.timeout(10 * 1000)
+    this.timeout(30 * 1000)
 
     const [ js0, js1, go0, go1 ] = await Promise.all([
       spawnInitAndStartJsDaemon(),
@@ -43,7 +43,7 @@ describe('CID version agnostic', () => {
   })
 
   after(function () {
-    this.timeout(10 * 1000)
+    this.timeout(30 * 1000)
     return Promise.all(Object.values(daemons).map(stopDaemon))
   })
 
