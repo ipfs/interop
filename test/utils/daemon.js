@@ -19,8 +19,16 @@ const spawnInitAndStartDaemon = (factory, options) => {
         webRTCStar: {
           Enabled: false
         }
+      },
+      // enabled sharding for go
+      Experimental: {
+        ShardingEnabled: true
       }
     },
+    // enabled sharding for js
+    args: factory.options.type === 'js' ? [
+      '--enable-sharding-experiment'
+    ] : undefined,
     profile: 'test'
   }, options)
 

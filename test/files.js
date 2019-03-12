@@ -13,6 +13,8 @@ const {
   stopDaemon
 } = require('./utils/daemon')
 
+const SHARD_THRESHOLD = 1000
+
 class ExpectedError extends Error {
 
 }
@@ -207,7 +209,7 @@ describe('files', function () {
   })
 
   describe('has the same hashes for', () => {
-    const testHashesAreEqual = (daemon, data, options) => {
+    const testHashesAreEqual = (daemon, data, options = {}) => {
       return daemon.api.add(data, options)
         .then(files => files[0].hash)
     }
@@ -305,6 +307,100 @@ describe('files', function () {
       return compare(
         testHashesAreEqual(go, data, options),
         testHashesAreEqual(js, data, options)
+      )
+    })
+
+    it('hamt shards', () => {
+      const data = randomBytes(100)
+      const files = []
+      const dir = `/shard-${Date.now()}`
+
+      for (let i = 0; i < SHARD_THRESHOLD + 1; i++) {
+        files.push({
+          path: `${dir}/file-${i}.txt`,
+          content: data
+        })
+      }
+
+      return compare(
+        testHashesAreEqual(go, files),
+        testHashesAreEqual(js, files)
+      )
+    })
+
+    it('updating mfs hamt shards', () => {
+      const dir = `/shard-${Date.now()}`
+      const data = randomBytes(100)
+      const nodeGrContent = Buffer.from([0, 1, 2, 3, 4])
+      const superModuleContent = Buffer.from([5, 6, 7, 8, 9])
+      const files = [{
+        path: `${dir}/node-gr`,
+        content: nodeGrContent
+      }, {
+        path: `${dir}/yanvoidmodule`,
+        content: crypto.randomBytes(5)
+      }, {
+        path: `${dir}/methodify`,
+        content: crypto.randomBytes(5)
+      }, {
+        path: `${dir}/fis-msprd-style-loader_0_13_1`,
+        content: crypto.randomBytes(5)
+      }, {
+        path: `${dir}/js-form`,
+        content: crypto.randomBytes(5)
+      }, {
+        path: `${dir}/vivanov-sliceart`,
+        content: crypto.randomBytes(5)
+      }]
+
+      for (let i = 0; i < SHARD_THRESHOLD; i++) {
+        files.push({
+          path: `${dir}/file-${i}.txt`,
+          content: data
+        })
+      }
+
+      // will operate on sub-shard three levels deep
+      const testHamtShardHashesAreEqual = async (daemon, data) => {
+        const addedFiles = await daemon.api.add(data)
+        const hash = addedFiles[addedFiles.length - 1].hash
+
+        await daemon.api.files.cp(`/ipfs/${hash}`, dir)
+
+        const node = await daemon.api.object.get(hash)
+        const meta = UnixFs.unmarshal(node.data)
+
+        expect(meta.type).to.equal('hamt-sharded-directory')
+
+        await daemon.api.files.write(`${dir}/supermodule_test`, superModuleContent, {
+          create: true
+        })
+        await daemon.api.files.stat(`${dir}/supermodule_test`)
+        await daemon.api.files.stat(`${dir}/node-gr`)
+
+        expect(await daemon.api.files.read(`${dir}/node-gr`)).to.deep.equal(nodeGrContent)
+        expect(await daemon.api.files.read(`${dir}/supermodule_test`)).to.deep.equal(superModuleContent)
+
+        await daemon.api.files.rm(`${dir}/supermodule_test`)
+
+        try {
+          await daemon.api.files.stat(`${dir}/supermodule_test`)
+        } catch (err) {
+          expect(err.message).to.contain('not exist')
+        }
+
+        const stats = await daemon.api.files.stat(dir)
+        const nodeAfterUpdates = await daemon.api.object.get(stats.hash)
+        const metaAfterUpdates = UnixFs.unmarshal(nodeAfterUpdates.data)
+
+        expect(metaAfterUpdates.type).to.equal('hamt-sharded-directory')
+
+        return stats.hash
+      }
+
+      return compare(
+        testHamtShardHashesAreEqual(go, files),
+        testHamtShardHashesAreEqual(js, files)
       )
     })
   })
