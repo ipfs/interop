@@ -10,7 +10,18 @@ const spawnInitAndStartDaemon = (factory) => {
       initOptions: {
         bits: 1024
       },
-      config: { Bootstrap: [] }
+      config: {
+        Bootstrap: [],
+        Discovery: {
+          MDNS: {
+            Enabled: false
+          },
+          webRTCStar: {
+            Enabled: false
+          }
+        }
+      },
+      profile: 'test'
     }, (error, instance) => {
       if (error) {
         return reject(error)
