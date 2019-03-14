@@ -95,8 +95,8 @@ exports.createGoNode = (addrs, callback) => {
   })
 }
 
-const data = crypto.randomBytes(128)
 exports.send = (nodeA, nodeB, callback) => {
+  const data = crypto.randomBytes(128)
   waterfall([
     (cb) => nodeA.add(data, cb),
     (res, cb) => nodeB.cat(res[0].hash, cb),
@@ -161,3 +161,11 @@ exports.connWithTimeout = (timeout) => {
     connect(nodeA, nodeB, relay, timeout, callback)
   }
 }
+
+const disconnect = (nodeA, nodeB, callback) => {
+  series([
+    (cb) => nodeA.ipfsd.api.swarm.disconnect(getCircuitAddr(nodeB.addrs), cb)
+  ], callback)
+}
+
+exports.disconnect = disconnect

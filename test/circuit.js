@@ -15,10 +15,12 @@ const browser = require('./circuit/browser')
 const isNode = require('detect-node')
 const send = require('./utils/circuit').send
 const connect = require('./utils/circuit').connect
+const disconnect = require('./utils/circuit').disconnect
 
 const timeout = 80 * 1000
 const baseTest = {
   connect,
+  disconnect,
   send,
   timeout
 }
@@ -63,6 +65,18 @@ describe('circuit', () => {
       })
 
       it('send', (done) => {
+        tests[test].send(nodeA.ipfsd.api, nodeB.ipfsd.api, done)
+      })
+
+      it('disconnect', (done) => {
+        tests[test].disconnect(nodeA, nodeB, done)
+      })
+
+      it('reconnect', (done) => {
+        tests[test].connect(nodeA, nodeB, relay, done)
+      })
+
+      it('resend', (done) => {
         tests[test].send(nodeA.ipfsd.api, nodeB.ipfsd.api, done)
       })
     })
