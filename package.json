@@ -50,7 +50,7 @@
     "form-data": "^2.3.3",
     "go-ipfs-dep": "~0.4.18",
     "hat": "0.0.3",
-    "ipfs": "~0.34.4",
+    "ipfs": "github:ipfs/js-ipfs#chore/update-libp2p",
     "ipfs-http-client": "^29.1.0",
     "ipfs-unixfs": "~0.1.16",
     "ipfs-repo": "~0.26.1",
