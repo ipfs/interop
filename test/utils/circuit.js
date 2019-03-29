@@ -41,7 +41,7 @@ exports.createProcNode = (addrs, callback) => {
     relay: {
       enabled: true,
       hop: {
-        enabled: false
+        enabled: true
       }
     }
   }, (err, ipfsd) => {
