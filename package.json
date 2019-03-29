@@ -54,7 +54,7 @@
     "ipfs-http-client": "^29.1.0",
     "ipfs-unixfs": "~0.1.16",
     "ipfs-repo": "~0.26.1",
-    "ipfsd-ctl": "~0.42.0",
+    "ipfsd-ctl": "github:ipfs/js-ipfsd-ctl#fix/relay",
     "is-ci": "^2.0.0",
     "left-pad": "^1.3.0",
     "libp2p-websocket-star-rendezvous": "~0.3.0",

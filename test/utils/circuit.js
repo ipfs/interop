@@ -36,14 +36,14 @@ exports.createProcNode = (addrs, callback) => {
     config: Object.assign({}, baseConf, {
       Addresses: {
         Swarm: addrs
-      },
-      relay: {
-        enabled: true,
-        hop: {
-          enabled: true
-        }
       }
-    })
+    }),
+    relay: {
+      enabled: true,
+      hop: {
+        enabled: false
+      }
+    }
   }, (err, ipfsd) => {
     expect(err).to.not.exist()
     ipfsd.api.id((err, id) => {

@@ -97,7 +97,7 @@ if (isCi) {
 }
 
 const min = 60 * 1000
-const timeout = isCi ? 15 * min : 5 * min
+const timeout = isCi ? 8 * min : 5 * min
 
 describe('exchange files', () => {
   let goDaemon
