@@ -111,7 +111,7 @@ describe('exchange files', () => {
   let tests = {
     'go -> js': [createGo, createJs],
     'go -> go2': [createGo, createGo],
-    'js -> go' : [createJs, createGo],
+    'js -> go': [createJs, createGo],
     'js -> js2': [createJs, createJs]
   }
 
