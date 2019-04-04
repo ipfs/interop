@@ -12,7 +12,7 @@ os:
   - linux
   - osx
 
-script: npm i pull-length-prefixed@github:dignifiedquire/pull-length-prefixed#fix/patches && npx nyc -s npm run test:node -- --bail
+script: npx nyc -s npm run test:node -- --bail
 after_success: npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov
 
 jobs:
