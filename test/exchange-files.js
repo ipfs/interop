@@ -97,271 +97,115 @@ if (isCi) {
 }
 
 const min = 60 * 1000
-const timeout = isCi ? 15 * min : 5 * min
+const timeout = isCi ? 8 * min : 5 * min
+
+function createJs (cb) {
+  jsDf.spawn({ type: 'js', initOptions: { bits: 512 }, config: { Bootstrap: [] } }, cb)
+}
+
+function createGo (cb) {
+  goDf.spawn({ initOptions: { bits: 1024 }, config: { Bootstrap: [] } }, cb)
+}
 
 describe('exchange files', () => {
-  let goDaemon
-  let goDaemon2
-  let jsDaemon
-  let jsDaemon2
+  let tests = {
+    'go -> js': [createGo, createJs],
+    'go -> go2': [createGo, createGo],
+    'js -> go': [createJs, createGo],
+    'js -> js2': [createJs, createJs]
+  }
 
-  let nodes
+  Object.keys(tests).forEach((name) => {
+    describe(name, () => {
+      let daemon1
+      let daemon2
+      let id1
+      let id2
 
-  before(function (done) {
-    this.timeout(timeout)
+      before('spawn nodes', function (done) {
+        this.timeout(timeout)
 
-    parallel([
-      (cb) => goDf.spawn({ initOptions: { bits: 1024 }, config: { Bootstrap: [] } }, cb),
-      (cb) => goDf.spawn({ initOptions: { bits: 1024 }, config: { Bootstrap: [] } }, cb),
-      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 }, config: { Bootstrap: [] } }, cb),
-      (cb) => jsDf.spawn({ type: 'js', initOptions: { bits: 512 }, config: { Bootstrap: [] } }, cb)
-    ], (err, n) => {
-      expect(err).to.not.exist()
-      nodes = n
-      goDaemon = nodes[0]
-      goDaemon2 = nodes[1]
-      jsDaemon = nodes[2]
-      jsDaemon2 = nodes[3]
-      done()
+        parallel(tests[name], (err, nodes) => {
+          expect(err).to.not.exist()
+          daemon1 = nodes[0]
+          daemon2 = nodes[1]
+          done()
+        })
+      })
+
+      before('connect', function (done) {
+        this.timeout(timeout)
+
+        series([
+          (cb) => parallel([
+            (cb) => daemon1.api.id(cb),
+            (cb) => daemon2.api.id(cb)
+          ], (err, ids) => {
+            expect(err).to.not.exist()
+            id1 = ids[0]
+            id2 = ids[1]
+            cb()
+          }),
+          (cb) => daemon1.api.swarm.connect(id2.addresses[0], cb),
+          (cb) => daemon2.api.swarm.connect(id1.addresses[0], cb),
+          (cb) => parallel([
+            (cb) => daemon1.api.swarm.peers(cb),
+            (cb) => daemon2.api.swarm.peers(cb)
+          ], (err, peers) => {
+            expect(err).to.not.exist()
+            expect(peers[0].map((p) => p.peer.toB58String())).to.include(id2.id)
+            expect(peers[1].map((p) => p.peer.toB58String())).to.include(id1.id)
+            cb()
+          })
+        ], done)
+      })
+
+      after('stop nodes', function (done) {
+        this.timeout(timeout)
+
+        parallel([daemon1, daemon2].map((node) => (cb) => node.stop(cb)), done)
+      })
+
+      describe('cat file', () => sizes.forEach((size) => {
+        it(`${name}: ${pretty(size)}`, function (done) {
+          this.timeout(timeout)
+
+          const data = crypto.randomBytes(size)
+
+          waterfall([
+            (cb) => daemon1.api.add(data, cb),
+            (res, cb) => daemon2.api.cat(res[0].hash, cb)
+          ], (err, file) => {
+            expect(err).to.not.exist()
+            expect(file).to.eql(data)
+            done()
+          })
+        })
+      }))
+
+      if (isWindows()) { return }
+      // TODO fix dir tests on Windows
+
+      describe('get directory', () => depth.forEach((d) => dirs.forEach((num) => {
+        it(`${name}: depth: ${d}, num: ${num}`, function () {
+          this.timeout(timeout)
+
+          const dir = tmpDir()
+          return randomFs({
+            path: dir,
+            depth: d,
+            number: num
+          }).then(() => {
+            return daemon1.api.addFromFs(dir, { recursive: true })
+          }).then((res) => {
+            const hash = res[res.length - 1].hash
+            return daemon2.api.get(hash)
+          }).then((res) => {
+            expect(res).to.exist()
+            return rmDir(dir)
+          })
+        })
+      })))
     })
   })
-
-  after(function (done) {
-    this.timeout(timeout)
-
-    parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
-  })
-
-  it('connect go <-> js', function (done) {
-    this.timeout(timeout)
-
-    let jsId
-    let goId
-
-    series([
-      (cb) => parallel([
-        (cb) => jsDaemon.api.id(cb),
-        (cb) => goDaemon.api.id(cb)
-      ], (err, ids) => {
-        expect(err).to.not.exist()
-        jsId = ids[0]
-        goId = ids[1]
-        cb()
-      }),
-      (cb) => goDaemon.api.swarm.connect(jsId.addresses[0], cb),
-      (cb) => jsDaemon.api.swarm.connect(goId.addresses[0], cb),
-      (cb) => parallel([
-        (cb) => goDaemon.api.swarm.peers(cb),
-        (cb) => jsDaemon.api.swarm.peers(cb)
-      ], (err, peers) => {
-        expect(err).to.not.exist()
-        expect(peers[0].map((p) => p.peer.toB58String())).to.include(jsId.id)
-        expect(peers[1].map((p) => p.peer.toB58String())).to.include(goId.id)
-        cb()
-      })
-    ], done)
-  })
-
-  it('connect go <-> go2', function (done) {
-    this.timeout(timeout)
-
-    let goId
-    let go2Id
-
-    series([
-      (cb) => parallel([
-        (cb) => goDaemon.api.id(cb),
-        (cb) => goDaemon2.api.id(cb)
-      ], (err, ids) => {
-        expect(err).to.not.exist()
-        goId = ids[0]
-        go2Id = ids[1]
-        cb()
-      }),
-      (cb) => goDaemon.api.swarm.connect(go2Id.addresses[0], cb),
-      (cb) => goDaemon2.api.swarm.connect(goId.addresses[0], cb),
-      (cb) => parallel([
-        (cb) => goDaemon.api.swarm.peers(cb),
-        (cb) => goDaemon2.api.swarm.peers(cb)
-      ], (err, peers) => {
-        expect(err).to.not.exist()
-        expect(peers[0].map((p) => p.peer.toB58String())).to.include(go2Id.id)
-        expect(peers[1].map((p) => p.peer.toB58String())).to.include(goId.id)
-        cb()
-      })
-    ], done)
-  })
-
-  it('connect js <-> js2', function (done) {
-    this.timeout(timeout)
-
-    let jsId
-    let js2Id
-
-    series([
-      (cb) => parallel([
-        (cb) => jsDaemon.api.id(cb),
-        (cb) => jsDaemon2.api.id(cb)
-      ], (err, ids) => {
-        expect(err).to.not.exist()
-        jsId = ids[0]
-        js2Id = ids[1]
-        cb()
-      }),
-      (cb) => jsDaemon2.api.swarm.connect(jsId.addresses[0], cb),
-      (cb) => jsDaemon.api.swarm.connect(js2Id.addresses[0], cb),
-      (cb) => parallel([
-        (cb) => jsDaemon2.api.swarm.peers(cb),
-        (cb) => jsDaemon.api.swarm.peers(cb)
-      ], (err, peers) => {
-        expect(err).to.not.exist()
-        expect(peers[0].map((p) => p.peer.toB58String())).to.include(jsId.id)
-        expect(peers[1].map((p) => p.peer.toB58String())).to.include(js2Id.id)
-        cb()
-      })
-    ], done)
-  })
-
-  describe('cat file', () => sizes.forEach((size) => {
-    it(`go -> js: ${pretty(size)}`, function (done) {
-      this.timeout(timeout)
-
-      const data = crypto.randomBytes(size)
-
-      waterfall([
-        (cb) => goDaemon.api.add(data, cb),
-        (res, cb) => jsDaemon.api.cat(res[0].hash, cb)
-      ], (err, file) => {
-        expect(err).to.not.exist()
-        expect(file).to.eql(data)
-        done()
-      })
-    })
-
-    it(`js -> go: ${pretty(size)}`, function (done) {
-      this.timeout(timeout)
-
-      const data = crypto.randomBytes(size)
-
-      waterfall([
-        (cb) => jsDaemon.api.add(data, cb),
-        (res, cb) => goDaemon.api.cat(res[0].hash, cb)
-      ], (err, file) => {
-        expect(err).to.not.exist()
-        expect(file).to.eql(data)
-        done()
-      })
-    })
-
-    it(`js -> js2: ${pretty(size)}`, function (done) {
-      this.timeout(timeout)
-
-      const data = crypto.randomBytes(size)
-
-      waterfall([
-        (cb) => jsDaemon2.api.add(data, cb),
-        (res, cb) => jsDaemon.api.cat(res[0].hash, cb)
-      ], (err, file) => {
-        expect(err).to.not.exist()
-        expect(file).to.eql(data)
-        done()
-      })
-    })
-
-    it(`go -> go2: ${pretty(size)}`, function (done) {
-      this.timeout(timeout)
-
-      const data = crypto.randomBytes(size)
-
-      waterfall([
-        (cb) => goDaemon.api.add(data, cb),
-        (res, cb) => goDaemon2.api.cat(res[0].hash, cb)
-      ], (err, file) => {
-        expect(err).to.not.exist()
-        expect(file).to.eql(data)
-        done()
-      })
-    })
-  }))
-
-  if (isWindows()) { return }
-  // TODO fix dir tests on Windows
-
-  describe('get directory', () => depth.forEach((d) => dirs.forEach((num) => {
-    it(`go -> js: depth: ${d}, num: ${num}`, function () {
-      this.timeout(timeout)
-
-      const dir = tmpDir()
-      return randomFs({
-        path: dir,
-        depth: d,
-        number: num
-      }).then(() => {
-        return goDaemon.api.addFromFs(dir, { recursive: true })
-      }).then((res) => {
-        const hash = res[res.length - 1].hash
-        return jsDaemon.api.get(hash)
-      }).then((res) => {
-        expect(res).to.exist()
-        return rmDir(dir)
-      })
-    })
-
-    it(`js -> go: depth: ${d}, num: ${num}`, function () {
-      this.timeout(timeout)
-
-      const dir = tmpDir()
-      return randomFs({
-        path: dir,
-        depth: d,
-        number: num
-      }).then(() => {
-        return jsDaemon.api.addFromFs(dir, { recursive: true })
-      }).then((res) => {
-        const hash = res[res.length - 1].hash
-        return goDaemon.api.get(hash)
-      }).then((res) => {
-        expect(res).to.exist()
-        return rmDir(dir)
-      })
-    })
-
-    it(`js -> js2: depth: ${d}, num: ${num}`, function () {
-      this.timeout(timeout)
-
-      const dir = tmpDir()
-      return randomFs({
-        path: dir,
-        depth: d,
-        number: num
-      }).then(() => {
-        return jsDaemon2.api.addFromFs(dir, { recursive: true })
-      }).then((res) => {
-        const hash = res[res.length - 1].hash
-        return jsDaemon.api.get(hash)
-      }).then((res) => {
-        expect(res).to.exist()
-        return rmDir(dir)
-      })
-    })
-
-    it(`go -> go2: depth: ${d}, num: ${num}`, function () {
-      this.timeout(timeout)
-
-      const dir = tmpDir()
-      return randomFs({
-        path: dir,
-        depth: d,
-        number: num
-      }).then(() => {
-        return goDaemon2.api.addFromFs(dir, { recursive: true })
-      }).then((res) => {
-        const hash = res[res.length - 1].hash
-        return goDaemon.api.get(hash)
-      }).then((res) => {
-        expect(res).to.exist()
-        return rmDir(dir)
-      })
-    })
-  })))
 })
