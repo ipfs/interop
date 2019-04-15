@@ -18,8 +18,7 @@ const spawnJsDaemon = (dir, callback) => {
     .spawn({
       repoPath: dir,
       disposable: false,
-      initOptions: { bits: 512 },
-      args: ['--offline']
+      initOptions: { bits: 512 }
     }, callback)
 }
 
@@ -28,8 +27,7 @@ const spawnGoDaemon = (dir, callback) => {
     .spawn({
       repoPath: dir,
       disposable: false,
-      initOptions: { bits: 1024 },
-      args: ['--offline']
+      initOptions: { bits: 1024 }
     }, callback)
 }
 
@@ -49,7 +47,7 @@ const publishAndResolve = (publisherDaemon, resolverDaemon, callback) => {
     series([
       (cb) => publisherDaemon.stop(cb),
       (cb) => setTimeout(cb, 2000),
-      (cb) => resolverDaemon.start(cb)
+      (cb) => resolverDaemon.start(['--offline'], cb)
     ], callback)
   }
 
