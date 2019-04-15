@@ -163,9 +163,7 @@ exports.connWithTimeout = (timeout) => {
 }
 
 const disconnect = (nodeA, nodeB, callback) => {
-  series([
-    (cb) => nodeA.ipfsd.api.swarm.disconnect(getCircuitAddr(nodeB.addrs), cb)
-  ], callback)
+  nodeA.ipfsd.api.swarm.disconnect(getCircuitAddr(nodeB.addrs), callback)
 }
 
 exports.disconnect = disconnect
