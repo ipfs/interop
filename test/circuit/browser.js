@@ -130,8 +130,7 @@ module.exports = {
         (cb) => setTimeout(cb, 5000),
         (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
       ], callback)
-    },
-    skip: () => true
+    }
   },
   'browser-browser-js': {
     create: (callback) => series([
