@@ -53,13 +53,13 @@ const publishAndResolve = (publisherDaemon, resolverDaemon, callback) => {
 
   series([
     (cb) => publisherDaemon.init(cb),
-    (cb) => publisherDaemon.start(cb),
+    (cb) => publisherDaemon.start(['--offline'], cb),
     (cb) => publisherDaemon.api.id((err, res) => {
       expect(err).to.not.exist()
       nodeId = res.id
       cb()
     }),
-    (cb) => publisherDaemon.api.name.publish(ipfsRef, { resolve: false }, cb),
+    (cb) => publisherDaemon.api.name.publish(ipfsRef, { resolve: false, 'allow-offline': true }, cb),
     (cb) => sameDaemon ? cb() : stopPublisherAndStartResolverDaemon(cb),
     (cb) => {
       resolverDaemon.api.name.resolve(nodeId, { local: true }, (err, res) => {
