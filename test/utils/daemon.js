@@ -1,28 +1,31 @@
 'use strict'
 
+const mergeOptions = require('merge-options')
 const DaemonFactory = require('ipfsd-ctl')
 const goDf = DaemonFactory.create()
 const jsDf = DaemonFactory.create({ type: 'js' })
 
-const spawnInitAndStartDaemon = (factory) => {
-  return new Promise((resolve, reject) => {
-    factory.spawn({
-      initOptions: {
-        bits: 1024
-      },
-      config: {
-        Bootstrap: [],
-        Discovery: {
-          MDNS: {
-            Enabled: false
-          },
-          webRTCStar: {
-            Enabled: false
-          }
+const spawnInitAndStartDaemon = (factory, options) => {
+  options = mergeOptions({
+    initOptions: {
+      bits: 1024
+    },
+    config: {
+      Bootstrap: [],
+      Discovery: {
+        MDNS: {
+          Enabled: false
+        },
+        webRTCStar: {
+          Enabled: false
         }
-      },
-      profile: 'test'
-    }, (error, instance) => {
+      }
+    },
+    profile: 'test'
+  }, options)
+
+  return new Promise((resolve, reject) => {
+    factory.spawn(options, (error, instance) => {
       if (error) {
         return reject(error)
       }
@@ -46,7 +49,7 @@ const stopDaemon = (daemon) => {
 
 module.exports = {
   spawnInitAndStartDaemon,
-  spawnInitAndStartGoDaemon: () => spawnInitAndStartDaemon(goDf),
-  spawnInitAndStartJsDaemon: () => spawnInitAndStartDaemon(jsDf),
+  spawnInitAndStartGoDaemon: (opts) => spawnInitAndStartDaemon(goDf, opts),
+  spawnInitAndStartJsDaemon: (opts) => spawnInitAndStartDaemon(jsDf, opts),
   stopDaemon
 }
