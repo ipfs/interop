@@ -105,7 +105,6 @@ describe('pubsub', function () {
         const topic = 'pubsub-ascii'
 
         function checkMessage (msg) {
-          console.log('Check message', msg)
           expect(msg.data.toString()).to.equal(data.toString())
           expect(msg).to.have.property('seqno')
           expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
