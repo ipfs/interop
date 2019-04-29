@@ -1,3 +1,4 @@
+/* eslint max-nested-callbacks: ["error", 6] */
 /* eslint-env mocha */
 'use strict'
 
@@ -99,7 +100,7 @@ describe('pubsub', function () {
         parallel([daemon1, daemon2].map((node) => (cb) => node.stop(cb)), done)
       })
 
-      it('should exchange ascii data', function(done) {
+      it('should exchange ascii data', function (done) {
         const data = Buffer.from('hello world')
         const topic = 'pubsub-ascii'
 
@@ -122,7 +123,7 @@ describe('pubsub', function () {
         })
       })
 
-      it('should exchange non ascii data', function(done) {
+      it('should exchange non ascii data', function (done) {
         const data = Buffer.from('你好世界')
         const topic = 'pubsub-non-ascii'
 
@@ -144,7 +145,7 @@ describe('pubsub', function () {
         })
       })
 
-      it('should exchange binary data', function(done) {
+      it('should exchange binary data', function (done) {
         const data = Buffer.from('a36161636179656162830103056164a16466666666f400010203040506070809', 'hex')
         const topic = 'pubsub-binary'
 
