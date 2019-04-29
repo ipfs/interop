@@ -45,10 +45,10 @@ function createGo () {
 
 describe('pubsub', function () {
   let tests = {
-    'publish from Go, subscribe on JS': [createGo, createJs],
     'publish from Go, subscribe on Go': [createGo, createGo],
+    'publish from JS, subscribe on JS': [createJs, createJs],
     'publish from JS, subscribe on Go': [createJs, createGo],
-    'publish from JS, subscribe on JS': [createJs, createJs]
+    'publish from Go, subscribe on JS': [createGo, createJs]
   }
 
   Object.keys(tests).forEach((name) => {
