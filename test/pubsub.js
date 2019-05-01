@@ -58,7 +58,7 @@ describe('pubsub', function () {
       let id1
       let id2
 
-      before('spawn nodes', async function () {
+      before('spawn nodes', function () {
         this.timeout(timeout)
 
         return Promise.all(tests[name].map(fn => fn()))
