@@ -51,7 +51,7 @@
     "form-data": "^2.3.3",
     "go-ipfs-dep": "~0.4.20",
     "hat": "0.0.3",
-    "ipfs": "github:ipfs/js-ipfs#update-ipld-formats-async-await-mfs-and-unixfs-and-base32-cids",
+    "ipfs": "~0.36.0-rc.0",
     "ipfs-http-client": "^30.1.1",
     "ipfs-repo": "~0.26.1",
     "ipfs-unixfs": "~0.1.16",
