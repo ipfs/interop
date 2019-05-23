@@ -12,6 +12,7 @@ const {
   spawnInitAndStartJsDaemon,
   stopDaemon
 } = require('./utils/daemon')
+const bufferStream = require('readable-stream-buffer-stream')
 
 const SHARD_THRESHOLD = 1000
 
@@ -104,22 +105,10 @@ const compareErrors = (expectedMessage, ...ops) => {
     })
 }
 
-// TODO: remove after https://github.com/crypto-browserify/randombytes/pull/16 released
-const MAX_BYTES = 65536
-function randomBytes (num) {
-  if (num < 1) return Buffer.alloc(0)
-  if (num <= MAX_BYTES) return crypto.randomBytes(num)
+describe.only('files', function () {
+  //this.timeout(50 * 1000)
 
-  const chunks = Array(Math.floor(num / MAX_BYTES))
-    .fill(MAX_BYTES)
-    .concat(num % MAX_BYTES)
-    .map(n => crypto.randomBytes(n))
-
-  return Buffer.concat(chunks)
-}
-
-describe('files', function () {
-  this.timeout(50 * 1000)
+  this.timeout(0)
 
   let go
   let js
@@ -167,7 +156,7 @@ describe('files', function () {
   })
 
   it('uses raw nodes for leaf data', () => {
-    const data = randomBytes(1024 * 300)
+    const data = crypto.randomBytes(1024 * 300)
     const testLeavesAreRaw = (daemon) => {
       return addFile(daemon, data)
         .then(file => checkNodeTypes(daemon, file))
@@ -257,7 +246,7 @@ describe('files', function () {
     })
 
     it('big files', () => {
-      const data = randomBytes(1024 * 3000)
+      const data = crypto.randomBytes(1024 * 3000)
 
       return compare(
         testHashesAreEqual(go, data),
@@ -266,8 +255,8 @@ describe('files', function () {
     })
 
     it('files that have had data appended', () => {
-      const initialData = randomBytes(1024 * 300)
-      const appendedData = randomBytes(1024 * 300)
+      const initialData = crypto.randomBytes(1024 * 300)
+      const appendedData = crypto.randomBytes(1024 * 300)
 
       return compare(
         appendData(go, initialData, appendedData),
@@ -277,8 +266,8 @@ describe('files', function () {
 
     it('files that have had data overwritten', () => {
       const bytes = 1024 * 300
-      const initialData = randomBytes(bytes)
-      const newData = randomBytes(bytes)
+      const initialData = crypto.randomBytes(bytes)
+      const newData = crypto.randomBytes(bytes)
 
       return compare(
         overwriteData(go, initialData, newData),
@@ -299,7 +288,7 @@ describe('files', function () {
     })
 
     it('big files with CIDv1', () => {
-      const data = randomBytes(1024 * 3000)
+      const data = crypto.randomBytes(1024 * 3000)
       const options = {
         cidVersion: 1
       }
@@ -310,8 +299,30 @@ describe('files', function () {
       )
     })
 
+    it('trickle DAGs', () => {
+      const chunkSize = 262144
+      const buffer = Buffer.alloc(chunkSize, 0)
+      const data = bufferStream(1 * chunkSize, {
+        generator: (size, callback) => {
+          callback(null, buffer.slice(0, size))
+        }
+      })
+      const options = {
+        cidVersion: 0,
+        trickle: true,
+        chunker: 'size-10',
+        pin: false,
+        preload: false
+      }
+
+      return compare(
+        testHashesAreEqual(go, data, options),
+        testHashesAreEqual(js, data, options)
+      )
+    })
+
     it('hamt shards', () => {
-      const data = randomBytes(100)
+      const data = crypto.randomBytes(100)
       const files = []
       const dir = `/shard-${Date.now()}`
 
@@ -330,7 +341,7 @@ describe('files', function () {
 
     it('updating mfs hamt shards', () => {
       const dir = `/shard-${Date.now()}`
-      const data = randomBytes(100)
+      const data = crypto.randomBytes(100)
       const nodeGrContent = Buffer.from([0, 1, 2, 3, 4])
       const superModuleContent = Buffer.from([5, 6, 7, 8, 9])
       const files = [{
