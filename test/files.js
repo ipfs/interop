@@ -275,7 +275,8 @@ describe.only('files', function () {
       )
     })
 
-    it('small files with CIDv1', () => {
+    // requires go-ipfs v0.4.21
+    it.skip('small files with CIDv1', () => {
       const data = Buffer.from([0x00, 0x01, 0x02])
       const options = {
         cidVersion: 1
@@ -287,7 +288,8 @@ describe.only('files', function () {
       )
     })
 
-    it('big files with CIDv1', () => {
+    // requires go-ipfs v0.4.21
+    it.skip('big files with CIDv1', () => {
       const data = crypto.randomBytes(1024 * 3000)
       const options = {
         cidVersion: 1
