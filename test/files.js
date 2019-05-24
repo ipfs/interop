@@ -12,6 +12,9 @@ const {
   spawnInitAndStartJsDaemon,
   stopDaemon
 } = require('./utils/daemon')
+const bufferStream = require('readable-stream-buffer-stream')
+
+const SHARD_THRESHOLD = 1000
 
 class ExpectedError extends Error {
 
@@ -102,20 +105,6 @@ const compareErrors = (expectedMessage, ...ops) => {
     })
 }
 
-// TODO: remove after https://github.com/crypto-browserify/randombytes/pull/16 released
-const MAX_BYTES = 65536
-function randomBytes (num) {
-  if (num < 1) return Buffer.alloc(0)
-  if (num <= MAX_BYTES) return crypto.randomBytes(num)
-
-  const chunks = Array(Math.floor(num / MAX_BYTES))
-    .fill(MAX_BYTES)
-    .concat(num % MAX_BYTES)
-    .map(n => crypto.randomBytes(n))
-
-  return Buffer.concat(chunks)
-}
-
 describe('files', function () {
   this.timeout(50 * 1000)
 
@@ -165,7 +154,7 @@ describe('files', function () {
   })
 
   it('uses raw nodes for leaf data', () => {
-    const data = randomBytes(1024 * 300)
+    const data = crypto.randomBytes(1024 * 300)
     const testLeavesAreRaw = (daemon) => {
       return addFile(daemon, data)
         .then(file => checkNodeTypes(daemon, file))
@@ -207,7 +196,7 @@ describe('files', function () {
   })
 
   describe('has the same hashes for', () => {
-    const testHashesAreEqual = (daemon, data, options) => {
+    const testHashesAreEqual = (daemon, data, options = {}) => {
       return daemon.api.add(data, options)
         .then(files => files[0].hash)
     }
@@ -255,7 +244,7 @@ describe('files', function () {
     })
 
     it('big files', () => {
-      const data = randomBytes(1024 * 3000)
+      const data = crypto.randomBytes(1024 * 3000)
 
       return compare(
         testHashesAreEqual(go, data),
@@ -264,8 +253,8 @@ describe('files', function () {
     })
 
     it('files that have had data appended', () => {
-      const initialData = randomBytes(1024 * 300)
-      const appendedData = randomBytes(1024 * 300)
+      const initialData = crypto.randomBytes(1024 * 300)
+      const appendedData = crypto.randomBytes(1024 * 300)
 
       return compare(
         appendData(go, initialData, appendedData),
@@ -275,8 +264,8 @@ describe('files', function () {
 
     it('files that have had data overwritten', () => {
       const bytes = 1024 * 300
-      const initialData = randomBytes(bytes)
-      const newData = randomBytes(bytes)
+      const initialData = crypto.randomBytes(bytes)
+      const newData = crypto.randomBytes(bytes)
 
       return compare(
         overwriteData(go, initialData, newData),
@@ -284,7 +273,8 @@ describe('files', function () {
       )
     })
 
-    it('small files with CIDv1', () => {
+    // requires go-ipfs v0.4.21
+    it.skip('small files with CIDv1', () => {
       const data = Buffer.from([0x00, 0x01, 0x02])
       const options = {
         cidVersion: 1
@@ -296,8 +286,9 @@ describe('files', function () {
       )
     })
 
-    it('big files with CIDv1', () => {
-      const data = randomBytes(1024 * 3000)
+    // requires go-ipfs v0.4.21
+    it.skip('big files with CIDv1', () => {
+      const data = crypto.randomBytes(1024 * 3000)
       const options = {
         cidVersion: 1
       }
@@ -305,6 +296,122 @@ describe('files', function () {
       return compare(
         testHashesAreEqual(go, data, options),
         testHashesAreEqual(js, data, options)
+      )
+    })
+
+    it('trickle DAGs', () => {
+      const chunkSize = 262144
+      const buffer = Buffer.alloc(chunkSize, 0)
+      const data = bufferStream(chunkSize, {
+        generator: (size, callback) => {
+          callback(null, buffer.slice(0, size))
+        }
+      })
+      const options = {
+        cidVersion: 0,
+        trickle: true,
+        chunker: 'size-10',
+        pin: false,
+        preload: false
+      }
+
+      return compare(
+        testHashesAreEqual(go, data, options),
+        testHashesAreEqual(js, data, options)
+      )
+    })
+
+    it('hamt shards', () => {
+      const data = crypto.randomBytes(100)
+      const files = []
+      const dir = `/shard-${Date.now()}`
+
+      for (let i = 0; i < SHARD_THRESHOLD + 1; i++) {
+        files.push({
+          path: `${dir}/file-${i}.txt`,
+          content: data
+        })
+      }
+
+      return compare(
+        testHashesAreEqual(go, files),
+        testHashesAreEqual(js, files)
+      )
+    })
+
+    it('updating mfs hamt shards', () => {
+      const dir = `/shard-${Date.now()}`
+      const data = crypto.randomBytes(100)
+      const nodeGrContent = Buffer.from([0, 1, 2, 3, 4])
+      const superModuleContent = Buffer.from([5, 6, 7, 8, 9])
+      const files = [{
+        path: `${dir}/node-gr`,
+        content: nodeGrContent
+      }, {
+        path: `${dir}/yanvoidmodule`,
+        content: crypto.randomBytes(5)
+      }, {
+        path: `${dir}/methodify`,
+        content: crypto.randomBytes(5)
+      }, {
+        path: `${dir}/fis-msprd-style-loader_0_13_1`,
+        content: crypto.randomBytes(5)
+      }, {
+        path: `${dir}/js-form`,
+        content: crypto.randomBytes(5)
+      }, {
+        path: `${dir}/vivanov-sliceart`,
+        content: crypto.randomBytes(5)
+      }]
+
+      for (let i = 0; i < SHARD_THRESHOLD; i++) {
+        files.push({
+          path: `${dir}/file-${i}.txt`,
+          content: data
+        })
+      }
+
+      // will operate on sub-shard three levels deep
+      const testHamtShardHashesAreEqual = async (daemon, data) => {
+        const addedFiles = await daemon.api.add(data)
+        const hash = addedFiles[addedFiles.length - 1].hash
+
+        await daemon.api.files.cp(`/ipfs/${hash}`, dir)
+
+        const node = await daemon.api.object.get(hash)
+        const meta = UnixFs.unmarshal(node.data)
+
+        expect(meta.type).to.equal('hamt-sharded-directory')
+
+        await daemon.api.files.write(`${dir}/supermodule_test`, superModuleContent, {
+          create: true
+        })
+        await daemon.api.files.stat(`${dir}/supermodule_test`)
+        await daemon.api.files.stat(`${dir}/node-gr`)
+
+        expect(await daemon.api.files.read(`${dir}/node-gr`)).to.deep.equal(nodeGrContent)
+        expect(await daemon.api.files.read(`${dir}/supermodule_test`)).to.deep.equal(superModuleContent)
+
+        await daemon.api.files.rm(`${dir}/supermodule_test`)
+
+        try {
+          await daemon.api.files.stat(`${dir}/supermodule_test`)
+        } catch (err) {
+          expect(err.message).to.contain('not exist')
+        }
+
+        const stats = await daemon.api.files.stat(dir)
+        const nodeAfterUpdates = await daemon.api.object.get(stats.hash)
+        const metaAfterUpdates = UnixFs.unmarshal(nodeAfterUpdates.data)
+
+        expect(metaAfterUpdates.type).to.equal('hamt-sharded-directory')
+
+        return stats.hash
+      }
+
+      return compare(
+        testHamtShardHashesAreEqual(go, files),
+        testHamtShardHashesAreEqual(js, files)
       )
     })
   })
