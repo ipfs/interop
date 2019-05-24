@@ -105,10 +105,8 @@ const compareErrors = (expectedMessage, ...ops) => {
     })
 }
 
-describe.only('files', function () {
-  //this.timeout(50 * 1000)
-
-  this.timeout(0)
+describe('files', function () {
+  this.timeout(50 * 1000)
 
   let go
   let js
@@ -304,7 +302,7 @@ describe.only('files', function () {
     it('trickle DAGs', () => {
       const chunkSize = 262144
       const buffer = Buffer.alloc(chunkSize, 0)
-      const data = bufferStream(1 * chunkSize, {
+      const data = bufferStream(chunkSize, {
         generator: (size, callback) => {
           callback(null, buffer.slice(0, size))
         }
