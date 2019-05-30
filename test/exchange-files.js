@@ -108,9 +108,6 @@ function createJs (cb) {
       Discovery: {
         MDNS: {
           Enabled: false
-        },
-        webRTCStar: {
-          Enabled: false
         }
       }
     }
@@ -124,9 +121,6 @@ function createGo (cb) {
       Bootstrap: [],
       Discovery: {
         MDNS: {
-          Enabled: false
-        },
-        webRTCStar: {
           Enabled: false
         }
       }
