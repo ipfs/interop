@@ -100,11 +100,38 @@ const min = 60 * 1000
 const timeout = isCi ? 8 * min : 5 * min
 
 function createJs (cb) {
-  jsDf.spawn({ type: 'js', initOptions: { bits: 512 }, config: { Bootstrap: [] } }, cb)
+  jsDf.spawn({
+    type: 'js',
+    initOptions: { bits: 512 },
+    config: {
+      Bootstrap: [],
+      Discovery: {
+        MDNS: {
+          Enabled: false
+        },
+        webRTCStar: {
+          Enabled: false
+        }
+      }
+    }
+  }, cb)
 }
 
 function createGo (cb) {
-  goDf.spawn({ initOptions: { bits: 1024 }, config: { Bootstrap: [] } }, cb)
+  goDf.spawn({
+    initOptions: { bits: 1024 },
+    config: {
+      Bootstrap: [],
+      Discovery: {
+        MDNS: {
+          Enabled: false
+        },
+        webRTCStar: {
+          Enabled: false
+        }
+      }
+    }
+  }, cb)
 }
 
 describe('exchange files', () => {
