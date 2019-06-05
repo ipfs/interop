@@ -23,14 +23,14 @@ class ExpectedError extends Error {
 function checkNodeTypes (daemon, file) {
   return daemon.api.object.get(file.hash)
     .then(node => {
-      const meta = UnixFs.unmarshal(node.data)
+      const meta = UnixFs.unmarshal(node.Data)
 
       expect(meta.type).to.equal('file')
-      expect(node.links.length).to.equal(2)
+      expect(node.Links.length).to.equal(2)
 
       return Promise.all(
-        node.links.map(link => daemon.api.object.get(link.toJSON().cid).then(child => {
-          const childMeta = UnixFs.unmarshal(child.data)
+        node.Links.map(link => daemon.api.object.get(link.Hash).then(child => {
+          const childMeta = UnixFs.unmarshal(child.Data)
 
           expect(childMeta.type).to.equal('raw')
         }))
@@ -379,7 +379,7 @@ describe('files', function () {
         await daemon.api.files.cp(`/ipfs/${hash}`, dir)
 
         const node = await daemon.api.object.get(hash)
-        const meta = UnixFs.unmarshal(node.data)
+        const meta = UnixFs.unmarshal(node.Data)
 
         expect(meta.type).to.equal('hamt-sharded-directory')
 
@@ -402,7 +402,7 @@ describe('files', function () {
 
         const stats = await daemon.api.files.stat(dir)
         const nodeAfterUpdates = await daemon.api.object.get(stats.hash)
-        const metaAfterUpdates = UnixFs.unmarshal(nodeAfterUpdates.data)
+        const metaAfterUpdates = UnixFs.unmarshal(nodeAfterUpdates.Data)
 
         expect(metaAfterUpdates.type).to.equal('hamt-sharded-directory')
 

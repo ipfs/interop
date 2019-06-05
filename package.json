@@ -55,7 +55,7 @@
     "ipfs-http-client": "^32.0.0",
     "ipfs-repo": "~0.26.6",
     "ipfs-unixfs": "~0.1.16",
-    "ipfsd-ctl": "~0.42.2",
+    "ipfsd-ctl": "~0.42.4",
     "ipns": "~0.5.1",
     "is-ci": "^2.0.0",
     "left-pad": "^1.3.0",

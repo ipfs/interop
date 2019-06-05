@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 'use strict'
 
+require('./ipns-pubsub')
 require('./cid-version-agnostic')
 require('./pubsub')
 require('./circuit')
@@ -10,4 +11,3 @@ require('./ipns')
 require('./kad-dht')
 require('./pin')
 require('./files')
-require('./ipns-pubsub')
