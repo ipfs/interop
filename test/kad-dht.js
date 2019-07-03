@@ -43,7 +43,14 @@ const spawnGoDaemon = (bootstrap = [], callback) => {
 const spawnJsDaemon = (bootstrap = [], callback) => {
   jsDf.spawn({
     initOptions: { bits: 512 },
-    config: getConfig(bootstrap)
+    config: getConfig(bootstrap),
+    libp2p: {
+      config: {
+        dht: {
+          enabled: true
+        }
+      }
+    }
   }, callback)
 }
 
@@ -74,8 +81,8 @@ describe('kad-dht', () => {
   describe('kad-dht with a single bootstrap node', () => {
     describe('a JS network', () => {
       let bootstrapAddr
-      let nodes = []
-      let data = crypto.randomBytes(9001)
+      const nodes = []
+      const data = crypto.randomBytes(9001)
 
       // spawn bootstrap daemon and get address
       before(function (done) {
@@ -142,8 +149,8 @@ describe('kad-dht', () => {
     describe('a GO network', () => {
       const peersToSpawn = 3
       let bootstrapAddr
-      let nodes = []
-      let data = crypto.randomBytes(9001)
+      const nodes = []
+      const data = crypto.randomBytes(9001)
 
       // spawn bootstrap daemon and get address
       before(function (done) {
@@ -209,8 +216,8 @@ describe('kad-dht', () => {
     describe('a JS bootstrap node in the land of Go', () => {
       const peersToSpawn = 3
       let bootstrapAddr
-      let nodes = []
-      let data = crypto.randomBytes(9001)
+      const nodes = []
+      const data = crypto.randomBytes(9001)
 
       // spawn bootstrap daemon and get address
       before(function (done) {
@@ -276,8 +283,8 @@ describe('kad-dht', () => {
     describe('a Go bootstrap node in the land of JS', () => {
       const peersToSpawn = 3
       let bootstrapAddr
-      let nodes = []
-      let data = crypto.randomBytes(9001)
+      const nodes = []
+      const data = crypto.randomBytes(9001)
 
       // spawn bootstrap daemon and get address
       before(function (done) {
@@ -342,8 +349,8 @@ describe('kad-dht', () => {
 
     describe('a JS bootstrap node in an hybrid land', () => {
       let bootstrapAddr
-      let nodes = []
-      let data = crypto.randomBytes(9001)
+      const nodes = []
+      const data = crypto.randomBytes(9001)
 
       // spawn bootstrap daemon and get address
       before(function (done) {
@@ -408,8 +415,8 @@ describe('kad-dht', () => {
 
     describe('a Go bootstrap node in an hybrid land', () => {
       let bootstrapAddr
-      let nodes = []
-      let data = crypto.randomBytes(9001)
+      const nodes = []
+      const data = crypto.randomBytes(9001)
 
       // spawn bootstrap daemon and get address
       before(function (done) {
