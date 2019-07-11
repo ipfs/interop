@@ -321,6 +321,46 @@ describe('files', function () {
       )
     })
 
+    it('rabin chunker', () => {
+      const chunkSize = 262144
+      const buffer = Buffer.alloc(chunkSize, 0)
+      const data = bufferStream(chunkSize, {
+        generator: (size, callback) => {
+          callback(null, buffer.slice(0, size))
+        }
+      })
+      const options = {
+        chunker: 'rabin-512-1024-2048',
+        pin: false,
+        preload: false
+      }
+
+      return compare(
+        testHashesAreEqual(go, data, options),
+        testHashesAreEqual(js, data, options)
+      )
+    })
+
+    it('rabin chunker small chunks', () => {
+      const chunkSize = 262144
+      const buffer = Buffer.alloc(chunkSize, 0)
+      const data = bufferStream(chunkSize, {
+        generator: (size, callback) => {
+          callback(null, buffer.slice(0, size))
+        }
+      })
+      const options = {
+        chunker: 'rabin-16-16-16',
+        pin: false,
+        preload: false
+      }
+
+      return compare(
+        testHashesAreEqual(go, data, options),
+        testHashesAreEqual(js, data, options)
+      )
+    })
+
     it('hamt shards', () => {
       const data = crypto.randomBytes(100)
       const files = []
