@@ -23,6 +23,14 @@ const config = {
     API: '/ip4/0.0.0.0/tcp/0',
     Gateway: '/ip4/0.0.0.0/tcp/0',
     Swarm: []
+  },
+  Discovery: {
+    MDNS: {
+      Enabled: false
+    },
+    webRTCStar: {
+      Enabled: false
+    }
   }
 }
 
@@ -33,7 +41,10 @@ const spawnJsDaemon = (callback) => {
     .spawn({
       disposable: true,
       args: ['--enable-namesys-pubsub'], // enable ipns over pubsub
-      config
+      config: {
+        ...config,
+        Bootstrap: []
+      }
     }, callback)
 }
 
