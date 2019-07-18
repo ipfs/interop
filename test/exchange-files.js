@@ -129,7 +129,7 @@ function createGo (cb) {
 }
 
 describe('exchange files', () => {
-  let tests = {
+  const tests = {
     'go -> js': [createGo, createJs],
     'go -> go2': [createGo, createGo],
     'js -> go': [createJs, createGo],

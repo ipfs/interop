@@ -44,7 +44,7 @@ function createGo () {
 }
 
 describe('pubsub', function () {
-  let tests = {
+  const tests = {
     'publish from Go, subscribe on Go': [createGo, createGo],
     'publish from JS, subscribe on JS': [createJs, createJs],
     'publish from JS, subscribe on Go': [createJs, createGo],
