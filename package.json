@@ -35,7 +35,7 @@
   },
   "homepage": "https://github.com/ipfs/interop#readme",
   "devDependencies": {
-    "aegir": "^18.1.0",
+    "aegir": "^20.0.0",
     "async": "^2.6.2",
     "base64url": "^3.0.0",
     "bl": "^3.0.0",
