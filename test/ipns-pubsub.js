@@ -123,45 +123,74 @@ describe('ipns-pubsub', () => {
   it('should publish the received record to a go node and a js subscriber should receive it', function (done) {
     this.timeout(300 * 1000)
 
-    subscribeToReceiveByPubsub(nodes[0], nodes[1], nodeAId.id, done)
+    subscribeToReceiveByPubsub(nodes[0], nodes[1], nodeAId.id, nodeBId.id, done)
   })
 
   it('should publish the received record to a js node and a go subscriber should receive it', function (done) {
     this.timeout(350 * 1000)
 
-    subscribeToReceiveByPubsub(nodes[1], nodes[0], nodeBId.id, done)
+    subscribeToReceiveByPubsub(nodes[1], nodes[0], nodeBId.id, nodeAId.id, done)
   })
 })
 
-const subscribeToReceiveByPubsub = (nodeA, nodeB, id, callback) => {
+//  * IPNS resolve subscription test
+//  * 1) name.resolve() , which subscribes the topic
+//  * 2) wait to guarantee the subscription
+//  * 3) subscribe again just to know until when to wait (inside the scope of the test)
+//  * 4) wait for the other peer to get notified of the subscription
+//  * 5) publish new ipns record
+//  * 6) wait until the record is received in the test scope subscribe
+//  * 7) resolve ipns record
+const subscribeToReceiveByPubsub = (nodeA, nodeB, idA, idB, callback) => {
   let subscribed = false
   function checkMessage (msg) {
     subscribed = true
   }
 
-  const keys = ipns.getIdKeys(fromB58String(id))
+  const keys = ipns.getIdKeys(fromB58String(idA))
   const topic = `${namespace}${base64url.encode(keys.routingKey.toBuffer())}`
 
   // try to resolve a unpublished record (will subscribe it)
-  nodeB.api.name.resolve(id, (err) => {
+  nodeB.api.name.resolve(idA, (err) => {
     expect(err).to.exist() // not found
 
     series([
       (cb) => waitForPeerToSubscribe(nodeB.api, topic, cb),
       (cb) => nodeB.api.pubsub.subscribe(topic, checkMessage, cb),
+      (cb) => waitForNotificationOfSubscription(nodeA.api, topic, idB, cb),
       (cb) => nodeA.api.name.publish(ipfsRef, { resolve: false }, cb),
       (cb) => waitFor(() => subscribed === true, (50 * 1000), cb),
-      (cb) => nodeB.api.name.resolve(id, cb)
+      (cb) => nodeB.api.name.resolve(idA, cb)
     ], (err, res) => {
       expect(err).to.not.exist()
       expect(res).to.exist()
 
-      expect(res[2].name).to.equal(id) // Published to Node A ID
-      expect(res[4]).to.equal(ipfsRef)
+      expect(res[3].name).to.equal(idA) // Published to Node A ID
+      expect(res[5]).to.equal(ipfsRef)
 
       callback()
     })
   })
+}
+
+// wait until a peer know about other peer to subscribe a topic
+const waitForNotificationOfSubscription = (daemon, topic, peerId, callback) => {
+  retry({
+    times: 5,
+    interval: 2000
+  }, (next) => {
+    daemon.pubsub.peers(topic, (error, res) => {
+      if (error) {
+        return next(error)
+      }
+
+      if (!res || !res.length || !res.includes(peerId)) {
+        return next(new Error('Could not find peer subscribing'))
+      }
+
+      return next(null)
+    })
+  }, callback)
 }
 
 // Wait until a peer subscribes a topic
