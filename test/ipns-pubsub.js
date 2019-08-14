@@ -99,6 +99,7 @@ describe('ipns-pubsub', () => {
       nodes[0].api.swarm.connect(ids[1].addresses[0], (err) => {
         expect(err).to.not.exist()
 
+        // eslint-disable-next-line no-console
         console.log('wait for republish as we can receive the republish message first')
         setTimeout(done, 60000) // wait for republish as we can receive the republish message first
       })

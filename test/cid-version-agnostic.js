@@ -19,7 +19,7 @@ describe('CID version agnostic', () => {
   before(async function () {
     this.timeout(50 * 1000)
 
-    const [ js0, js1, go0, go1 ] = await Promise.all([
+    const [js0, js1, go0, go1] = await Promise.all([
       spawnInitAndStartJsDaemon(),
       spawnInitAndStartJsDaemon(),
       spawnInitAndStartGoDaemon(),
