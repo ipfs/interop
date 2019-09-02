@@ -54,7 +54,7 @@ const spawnJsDaemon = (bootstrap = [], callback) => {
   }, callback)
 }
 
-const getBootstrapAddr = (node, callback) => {
+const getNodeAddr = (node, callback) => {
   node.api.id((err, res) => {
     expect(err).to.not.exist()
     expect(res.id).to.exist()
@@ -92,7 +92,7 @@ describe('kad-dht', () => {
           expect(err).to.not.exist()
           nodes.push(node)
 
-          getBootstrapAddr(nodes[0], (err, res) => {
+          getNodeAddr(nodes[0], (err, res) => {
             expect(err).to.not.exist()
             bootstrapAddr = res
             done()
@@ -160,7 +160,7 @@ describe('kad-dht', () => {
           expect(err).to.not.exist()
           nodes.push(node)
 
-          getBootstrapAddr(nodes[0], (err, res) => {
+          getNodeAddr(nodes[0], (err, res) => {
             expect(err).to.not.exist()
             bootstrapAddr = res
             done()
@@ -227,7 +227,7 @@ describe('kad-dht', () => {
           expect(err).to.not.exist()
           nodes.push(node)
 
-          getBootstrapAddr(nodes[0], (err, res) => {
+          getNodeAddr(nodes[0], (err, res) => {
             expect(err).to.not.exist()
             bootstrapAddr = res
             done()
@@ -294,7 +294,7 @@ describe('kad-dht', () => {
           expect(err).to.not.exist()
           nodes.push(node)
 
-          getBootstrapAddr(nodes[0], (err, res) => {
+          getNodeAddr(nodes[0], (err, res) => {
             expect(err).to.not.exist()
             bootstrapAddr = res
             done()
@@ -360,7 +360,7 @@ describe('kad-dht', () => {
           expect(err).to.not.exist()
           nodes.push(node)
 
-          getBootstrapAddr(nodes[0], (err, res) => {
+          getNodeAddr(nodes[0], (err, res) => {
             expect(err).to.not.exist()
             bootstrapAddr = res
             done()
@@ -426,7 +426,7 @@ describe('kad-dht', () => {
           expect(err).to.not.exist()
           nodes.push(node)
 
-          getBootstrapAddr(nodes[0], (err, res) => {
+          getNodeAddr(nodes[0], (err, res) => {
             expect(err).to.not.exist()
             bootstrapAddr = res
             done()
