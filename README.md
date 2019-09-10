@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square)](http://ipfs.io/)
 [![](https://img.shields.io/badge/freenode-%23ipfs-blue.svg?style=flat-square)](http://webchat.freenode.net/?channels=%23ipfs)
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
-[![Travis CI](https://flat.badgen.net/travis/ipfs/interop)](https://travis-ci.com/ipfs/interop)
+[![Travis CI](https://travis-ci.com/ipfs/interop.svg?branch=master)](https://travis-ci.com/ipfs/interop)
 
 > Interoperability tests for IPFS Implementations
 
