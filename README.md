@@ -30,14 +30,15 @@ This repository will be used for interop tests. Please jump into the issues if y
 
 ```
 # Do the steps in the install section, then
-> cd ..
 > git clone git@github.com:ipfs/js-ipfs.git
 > cd js-ipfs
 > npm install
-> npm link
-> cd ../interop
-> npm link ipfs
-> npm test
+> cd ..
+> npx connect-deps link js-ipfs
+> npx connect-deps connect
+
+# After you done with testing
+> npx connect-deps reset
 ```
 
 ### Test with a non yet released version of go-ipfs
