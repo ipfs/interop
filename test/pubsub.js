@@ -36,6 +36,8 @@ const daemonOptions = {
   args: ['--enable-pubsub-experiment']
 }
 
+const timeout = 20e3
+
 describe('pubsub', function () {
   this.timeout(60 * 1000)
 
