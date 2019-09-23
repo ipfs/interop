@@ -23,9 +23,7 @@ const os = require('os')
 
 const rmDir = promisify(rimraf)
 
-const DaemonFactory = require('ipfsd-ctl')
-const goDf = DaemonFactory.create()
-const jsDf = DaemonFactory.create({ type: 'js' })
+const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./utils/daemon')
 
 function tmpDir () {
   return join(os.tmpdir(), `ipfs_${hat()}`)
@@ -99,41 +97,17 @@ if (isCi) {
 const min = 60 * 1000
 const timeout = isCi ? 8 * min : 5 * min
 
-function createJs (cb) {
-  jsDf.spawn({
-    type: 'js',
-    initOptions: { bits: 512 },
-    config: {
-      Bootstrap: [],
-      Discovery: {
-        MDNS: {
-          Enabled: false
-        }
-      }
-    }
-  }, cb)
-}
-
-function createGo (cb) {
-  goDf.spawn({
-    initOptions: { bits: 1024 },
-    config: {
-      Bootstrap: [],
-      Discovery: {
-        MDNS: {
-          Enabled: false
-        }
-      }
-    }
-  }, cb)
+const jsDaemonOptions = {
+  initOptions: { bits: 512 },
+  config: { Bootstrap: [] }
 }
 
 describe('exchange files', () => {
   const tests = {
-    'go -> js': [createGo, createJs],
-    'go -> go2': [createGo, createGo],
-    'js -> go': [createJs, createGo],
-    'js -> js2': [createJs, createJs]
+    'go -> js': [() => spawnInitAndStartGoDaemon(), () => spawnInitAndStartJsDaemon(jsDaemonOptions)],
+    'go -> go2': [() => spawnInitAndStartGoDaemon(), () => spawnInitAndStartGoDaemon()],
+    'js -> go': [() => spawnInitAndStartJsDaemon(jsDaemonOptions), () => spawnInitAndStartGoDaemon()],
+    'js -> js2': [() => spawnInitAndStartJsDaemon(jsDaemonOptions), () => spawnInitAndStartJsDaemon(jsDaemonOptions)]
   }
 
   Object.keys(tests).forEach((name) => {
@@ -143,15 +117,12 @@ describe('exchange files', () => {
       let id1
       let id2
 
-      before('spawn nodes', function (done) {
+      before('spawn nodes', async function () {
         this.timeout(timeout)
 
-        parallel(tests[name], (err, nodes) => {
-          expect(err).to.not.exist()
-          daemon1 = nodes[0]
-          daemon2 = nodes[1]
-          done()
-        })
+        const nodes = await Promise.all(tests[name].map(fn => fn()))
+        daemon1 = nodes[0]
+        daemon2 = nodes[1]
       })
 
       before('connect', function (done) {
@@ -181,10 +152,10 @@ describe('exchange files', () => {
         ], done)
       })
 
-      after('stop nodes', function (done) {
+      after('stop nodes', function () {
         this.timeout(timeout)
 
-        parallel([daemon1, daemon2].map((node) => (cb) => node.stop(cb)), done)
+        return Promise.all([daemon1, daemon2].map((node) => node.stop()))
       })
 
       describe('cat file', () => sizes.forEach((size) => {

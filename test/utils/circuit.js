@@ -8,13 +8,13 @@ chai.use(dirtyChai)
 const waterfall = require('async/waterfall')
 const series = require('async/series')
 
+const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./daemon')
+
 const crypto = require('crypto')
 
 const IPFS = require('ipfs')
 
 const DaemonFactory = require('ipfsd-ctl')
-const jsDf = DaemonFactory.create({ type: 'js' })
-const goDf = DaemonFactory.create({ type: 'go' })
 const procDf = DaemonFactory.create({ type: 'proc', exec: IPFS })
 
 const baseConf = {
@@ -52,8 +52,8 @@ exports.createProcNode = (addrs, callback) => {
   })
 }
 
-exports.createJsNode = (addrs, callback) => {
-  jsDf.spawn({
+exports.createJsNode = async (addrs) => {
+  const ipfsd = await spawnInitAndStartJsDaemon({
     initOptions: { bits: 512 },
     config: Object.assign({}, baseConf, {
       Addresses: {
@@ -66,16 +66,15 @@ exports.createJsNode = (addrs, callback) => {
         }
       }
     })
-  }, (err, ipfsd) => {
-    expect(err).to.not.exist()
-    ipfsd.api.id((err, id) => {
-      callback(err, { ipfsd, addrs: id.addresses })
-    })
   })
+
+  const ipfsdId = await ipfsd.api.id()
+
+  return { ipfsd, addrs: ipfsdId.addresses }
 }
 
-exports.createGoNode = (addrs, callback) => {
-  goDf.spawn({
+exports.createGoNode = async (addrs) => {
+  const ipfsd = await spawnInitAndStartGoDaemon({
     initOptions: { bits: 1024 },
     config: Object.assign({}, baseConf, {
       Addresses: {
@@ -86,13 +85,12 @@ exports.createGoNode = (addrs, callback) => {
         EnableRelayHop: true
       }
     })
-  }, (err, ipfsd) => {
-    expect(err).to.not.exist()
-    ipfsd.api.id((err, id) => {
-      const addrs = [].concat(id.addresses, [`/p2p-circuit/ipfs/${id.id}`])
-      callback(err, { ipfsd, addrs: addrs })
-    })
   })
+
+  const ipfsdId = await ipfsd.api.id()
+  const _addrs = [].concat(ipfsdId.addresses, [`/p2p-circuit/ipfs/${ipfsdId.id}`])
+
+  return { ipfsd, addrs: _addrs }
 }
 
 const data = crypto.randomBytes(128)

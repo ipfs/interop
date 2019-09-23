@@ -11,7 +11,6 @@ const spawnInitAndStartDaemon = (factory, options) => {
       bits: 1024
     },
     config: {
-      Bootstrap: [],
       Discovery: {
         MDNS: {
           Enabled: false
@@ -19,41 +18,15 @@ const spawnInitAndStartDaemon = (factory, options) => {
         webRTCStar: {
           Enabled: false
         }
-      },
-      // enabled sharding for go
-      Experimental: {
-        ShardingEnabled: true
       }
     },
-    // enabled sharding for js
-    args: factory.options.type === 'js' ? [
-      '--enable-sharding-experiment'
-    ] : undefined,
     profile: 'test'
   }, options)
 
-  return new Promise((resolve, reject) => {
-    factory.spawn(options, (error, instance) => {
-      if (error) {
-        return reject(error)
-      }
-
-      resolve(instance)
-    })
-  })
+  return factory.spawn(options)
 }
 
-const stopDaemon = (daemon) => {
-  return new Promise((resolve, reject) => {
-    daemon.stop((error) => {
-      if (error) {
-        return reject(error)
-      }
-
-      resolve()
-    })
-  })
-}
+const stopDaemon = (daemon) => daemon.stop()
 
 module.exports = {
   spawnInitAndStartDaemon,

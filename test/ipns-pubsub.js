@@ -10,105 +10,60 @@ const { fromB58String } = require('multihashes')
 const base64url = require('base64url')
 const ipns = require('ipns')
 
-const parallel = require('async/parallel')
 const retry = require('async/retry')
 const series = require('async/series')
 
-const DaemonFactory = require('ipfsd-ctl')
+const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./utils/daemon')
 
 const waitFor = require('./utils/wait-for')
 
-const config = {
-  Addresses: {
-    API: '/ip4/0.0.0.0/tcp/0',
-    Gateway: '/ip4/0.0.0.0/tcp/0',
-    Swarm: []
-  },
-  Discovery: {
-    MDNS: {
-      Enabled: false
-    },
-    webRTCStar: {
-      Enabled: false
-    }
-  }
+const daemonsOptions = {
+  args: ['--enable-namesys-pubsub'] // enable ipns over pubsub
 }
 
 const namespace = '/record/'
 
-const spawnJsDaemon = (callback) => {
-  DaemonFactory.create({ type: 'js' })
-    .spawn({
-      disposable: true,
-      args: ['--enable-namesys-pubsub'], // enable ipns over pubsub
-      config: {
-        ...config,
-        Bootstrap: []
-      }
-    }, callback)
-}
-
-const spawnGoDaemon = (callback) => {
-  DaemonFactory.create()
-    .spawn({
-      disposable: true,
-      args: ['--enable-namesys-pubsub'], // enable ipns over pubsub
-      config
-    }, callback)
-}
-
 const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 
 describe('ipns-pubsub', () => {
-  let nodeAId
-  let nodeBId
   let nodes = []
+  let nodesIds = []
 
   // Spawn daemons
-  before(function (done) {
+  before(async function () {
     // CI takes longer to instantiate the daemon, so we need to increase the timeout
     this.timeout(80 * 1000)
 
-    series([
-      (cb) => spawnGoDaemon(cb),
-      (cb) => spawnJsDaemon(cb)
-    ], (err, daemons) => {
-      expect(err).to.not.exist()
-      nodes = daemons
-
-      done()
-    })
+    nodes = await Promise.all([
+      spawnInitAndStartGoDaemon(daemonsOptions),
+      spawnInitAndStartJsDaemon(daemonsOptions)
+    ])
   })
 
   // Get node ids
-  before(function (done) {
+  before(async function () {
     this.timeout(100 * 1000)
 
-    parallel([
-      (cb) => nodes[0].api.id(cb),
-      (cb) => nodes[1].api.id(cb)
-    ], (err, ids) => {
-      expect(err).to.not.exist()
-      expect(ids).to.exist()
-      expect(ids[0].id).to.exist()
-      expect(ids[1].id).to.exist()
+    nodesIds = await Promise.all([
+      nodes[0].api.id(),
+      nodes[1].api.id()
+    ])
 
-      nodeAId = ids[0]
-      nodeBId = ids[1]
+    expect(nodesIds[0]).to.exist()
+    expect(nodesIds[1]).to.exist()
+    expect(nodesIds[0].id).to.exist()
+    expect(nodesIds[1].id).to.exist()
 
-      nodes[0].api.swarm.connect(ids[1].addresses[0], (err) => {
-        expect(err).to.not.exist()
+    await nodes[0].api.swarm.connect(nodesIds[1].addresses[0])
 
-        // eslint-disable-next-line no-console
-        console.log('wait for republish as we can receive the republish message first')
-        setTimeout(done, 60000) // wait for republish as we can receive the republish message first
-      })
-    })
+    console.log('wait for republish as we can receive the republish message first') // eslint-disable-line
+    return new Promise((resolve) => setTimeout(resolve, 60000))
   })
 
-  after(function (done) {
+  after(function () {
     this.timeout(60 * 1000)
-    parallel(nodes.map((node) => (cb) => node.stop(cb)), done)
+
+    return Promise.all(nodes.map((node) => node.stop()))
   })
 
   it('should get enabled state of pubsub', function (done) {
@@ -124,13 +79,13 @@ describe('ipns-pubsub', () => {
   it('should publish the received record to a go node and a js subscriber should receive it', function (done) {
     this.timeout(300 * 1000)
 
-    subscribeToReceiveByPubsub(nodes[0], nodes[1], nodeAId.id, nodeBId.id, done)
+    subscribeToReceiveByPubsub(nodes[0], nodes[1], nodesIds[0].id, nodesIds[1].id, done)
   })
 
   it('should publish the received record to a js node and a go subscriber should receive it', function (done) {
     this.timeout(350 * 1000)
 
-    subscribeToReceiveByPubsub(nodes[1], nodes[0], nodeBId.id, nodeAId.id, done)
+    subscribeToReceiveByPubsub(nodes[1], nodes[0], nodesIds[1].id, nodesIds[0].id, done)
   })
 })
 

@@ -4,10 +4,7 @@
 
 const chai = require('chai')
 const dirtyChai = require('dirty-chai')
-const expect = chai.expect
 chai.use(dirtyChai)
-
-const parallel = require('async/parallel')
 
 const all = require('./circuit/all')
 const browser = require('./circuit/browser')
@@ -45,18 +42,15 @@ describe('circuit', () => {
     dsc(test, function () {
       this.timeout(tests[test].timeout)
 
-      before((done) => {
-        tests[test].create((err, _nodes) => {
-          expect(err).to.not.exist()
-          nodes = _nodes.map((n) => n.ipfsd)
-          nodeA = _nodes[0]
-          relay = _nodes[1]
-          nodeB = _nodes[2]
-          done()
-        })
+      before(async () => {
+        const _nodes = await tests[test].create()
+        nodes = _nodes.map((n) => n.ipfsd)
+        nodeA = _nodes[0]
+        relay = _nodes[1]
+        nodeB = _nodes[2]
       })
 
-      after((done) => parallel(nodes.map((ipfsd) => (cb) => ipfsd.stop(cb)), done))
+      after(() => Promise.all(nodes.map((node) => node.stop())))
 
       it('connect', (done) => {
         tests[test].connect(nodeA, nodeB, relay, done)

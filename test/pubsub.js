@@ -11,10 +11,7 @@ const series = require('async/series')
 const parallel = require('async/parallel')
 const retry = require('async/retry')
 
-const {
-  spawnInitAndStartGoDaemon,
-  spawnInitAndStartJsDaemon
-} = require('./utils/daemon')
+const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./utils/daemon')
 
 const waitForTopicPeer = (topic, peer, daemon, callback) => {
   retry({
@@ -35,20 +32,18 @@ const waitForTopicPeer = (topic, peer, daemon, callback) => {
   }, callback)
 }
 
+const daemonOptions = {
+  args: ['--enable-pubsub-experiment']
+}
+
 const timeout = 20e3
-function createJs () {
-  return spawnInitAndStartJsDaemon({ args: ['--enable-pubsub-experiment'] })
-}
-function createGo () {
-  return spawnInitAndStartGoDaemon({ args: ['--enable-pubsub-experiment'] })
-}
 
 describe('pubsub', function () {
   const tests = {
-    'publish from Go, subscribe on Go': [createGo, createGo],
-    'publish from JS, subscribe on JS': [createJs, createJs],
-    'publish from JS, subscribe on Go': [createJs, createGo],
-    'publish from Go, subscribe on JS': [createGo, createJs]
+    'publish from Go, subscribe on Go': [() => spawnInitAndStartGoDaemon(daemonOptions), () => spawnInitAndStartGoDaemon(daemonOptions)],
+    'publish from JS, subscribe on JS': [() => spawnInitAndStartJsDaemon(daemonOptions), () => spawnInitAndStartJsDaemon(daemonOptions)],
+    'publish from JS, subscribe on Go': [() => spawnInitAndStartJsDaemon(daemonOptions), () => spawnInitAndStartGoDaemon(daemonOptions)],
+    'publish from Go, subscribe on JS': [() => spawnInitAndStartGoDaemon(daemonOptions), () => spawnInitAndStartJsDaemon(daemonOptions)]
   }
 
   Object.keys(tests).forEach((name) => {
@@ -94,10 +89,10 @@ describe('pubsub', function () {
         ], done)
       })
 
-      after('stop nodes', function (done) {
+      after('stop nodes', function () {
         this.timeout(timeout)
 
-        parallel([daemon1, daemon2].map((node) => (cb) => node.stop(cb)), done)
+        return Promise.all([daemon1, daemon2].map((node) => node.stop()))
       })
 
       it('should exchange ascii data', function (done) {

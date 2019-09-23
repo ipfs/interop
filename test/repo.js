@@ -6,7 +6,6 @@ const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
 
-const series = require('async/series')
 const crypto = require('crypto')
 const os = require('os')
 const path = require('path')
@@ -14,16 +13,17 @@ const hat = require('hat')
 
 const isWindows = os.platform() === 'win32'
 
-const DaemonFactory = require('ipfsd-ctl')
-const goDf = DaemonFactory.create()
-const jsDf = DaemonFactory.create({ type: 'js' })
+const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./utils/daemon')
+const timeout = require('./utils/timeout')
 
-function catAndCheck (api, hash, data, callback) {
+async function catAndCheck (api, hash, data) {
   api.cat(hash, (err, fileData) => {
     expect(err).to.not.exist()
     expect(fileData).to.eql(data)
-    callback()
   })
+
+  const fileData = await api.cat(hash)
+  expect(fileData).to.eql(data)
 }
 
 describe('repo', () => {
@@ -31,93 +31,65 @@ describe('repo', () => {
     return
   }
 
-  it('read repo: go -> js', function (done) {
+  it('read repo: go -> js', async function () {
     this.timeout(50 * 1000)
 
     const dir = path.join(os.tmpdir(), hat())
     const data = crypto.randomBytes(1024 * 5)
 
-    let goDaemon
-    let jsDaemon
+    const goDaemon = await spawnInitAndStartGoDaemon({
+      repoPath: dir,
+      disposable: false
+    })
+    await goDaemon.init()
+    await goDaemon.start()
 
-    let hash
-    series([
-      (cb) => goDf.spawn({
-        repoPath: dir,
-        disposable: false,
-        initOptions: { bits: 1024 }
-      }, (err, node) => {
-        expect(err).to.not.exist()
-        goDaemon = node
-        goDaemon.init(cb)
-      }),
-      (cb) => goDaemon.start(cb),
-      (cb) => goDaemon.api.add(data, (err, res) => {
-        expect(err).to.not.exist()
-        hash = res[0].hash
-        cb()
-      }),
-      (cb) => catAndCheck(goDaemon.api, hash, data, cb),
-      (cb) => goDaemon.stop(cb),
-      (cb) => jsDf.spawn({
-        repoPath: dir,
-        disposable: false,
-        initOptions: { bits: 512 }
-      }, (err, node) => {
-        expect(err).to.not.exist()
-        jsDaemon = node
-        cb()
-      }),
-      (cb) => jsDaemon.start(cb),
-      (cb) => catAndCheck(jsDaemon.api, hash, data, cb),
-      (cb) => jsDaemon.stop(cb),
-      (cb) => setTimeout(cb, 10500),
-      (cb) => jsDaemon.cleanup(cb)
-    ], done)
+    const res = await goDaemon.api.add(data)
+    const hash = res[0].hash
+
+    await catAndCheck(goDaemon.api, hash, data)
+    await goDaemon.stop()
+
+    const jsDaemon = await spawnInitAndStartJsDaemon({
+      repoPath: dir,
+      disposable: false,
+      initOptions: { bits: 512 }
+    })
+
+    await jsDaemon.start()
+    await catAndCheck(jsDaemon.api, hash, data)
+    await jsDaemon.stop()
+
+    await timeout(10500)
+
+    await jsDaemon.cleanup()
   })
 
-  it('read repo: js -> go', function (done) {
+  it('read repo: js -> go', async function () {
     this.timeout(80 * 1000)
     const dir = path.join(os.tmpdir(), hat())
     const data = crypto.randomBytes(1024 * 5)
 
-    let jsDaemon
-    let goDaemon
+    const jsDaemon = await spawnInitAndStartJsDaemon({
+      repoPath: dir,
+      disposable: false,
+      initOptions: { bits: 512 }
+    })
+    await jsDaemon.init()
+    await jsDaemon.start()
 
-    let hash
-    series([
-      (cb) => jsDf.spawn({
-        repoPath: dir,
-        disposable: false,
-        initOptions: { bits: 512 }
-      }, (err, node) => {
-        expect(err).to.not.exist()
+    const res = await jsDaemon.api.add(data)
+    const hash = res[0].hash
 
-        jsDaemon = node
-        jsDaemon.init(cb)
-      }),
-      (cb) => jsDaemon.start(cb),
+    await catAndCheck(jsDaemon.api, hash, data)
+    await jsDaemon.stop()
 
-      (cb) => jsDaemon.api.add(data, (err, res) => {
-        expect(err).to.not.exist()
-
-        hash = res[0].hash
-        catAndCheck(jsDaemon.api, hash, data, cb)
-      }),
-      (cb) => jsDaemon.stop(cb),
-      (cb) => goDf.spawn({
-        repoPath: dir,
-        disposable: false,
-        initOptions: { bits: 1024 }
-      }, (err, node) => {
-        expect(err).to.not.exist()
-
-        goDaemon = node
-        cb()
-      }),
-      (cb) => goDaemon.start(cb),
-      (cb) => catAndCheck(goDaemon.api, hash, data, cb),
-      (cb) => goDaemon.stop(cb)
-    ], done)
+    const goDaemon = await spawnInitAndStartGoDaemon({
+      repoPath: dir,
+      disposable: false
+    })
+    await goDaemon.start()
+    await catAndCheck(goDaemon.api, hash, data)
+    await goDaemon.stop()
   })
 })
