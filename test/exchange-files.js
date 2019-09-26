@@ -7,9 +7,6 @@ const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
 
-const series = require('async/series')
-const parallel = require('async/parallel')
-const waterfall = require('async/waterfall')
 const crypto = require('crypto')
 const pretty = require('pretty-bytes')
 const randomFs = require('random-fs')
@@ -124,29 +121,27 @@ describe('exchange files', function () {
         daemon2 = nodes[1]
       })
 
-      before('connect', function (done) {
-        series([
-          (cb) => parallel([
-            (cb) => daemon1.api.id(cb),
-            (cb) => daemon2.api.id(cb)
-          ], (err, ids) => {
-            expect(err).to.not.exist()
-            id1 = ids[0]
-            id2 = ids[1]
-            cb()
-          }),
-          (cb) => daemon1.api.swarm.connect(id2.addresses[0], cb),
-          (cb) => daemon2.api.swarm.connect(id1.addresses[0], cb),
-          (cb) => parallel([
-            (cb) => daemon1.api.swarm.peers(cb),
-            (cb) => daemon2.api.swarm.peers(cb)
-          ], (err, peers) => {
-            expect(err).to.not.exist()
-            expect(peers[0].map((p) => p.peer.toB58String())).to.include(id2.id)
-            expect(peers[1].map((p) => p.peer.toB58String())).to.include(id1.id)
-            cb()
-          })
-        ], done)
+      before('connect', async function () {
+        this.timeout(timeout)
+
+        const ids = await Promise.all([
+          daemon1.api.id(),
+          daemon2.api.id()
+        ])
+
+        id1 = ids[0]
+        id2 = ids[1]
+
+        await daemon1.api.swarm.connect(id2.addresses[0])
+        await daemon2.api.swarm.connect(id1.addresses[0])
+
+        const peers = await Promise.all([
+          daemon1.api.swarm.peers(),
+          daemon2.api.swarm.peers()
+        ])
+
+        expect(peers[0].map((p) => p.peer.toB58String())).to.include(id2.id)
+        expect(peers[1].map((p) => p.peer.toB58String())).to.include(id1.id)
       })
 
       after('stop nodes', function () {
@@ -154,17 +149,15 @@ describe('exchange files', function () {
       })
 
       describe('cat file', () => sizes.forEach((size) => {
-        it(`${name}: ${pretty(size)}`, function (done) {
+        it(`${name}: ${pretty(size)}`, async function () {
+          this.timeout(timeout)
+
           const data = crypto.randomBytes(size)
 
-          waterfall([
-            (cb) => daemon1.api.add(data, cb),
-            (res, cb) => daemon2.api.cat(res[0].hash, cb)
-          ], (err, file) => {
-            expect(err).to.not.exist()
-            expect(file).to.eql(data)
-            done()
-          })
+          const res = await daemon1.api.add(data)
+          const file = await daemon2.api.cat(res[0].hash)
+
+          expect(file).to.eql(data)
         })
       }))
 
@@ -172,21 +165,22 @@ describe('exchange files', function () {
       // TODO fix dir tests on Windows
 
       describe('get directory', () => depth.forEach((d) => dirs.forEach((num) => {
-        it(`${name}: depth: ${d}, num: ${num}`, function () {
+        it(`${name}: depth: ${d}, num: ${num}`, async function () {
+          this.timeout(timeout)
+
           const dir = tmpDir()
-          return randomFs({
+
+          await randomFs({
             path: dir,
             depth: d,
             number: num
-          }).then(() => {
-            return daemon1.api.addFromFs(dir, { recursive: true })
-          }).then((res) => {
-            const hash = res[res.length - 1].hash
-            return daemon2.api.get(hash)
-          }).then((res) => {
-            expect(res).to.exist()
-            return rmDir(dir)
           })
+          const res = await daemon1.api.addFromFs(dir, { recursive: true })
+          const hash = res[res.length - 1].hash
+          const getRes = await daemon2.api.get(hash)
+          expect(getRes).to.exist()
+
+          return rmDir(dir)
         })
       })))
     })

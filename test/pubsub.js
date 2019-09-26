@@ -7,29 +7,23 @@ const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
 
-const series = require('async/series')
-const parallel = require('async/parallel')
-const retry = require('async/retry')
+const pRetry = require('./utils/p-retry')
 
 const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 
-const waitForTopicPeer = (topic, peer, daemon, callback) => {
-  retry({
-    times: 5,
-    interval: 1000
-  }, (next) => {
-    daemon.api.pubsub.peers(topic, (error, peers) => {
-      if (error) {
-        return next(error)
-      }
+const retryOptions = {
+  retries: 5,
+  interval: 1000
+}
 
-      if (!peers.includes(peer.id)) {
-        return next(new Error(`Could not find peer ${peer.id}`))
-      }
+const waitForTopicPeer = (topic, peer, daemon) => {
+  return pRetry(async () => {
+    const peers = await daemon.api.pubsub.peers(topic)
 
-      return next()
-    })
-  }, callback)
+    if (!peers.includes(peer.id)) {
+      throw new Error(`Could not find peer ${peer.id}`)
+    }
+  }, retryOptions)
 }
 
 const daemonOptions = {
@@ -55,106 +49,117 @@ describe('pubsub', function () {
       let id1
       let id2
 
-      before('spawn nodes', function () {
-        return Promise.all(tests[name].map(fn => fn()))
-          .then(nodes => {
-            [daemon1, daemon2] = nodes
-          })
+      before('spawn nodes', async function () {
+        this.timeout(timeout)
+
+        const nodes = await Promise.all(tests[name].map(fn => fn()))
+
+        daemon1 = nodes[0]
+        daemon2 = nodes[1]
       })
 
-      before('connect', function (done) {
-        series([
-          (cb) => parallel([
-            (cb) => daemon1.api.id(cb),
-            (cb) => daemon2.api.id(cb)
-          ], (err, ids) => {
-            expect(err).to.not.exist()
-            id1 = ids[0]
-            id2 = ids[1]
-            cb()
-          }),
-          (cb) => daemon1.api.swarm.connect(id2.addresses[0], cb),
-          (cb) => daemon2.api.swarm.connect(id1.addresses[0], cb),
-          (cb) => parallel([
-            (cb) => daemon1.api.swarm.peers(cb),
-            (cb) => daemon2.api.swarm.peers(cb)
-          ], (err, peers) => {
-            expect(err).to.not.exist()
-            expect(peers[0].map((p) => p.peer.toB58String())).to.include(id2.id)
-            expect(peers[1].map((p) => p.peer.toB58String())).to.include(id1.id)
-            cb()
-          })
-        ], done)
+      before('connect', async function () {
+        this.timeout(timeout)
+
+        const ids = await Promise.all([
+          daemon1.api.id(),
+          daemon2.api.id()
+        ])
+        id1 = ids[0]
+        id2 = ids[1]
+
+        await daemon1.api.swarm.connect(id2.addresses[0])
+        await daemon2.api.swarm.connect(id1.addresses[0])
+
+        const peers = await Promise.all([
+          daemon1.api.swarm.peers(),
+          daemon2.api.swarm.peers()
+        ])
+
+        expect(peers[0].map((p) => p.peer.toB58String())).to.include(id2.id)
+        expect(peers[1].map((p) => p.peer.toB58String())).to.include(id1.id)
       })
 
       after('stop nodes', function () {
         return Promise.all([daemon1, daemon2].map((node) => node.stop()))
       })
 
-      it('should exchange ascii data', function (done) {
+      it('should exchange ascii data', function () {
         const data = Buffer.from('hello world')
         const topic = 'pubsub-ascii'
 
-        function checkMessage (msg) {
-          expect(msg.data.toString()).to.equal(data.toString())
-          expect(msg).to.have.property('seqno')
-          expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
-          expect(msg).to.have.property('topicIDs').eql([topic])
-          expect(msg).to.have.property('from', id1.id)
-          done()
+        const subscriber = () => new Promise((resolve) => {
+          daemon2.api.pubsub.subscribe(topic, (msg) => {
+            expect(msg.data.toString()).to.equal(data.toString())
+            expect(msg).to.have.property('seqno')
+            expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
+            expect(msg).to.have.property('topicIDs').eql([topic])
+            expect(msg).to.have.property('from', id1.id)
+            resolve()
+          })
+        })
+
+        const publisher = async () => {
+          await waitForTopicPeer(topic, id2, daemon1)
+          await daemon1.api.pubsub.publish(topic, data)
         }
 
-        series([
-          (cb) => daemon2.api.pubsub.subscribe(topic, checkMessage, cb),
-          (cb) => waitForTopicPeer(topic, id2, daemon1, cb),
-          (cb) => daemon1.api.pubsub.publish(topic, data, cb)
-        ], (err) => {
-          if (err) return done(err)
-        })
+        return Promise.all([
+          subscriber(),
+          publisher()
+        ])
       })
 
-      it('should exchange non ascii data', function (done) {
+      it('should exchange non ascii data', function () {
         const data = Buffer.from('你好世界')
         const topic = 'pubsub-non-ascii'
 
-        function checkMessage (msg) {
-          expect(msg.data.toString()).to.equal(data.toString())
-          expect(msg).to.have.property('seqno')
-          expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
-          expect(msg).to.have.property('topicIDs').eql([topic])
-          expect(msg).to.have.property('from', id1.id)
-          done()
+        const subscriber = () => new Promise((resolve) => {
+          daemon2.api.pubsub.subscribe(topic, (msg) => {
+            expect(msg.data.toString()).to.equal(data.toString())
+            expect(msg).to.have.property('seqno')
+            expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
+            expect(msg).to.have.property('topicIDs').eql([topic])
+            expect(msg).to.have.property('from', id1.id)
+            resolve()
+          })
+        })
+
+        const publisher = async () => {
+          await waitForTopicPeer(topic, id2, daemon1)
+          await daemon1.api.pubsub.publish(topic, data)
         }
 
-        series([
-          (cb) => daemon2.api.pubsub.subscribe(topic, checkMessage, cb),
-          (cb) => waitForTopicPeer(topic, id2, daemon1, cb),
-          (cb) => daemon1.api.pubsub.publish(topic, data, cb)
-        ], (err) => {
-          if (err) return done(err)
-        })
+        return Promise.all([
+          subscriber(),
+          publisher()
+        ])
       })
 
-      it('should exchange binary data', function (done) {
+      it('should exchange binary data', function () {
         const data = Buffer.from('a36161636179656162830103056164a16466666666f400010203040506070809', 'hex')
         const topic = 'pubsub-binary'
 
-        function checkMessage (msg) {
-          expect(msg.data.toString()).to.equal(data.toString())
-          expect(msg).to.have.property('seqno')
-          expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
-          expect(msg).to.have.property('topicIDs').eql([topic])
-          expect(msg).to.have.property('from', id1.id)
-          done()
+        const subscriber = () => new Promise((resolve) => {
+          daemon2.api.pubsub.subscribe(topic, (msg) => {
+            expect(msg.data.toString()).to.equal(data.toString())
+            expect(msg).to.have.property('seqno')
+            expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
+            expect(msg).to.have.property('topicIDs').eql([topic])
+            expect(msg).to.have.property('from', id1.id)
+            resolve()
+          })
+        })
+
+        const publisher = async () => {
+          await waitForTopicPeer(topic, id2, daemon1)
+          await daemon1.api.pubsub.publish(topic, data)
         }
 
-        series([
-          (cb) => daemon2.api.pubsub.subscribe(topic, checkMessage, cb),
-          (cb) => waitForTopicPeer(topic, id2, daemon1, cb),
-          (cb) => daemon1.api.pubsub.publish(topic, data, cb)
-        ], (err) => {
-          if (err) return done(err)
-        })
+        return Promise.all([
+          subscriber(),
+          publisher()
+        ])
       })
     })
   })

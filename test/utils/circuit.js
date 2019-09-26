@@ -5,7 +5,6 @@ const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
 
-const waterfall = require('async/waterfall')
 const delay = require('delay')
 
 const { spawnGoDaemon, spawnJsDaemon } = require('./daemon')
@@ -93,15 +92,11 @@ exports.createGoNode = async (addrs) => {
 }
 
 const data = crypto.randomBytes(128)
-exports.send = (nodeA, nodeB, callback) => {
-  waterfall([
-    (cb) => nodeA.add(data, cb),
-    (res, cb) => nodeB.cat(res[0].hash, cb),
-    (buffer, cb) => {
-      expect(buffer).to.deep.equal(data)
-      cb()
-    }
-  ], callback)
+exports.send = async (nodeA, nodeB) => {
+  const res = await nodeA.add(data)
+  const buffer = await nodeB.cat(res[0].hash)
+
+  expect(buffer).to.deep.equal(data)
 }
 
 const getWsAddr = (addrs) => addrs

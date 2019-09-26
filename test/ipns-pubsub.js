@@ -10,9 +10,8 @@ const { fromB58String } = require('multihashes')
 const base64url = require('base64url')
 const ipns = require('ipns')
 
-const retry = require('async/retry')
-const series = require('async/series')
 const delay = require('delay')
+const pRetry = require('./utils/p-retry')
 
 const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 
@@ -20,6 +19,11 @@ const waitFor = require('./utils/wait-for')
 
 const daemonsOptions = {
   args: ['--enable-namesys-pubsub'] // enable ipns over pubsub
+}
+
+const retryOptions = {
+  retries: 5,
+  interval: 2000
 }
 
 const namespace = '/record/'
@@ -59,22 +63,23 @@ describe('ipns-pubsub', function () {
     return Promise.all(nodes.map((node) => node.stop()))
   })
 
-  it('should get enabled state of pubsub', function (done) {
-    nodes[0].api.name.pubsub.state((err, state) => {
-      expect(err).to.not.exist()
-      expect(state).to.exist()
-      expect(state.enabled).to.equal(true)
+  it('should get enabled state of pubsub', async function () {
+    const state = await nodes[0].api.name.pubsub.state()
 
-      done()
-    })
+    expect(state).to.exist()
+    expect(state.enabled).to.equal(true)
   })
 
-  it('should publish the received record to a go node and a js subscriber should receive it', function (done) {
-    subscribeToReceiveByPubsub(nodes[0], nodes[1], nodesIds[0].id, nodesIds[1].id, done)
+  it('should publish the received record to a go node and a js subscriber should receive it', async function () {
+    this.timeout(300 * 1000)
+
+    await subscribeToReceiveByPubsub(nodes[0], nodes[1], nodesIds[0].id, nodesIds[1].id)
   })
 
-  it('should publish the received record to a js node and a go subscriber should receive it', function (done) {
-    subscribeToReceiveByPubsub(nodes[1], nodes[0], nodesIds[1].id, nodesIds[0].id, done)
+  it('should publish the received record to a js node and a go subscriber should receive it', async function () {
+    this.timeout(350 * 1000)
+
+    await subscribeToReceiveByPubsub(nodes[1], nodes[0], nodesIds[1].id, nodesIds[0].id)
   })
 })
 
@@ -86,7 +91,7 @@ describe('ipns-pubsub', function () {
 //  * 5) publish new ipns record
 //  * 6) wait until the record is received in the test scope subscribe
 //  * 7) resolve ipns record
-const subscribeToReceiveByPubsub = (nodeA, nodeB, idA, idB, callback) => {
+const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   let subscribed = false
   function checkMessage (msg) {
     subscribed = true
@@ -96,64 +101,43 @@ const subscribeToReceiveByPubsub = (nodeA, nodeB, idA, idB, callback) => {
   const topic = `${namespace}${base64url.encode(keys.routingKey.toBuffer())}`
 
   // try to resolve a unpublished record (will subscribe it)
-  nodeB.api.name.resolve(idA, (err) => {
+  try {
+    await nodeB.api.name.resolve(idA)
+  } catch (err) {
     expect(err).to.exist() // not found
 
-    series([
-      (cb) => waitForPeerToSubscribe(nodeB.api, topic, cb),
-      (cb) => nodeB.api.pubsub.subscribe(topic, checkMessage, cb),
-      (cb) => waitForNotificationOfSubscription(nodeA.api, topic, idB, cb),
-      (cb) => nodeA.api.name.publish(ipfsRef, { resolve: false }, cb),
-      (cb) => waitFor(() => subscribed === true, (50 * 1000), cb),
-      (cb) => nodeB.api.name.resolve(idA, cb)
-    ], (err, res) => {
-      expect(err).to.not.exist()
-      expect(res).to.exist()
+    await waitForPeerToSubscribe(nodeB.api, topic)
+    await nodeB.api.pubsub.subscribe(topic, checkMessage)
+    await waitForNotificationOfSubscription(nodeA.api, topic, idB)
+    const res1 = await nodeA.api.name.publish(ipfsRef, { resolve: false })
+    await waitFor(() => subscribed === true, (50 * 1000))
+    const res2 = await nodeB.api.name.resolve(idA)
 
-      expect(res[3].name).to.equal(idA) // Published to Node A ID
-      expect(res[5]).to.equal(ipfsRef)
-
-      callback()
-    })
-  })
+    expect(res1.name).to.equal(idA) // Published to Node A ID
+    expect(res2).to.equal(ipfsRef)
+  }
 }
 
 // wait until a peer know about other peer to subscribe a topic
-const waitForNotificationOfSubscription = (daemon, topic, peerId, callback) => {
-  retry({
-    times: 5,
-    interval: 2000
-  }, (next) => {
-    daemon.pubsub.peers(topic, (error, res) => {
-      if (error) {
-        return next(error)
-      }
+const waitForNotificationOfSubscription = async (daemon, topic, peerId) => {
+  await pRetry(async () => {
+    const res = await daemon.pubsub.peers(topic)
 
-      if (!res || !res.length || !res.includes(peerId)) {
-        return next(new Error('Could not find peer subscribing'))
-      }
-
-      return next(null)
-    })
-  }, callback)
+    if (!res || !res.length || !res.includes(peerId)) {
+      throw new Error('Could not find peer subscribing')
+    }
+  }, retryOptions)
 }
 
 // Wait until a peer subscribes a topic
-const waitForPeerToSubscribe = (daemon, topic, callback) => {
-  retry({
-    times: 5,
-    interval: 2000
-  }, (next) => {
-    daemon.pubsub.ls((error, res) => {
-      if (error) {
-        return next(error)
-      }
+const waitForPeerToSubscribe = async (daemon, topic) => {
+  await pRetry(async () => {
+    const res = await daemon.pubsub.ls()
 
-      if (!res || !res.length || !res.includes(topic)) {
-        return next(new Error('Could not find subscription'))
-      }
+    if (!res || !res.length || !res.includes(topic)) {
+      throw new Error('Could not find subscription')
+    }
 
-      return next(null, res[0])
-    })
-  }, callback)
+    return res[0]
+  }, retryOptions)
 }

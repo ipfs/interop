@@ -3,22 +3,19 @@
 /*
  * Wait for a condition to become true.  When its true, callback is called.
  */
-module.exports = (predicate, ttl, callback) => {
-  if (typeof ttl === 'function') {
-    callback = ttl
-    ttl = Date.now() + (10 * 1000)
-  } else {
-    ttl = Date.now() + ttl
-  }
+module.exports = (predicate, ttl) => {
+  ttl = ttl ? Date.now() + ttl : Date.now() + (10 * 1000)
 
-  const self = setInterval(() => {
-    if (predicate()) {
-      clearInterval(self)
-      return callback()
-    }
-    if (Date.now() > ttl) {
-      clearInterval(self)
-      return callback(new Error('waitFor time expired'))
-    }
-  }, 50)
+  return new Promise((resolve, reject) => {
+    const self = setInterval(() => {
+      if (predicate()) {
+        clearInterval(self)
+        resolve()
+      }
+      if (Date.now() > ttl) {
+        clearInterval(self)
+        reject(new Error('waitFor time expired'))
+      }
+    }, 50)
+  })
 }

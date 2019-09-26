@@ -56,8 +56,8 @@ describe('circuit', () => {
         return tests[test].connect(nodeA, nodeB, relay)
       })
 
-      it('send', (done) => {
-        tests[test].send(nodeA.ipfsd.api, nodeB.ipfsd.api, done)
+      it('send', () => {
+        return tests[test].send(nodeA.ipfsd.api, nodeB.ipfsd.api)
       })
     })
   })
