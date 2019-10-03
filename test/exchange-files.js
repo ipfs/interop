@@ -102,12 +102,12 @@ const jsDaemonOptions = {
   config: { Bootstrap: [] }
 }
 
-describe('exchange files', () => {
+describe.only('exchange files', () => {
   const tests = {
-    'go -> js': [() => spawnInitAndStartGoDaemon(), () => spawnInitAndStartJsDaemon(jsDaemonOptions)],
+    'go -> js': [() => spawnInitAndStartGoDaemon(), () => spawnInitAndStartJsDaemon()],
     'go -> go2': [() => spawnInitAndStartGoDaemon(), () => spawnInitAndStartGoDaemon()],
-    'js -> go': [() => spawnInitAndStartJsDaemon(jsDaemonOptions), () => spawnInitAndStartGoDaemon()],
-    'js -> js2': [() => spawnInitAndStartJsDaemon(jsDaemonOptions), () => spawnInitAndStartJsDaemon(jsDaemonOptions)]
+    'js -> go': [() => spawnInitAndStartJsDaemon(), () => spawnInitAndStartGoDaemon()],
+    'js -> js2': [() => spawnInitAndStartJsDaemon(), () => spawnInitAndStartJsDaemon()]
   }
 
   Object.keys(tests).forEach((name) => {
