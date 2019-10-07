@@ -10,34 +10,29 @@ const crypto = require('crypto')
 const os = require('os')
 const path = require('path')
 const hat = require('hat')
+const delay = require('delay')
 
 const isWindows = os.platform() === 'win32'
 
-const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./utils/daemon')
-const timeout = require('./utils/timeout')
+const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 
 async function catAndCheck (api, hash, data) {
-  api.cat(hash, (err, fileData) => {
-    expect(err).to.not.exist()
-    expect(fileData).to.eql(data)
-  })
-
   const fileData = await api.cat(hash)
   expect(fileData).to.eql(data)
 }
 
-describe('repo', () => {
+describe('repo', function () {
+  this.timeout(80 * 1000)
+
   if (isWindows) {
     return
   }
 
   it('read repo: go -> js', async function () {
-    this.timeout(50 * 1000)
-
     const dir = path.join(os.tmpdir(), hat())
     const data = crypto.randomBytes(1024 * 5)
 
-    const goDaemon = await spawnInitAndStartGoDaemon({
+    const goDaemon = await spawnGoDaemon({
       repoPath: dir,
       disposable: false
     })
@@ -50,30 +45,27 @@ describe('repo', () => {
     await catAndCheck(goDaemon.api, hash, data)
     await goDaemon.stop()
 
-    const jsDaemon = await spawnInitAndStartJsDaemon({
+    const jsDaemon = await spawnJsDaemon({
       repoPath: dir,
-      disposable: false,
-      initOptions: { bits: 512 }
+      disposable: false
     })
 
     await jsDaemon.start()
     await catAndCheck(jsDaemon.api, hash, data)
     await jsDaemon.stop()
 
-    await timeout(10500)
+    await delay(10500)
 
     await jsDaemon.cleanup()
   })
 
   it('read repo: js -> go', async function () {
-    this.timeout(80 * 1000)
     const dir = path.join(os.tmpdir(), hat())
     const data = crypto.randomBytes(1024 * 5)
 
-    const jsDaemon = await spawnInitAndStartJsDaemon({
+    const jsDaemon = await spawnJsDaemon({
       repoPath: dir,
-      disposable: false,
-      initOptions: { bits: 512 }
+      disposable: false
     })
     await jsDaemon.init()
     await jsDaemon.start()
@@ -84,7 +76,7 @@ describe('repo', () => {
     await catAndCheck(jsDaemon.api, hash, data)
     await jsDaemon.stop()
 
-    const goDaemon = await spawnInitAndStartGoDaemon({
+    const goDaemon = await spawnGoDaemon({
       repoPath: dir,
       disposable: false
     })

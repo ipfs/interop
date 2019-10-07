@@ -7,7 +7,7 @@ const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
 
-const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./utils/daemon')
+const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 
 const utils = require('./utils/pin-utils')
 
@@ -28,7 +28,7 @@ describe('pin', function () {
       disposable: false
     }
 
-    const daemon = await (type === 'go' ? spawnInitAndStartGoDaemon(daemonOptions) : spawnInitAndStartJsDaemon(daemonOptions))
+    const daemon = await (type === 'go' ? spawnGoDaemon(daemonOptions) : spawnJsDaemon(daemonOptions))
     daemons.push(daemon)
 
     if (daemon.initialized) {

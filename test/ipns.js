@@ -9,19 +9,13 @@ chai.use(dirtyChai)
 const os = require('os')
 const path = require('path')
 const hat = require('hat')
+const delay = require('delay')
 
-const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./utils/daemon')
-const timeout = require('./utils/timeout')
+const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 
 const dir = path.join(os.tmpdir(), hat())
 
-const jsDaemonOptions = {
-  repoPath: dir,
-  disposable: false,
-  initOptions: { bits: 512 }
-}
-
-const goDaemonOptions = {
+const daemonOptions = {
   repoPath: dir,
   disposable: false
 }
@@ -38,7 +32,7 @@ const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
 
   const stopPublisherAndStartResolverDaemon = async () => {
     await publisherDaemon.stop()
-    await timeout(2000)
+    await delay(2000)
     await resolverDaemon.start(['--offline'])
   }
 
@@ -55,45 +49,39 @@ const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
   expect(res).to.equal(ipfsRef)
 
   await resolverDaemon.stop()
-  timeout(2000)
+  await delay(2000)
 
   await resolverDaemon.cleanup()
 }
 
-describe('ipns locally using the same repo across implementations', () => {
-  it('should publish an ipns record to a js daemon and resolve it using the same js daemon', async function () {
-    this.timeout(120 * 1000)
+describe('ipns locally using the same repo across implementations', function () {
+  this.timeout(160 * 1000)
 
-    const jsDaemon = await spawnInitAndStartJsDaemon(jsDaemonOptions)
+  it('should publish an ipns record to a js daemon and resolve it using the same js daemon', async function () {
+    const jsDaemon = await spawnJsDaemon(daemonOptions)
 
     await publishAndResolve(jsDaemon)
   })
 
   it('should publish an ipns record to a go daemon and resolve it using the same go daemon', async function () {
-    this.timeout(160 * 1000)
-
-    const goDaemon = await spawnInitAndStartGoDaemon(goDaemonOptions)
+    const goDaemon = await spawnGoDaemon(daemonOptions)
 
     await publishAndResolve(goDaemon)
   })
 
   it('should publish an ipns record to a js daemon and resolve it using a go daemon through the reuse of the same repo', async function () {
-    this.timeout(120 * 1000)
-
     const daemons = await Promise.all([
-      spawnInitAndStartJsDaemon(jsDaemonOptions),
-      spawnInitAndStartGoDaemon(goDaemonOptions)
+      spawnJsDaemon(daemonOptions),
+      spawnGoDaemon(daemonOptions)
     ])
 
     await publishAndResolve(daemons[0], daemons[1])
   })
 
   it('should publish an ipns record to a go daemon and resolve it using a js daemon through the reuse of the same repo', async function () {
-    this.timeout(160 * 1000)
-
     const daemons = await Promise.all([
-      spawnInitAndStartGoDaemon(goDaemonOptions),
-      spawnInitAndStartJsDaemon(jsDaemonOptions)
+      spawnGoDaemon(daemonOptions),
+      spawnJsDaemon(daemonOptions)
     ])
 
     await publishAndResolve(daemons[0], daemons[1])

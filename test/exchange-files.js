@@ -23,7 +23,7 @@ const os = require('os')
 
 const rmDir = promisify(rimraf)
 
-const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./utils/daemon')
+const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 
 function tmpDir () {
   return join(os.tmpdir(), `ipfs_${hat()}`)
@@ -98,16 +98,17 @@ const min = 60 * 1000
 const timeout = isCi ? 8 * min : 5 * min
 
 const jsDaemonOptions = {
-  initOptions: { bits: 512 },
   config: { Bootstrap: [] }
 }
 
-describe.only('exchange files', () => {
+describe('exchange files', function () {
+  this.timeout(timeout)
+
   const tests = {
-    'go -> js': [() => spawnInitAndStartGoDaemon(), () => spawnInitAndStartJsDaemon()],
-    'go -> go2': [() => spawnInitAndStartGoDaemon(), () => spawnInitAndStartGoDaemon()],
-    'js -> go': [() => spawnInitAndStartJsDaemon(), () => spawnInitAndStartGoDaemon()],
-    'js -> js2': [() => spawnInitAndStartJsDaemon(), () => spawnInitAndStartJsDaemon()]
+    'go -> js': [() => spawnGoDaemon(), () => spawnJsDaemon(jsDaemonOptions)],
+    'go -> go2': [() => spawnGoDaemon(), () => spawnGoDaemon()],
+    'js -> go': [() => spawnJsDaemon(jsDaemonOptions), () => spawnGoDaemon()],
+    'js -> js2': [() => spawnJsDaemon(jsDaemonOptions), () => spawnJsDaemon(jsDaemonOptions)]
   }
 
   Object.keys(tests).forEach((name) => {
@@ -118,16 +119,12 @@ describe.only('exchange files', () => {
       let id2
 
       before('spawn nodes', async function () {
-        this.timeout(timeout)
-
         const nodes = await Promise.all(tests[name].map(fn => fn()))
         daemon1 = nodes[0]
         daemon2 = nodes[1]
       })
 
       before('connect', function (done) {
-        this.timeout(timeout)
-
         series([
           (cb) => parallel([
             (cb) => daemon1.api.id(cb),
@@ -153,15 +150,11 @@ describe.only('exchange files', () => {
       })
 
       after('stop nodes', function () {
-        this.timeout(timeout)
-
         return Promise.all([daemon1, daemon2].map((node) => node.stop()))
       })
 
       describe('cat file', () => sizes.forEach((size) => {
         it(`${name}: ${pretty(size)}`, function (done) {
-          this.timeout(timeout)
-
           const data = crypto.randomBytes(size)
 
           waterfall([
@@ -180,8 +173,6 @@ describe.only('exchange files', () => {
 
       describe('get directory', () => depth.forEach((d) => dirs.forEach((num) => {
         it(`${name}: depth: ${d}, num: ${num}`, function () {
-          this.timeout(timeout)
-
           const dir = tmpDir()
           return randomFs({
             path: dir,

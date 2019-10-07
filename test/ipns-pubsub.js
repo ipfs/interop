@@ -13,7 +13,7 @@ const ipns = require('ipns')
 const retry = require('async/retry')
 const series = require('async/series')
 
-const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./utils/daemon')
+const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 
 const waitFor = require('./utils/wait-for')
 
@@ -25,25 +25,21 @@ const namespace = '/record/'
 
 const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 
-describe('ipns-pubsub', () => {
+describe('ipns-pubsub', function () {
+  this.timeout(350 * 1000)
   let nodes = []
   let nodesIds = []
 
   // Spawn daemons
   before(async function () {
-    // CI takes longer to instantiate the daemon, so we need to increase the timeout
-    this.timeout(80 * 1000)
-
     nodes = await Promise.all([
-      spawnInitAndStartGoDaemon(daemonsOptions),
-      spawnInitAndStartJsDaemon(daemonsOptions)
+      spawnGoDaemon(daemonsOptions),
+      spawnJsDaemon(daemonsOptions)
     ])
   })
 
   // Get node ids
   before(async function () {
-    this.timeout(100 * 1000)
-
     nodesIds = await Promise.all([
       nodes[0].api.id(),
       nodes[1].api.id()
@@ -61,8 +57,6 @@ describe('ipns-pubsub', () => {
   })
 
   after(function () {
-    this.timeout(60 * 1000)
-
     return Promise.all(nodes.map((node) => node.stop()))
   })
 
@@ -77,14 +71,10 @@ describe('ipns-pubsub', () => {
   })
 
   it('should publish the received record to a go node and a js subscriber should receive it', function (done) {
-    this.timeout(300 * 1000)
-
     subscribeToReceiveByPubsub(nodes[0], nodes[1], nodesIds[0].id, nodesIds[1].id, done)
   })
 
   it('should publish the received record to a js node and a go subscriber should receive it', function (done) {
-    this.timeout(350 * 1000)
-
     subscribeToReceiveByPubsub(nodes[1], nodes[0], nodesIds[1].id, nodesIds[0].id, done)
   })
 })

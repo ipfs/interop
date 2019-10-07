@@ -7,7 +7,7 @@ const expect = chai.expect
 chai.use(dirtyChai)
 const crypto = require('crypto')
 const UnixFs = require('ipfs-unixfs')
-const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./utils/daemon')
+const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 const bufferStream = require('readable-stream-buffer-stream')
 
 const SHARD_THRESHOLD = 1000
@@ -123,8 +123,8 @@ describe('files', function () {
 
   before(() => {
     return Promise.all([
-      spawnInitAndStartGoDaemon(goOptions),
-      spawnInitAndStartJsDaemon(jsOptions)
+      spawnGoDaemon(goOptions),
+      spawnJsDaemon(jsOptions)
     ])
       .then(([goDaemon, jsDaemon]) => {
         go = goDaemon

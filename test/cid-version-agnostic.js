@@ -7,7 +7,7 @@ const expect = chai.expect
 chai.use(dirtyChai)
 const hat = require('hat')
 const CID = require('cids')
-const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./utils/daemon')
+const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 
 const jsDaemonOptions = {
   config: {
@@ -15,17 +15,16 @@ const jsDaemonOptions = {
   }
 }
 
-describe('CID version agnostic', () => {
+describe('CID version agnostic', function () {
+  this.timeout(50 * 1000)
   const daemons = {}
 
   before(async function () {
-    this.timeout(50 * 1000)
-
     const [js0, js1, go0, go1] = await Promise.all([
-      spawnInitAndStartJsDaemon(),
-      spawnInitAndStartJsDaemon(),
-      spawnInitAndStartGoDaemon(),
-      spawnInitAndStartGoDaemon()
+      spawnJsDaemon(jsDaemonOptions),
+      spawnJsDaemon(jsDaemonOptions),
+      spawnGoDaemon(),
+      spawnGoDaemon()
     ])
     Object.assign(daemons, { js0, js1, go0, go1 })
 
@@ -45,12 +44,10 @@ describe('CID version agnostic', () => {
   })
 
   after(function () {
-    this.timeout(30 * 1000)
     return Promise.all(Object.values(daemons).map((daemon) => daemon.stop()))
   })
 
   it('should add v0 and cat v1 (go0 -> go0)', async function () {
-    this.timeout(30 * 1000)
     const input = Buffer.from(hat())
     const res = await daemons.go0.api.add(input, { cidVersion: 0 })
     const cidv1 = new CID(res[0].hash).toV1()
@@ -59,7 +56,6 @@ describe('CID version agnostic', () => {
   })
 
   it('should add v0 and cat v1 (js0 -> js0)', async function () {
-    this.timeout(30 * 1000)
     const input = Buffer.from(hat())
     const res = await daemons.js0.api.add(input, { cidVersion: 0 })
     const cidv1 = new CID(res[0].hash).toV1()
@@ -68,7 +64,6 @@ describe('CID version agnostic', () => {
   })
 
   it('should add v0 and cat v1 (go0 -> go1)', async function () {
-    this.timeout(30 * 1000)
     const input = Buffer.from(hat())
     const res = await daemons.go0.api.add(input, { cidVersion: 0 })
     const cidv1 = new CID(res[0].hash).toV1()
@@ -77,7 +72,6 @@ describe('CID version agnostic', () => {
   })
 
   it('should add v0 and cat v1 (js0 -> js1)', async function () {
-    this.timeout(30 * 1000)
     const input = Buffer.from(hat())
     const res = await daemons.js0.api.add(input, { cidVersion: 0 })
     const cidv1 = new CID(res[0].hash).toV1()
@@ -86,7 +80,6 @@ describe('CID version agnostic', () => {
   })
 
   it('should add v0 and cat v1 (js0 -> go0)', async function () {
-    this.timeout(30 * 1000)
     const input = Buffer.from(hat())
     const res = await daemons.js0.api.add(input, { cidVersion: 0 })
     const cidv1 = new CID(res[0].hash).toV1()
@@ -95,7 +88,6 @@ describe('CID version agnostic', () => {
   })
 
   it('should add v0 and cat v1 (go0 -> js0)', async function () {
-    this.timeout(30 * 1000)
     const input = Buffer.from(hat())
     const res = await daemons.go0.api.add(input, { cidVersion: 0 })
     const cidv1 = new CID(res[0].hash).toV1()
@@ -104,7 +96,6 @@ describe('CID version agnostic', () => {
   })
 
   it('should add v1 and cat v0 (go0 -> go0)', async function () {
-    this.timeout(30 * 1000)
     const input = Buffer.from(hat())
     const res = await daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = new CID(res[0].hash).toV0()
@@ -113,7 +104,6 @@ describe('CID version agnostic', () => {
   })
 
   it('should add v1 and cat v0 (js0 -> js0)', async function () {
-    this.timeout(30 * 1000)
     const input = Buffer.from(hat())
     const res = await daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = new CID(res[0].hash).toV0()
@@ -122,7 +112,6 @@ describe('CID version agnostic', () => {
   })
 
   it('should add v1 and cat v0 (go0 -> go1)', async function () {
-    this.timeout(30 * 1000)
     const input = Buffer.from(hat())
     const res = await daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = new CID(res[0].hash).toV0()
@@ -131,7 +120,6 @@ describe('CID version agnostic', () => {
   })
 
   it('should add v1 and cat v0 (js0 -> js1)', async function () {
-    this.timeout(30 * 1000)
     const input = Buffer.from(hat())
     const res = await daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = new CID(res[0].hash).toV0()
@@ -140,7 +128,6 @@ describe('CID version agnostic', () => {
   })
 
   it('should add v1 and cat v0 (js0 -> go0)', async function () {
-    this.timeout(30 * 1000)
     const input = Buffer.from(hat())
     const res = await daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = new CID(res[0].hash).toV0()
@@ -149,7 +136,6 @@ describe('CID version agnostic', () => {
   })
 
   it('should add v1 and cat v0 (go0 -> js0)', async function () {
-    this.timeout(30 * 1000)
     const input = Buffer.from(hat())
     const res = await daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = new CID(res[0].hash).toV0()

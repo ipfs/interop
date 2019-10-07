@@ -8,7 +8,7 @@ chai.use(dirtyChai)
 const waterfall = require('async/waterfall')
 const series = require('async/series')
 
-const { spawnInitAndStartGoDaemon, spawnInitAndStartJsDaemon } = require('./daemon')
+const { spawnGoDaemon, spawnJsDaemon } = require('./daemon')
 
 const crypto = require('crypto')
 
@@ -53,7 +53,7 @@ exports.createProcNode = (addrs, callback) => {
 }
 
 exports.createJsNode = async (addrs) => {
-  const ipfsd = await spawnInitAndStartJsDaemon({
+  const ipfsd = await spawnJsDaemon({
     initOptions: { bits: 512 },
     config: Object.assign({}, baseConf, {
       Addresses: {
@@ -74,7 +74,7 @@ exports.createJsNode = async (addrs) => {
 }
 
 exports.createGoNode = async (addrs) => {
-  const ipfsd = await spawnInitAndStartGoDaemon({
+  const ipfsd = await spawnGoDaemon({
     initOptions: { bits: 1024 },
     config: Object.assign({}, baseConf, {
       Addresses: {

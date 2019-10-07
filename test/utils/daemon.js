@@ -5,7 +5,7 @@ const DaemonFactory = require('ipfsd-ctl')
 const goDf = DaemonFactory.create()
 const jsDf = DaemonFactory.create({ type: 'js' })
 
-const spawnInitAndStartDaemon = (factory, options) => {
+const spawnDaemon = (factory, options) => {
   options = mergeOptions({
     initOptions: {
       bits: 1024
@@ -29,8 +29,8 @@ const spawnInitAndStartDaemon = (factory, options) => {
 const stopDaemon = (daemon) => daemon.stop()
 
 module.exports = {
-  spawnInitAndStartDaemon,
-  spawnInitAndStartGoDaemon: (opts) => spawnInitAndStartDaemon(goDf, opts),
-  spawnInitAndStartJsDaemon: (opts) => spawnInitAndStartDaemon(jsDf, opts),
+  spawnDaemon,
+  spawnGoDaemon: (opts) => spawnDaemon(goDf, opts),
+  spawnJsDaemon: (opts) => spawnDaemon(jsDf, opts),
   stopDaemon
 }
