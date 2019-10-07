@@ -54,7 +54,7 @@
     "form-data": "^2.3.3",
     "go-ipfs-dep": "~0.4.20",
     "hat": "~0.0.3",
-    "ipfs": "^0.37.0",
+    "ipfs": "^0.38.0",
     "ipfs-http-client": "^33.1.0",
     "ipfs-repo": "~0.26.6",
     "ipfs-unixfs": "~0.1.16",
