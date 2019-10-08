@@ -86,8 +86,8 @@ module.exports = {
   'go-browser-browser': {
     create: (callback) => series([
       (cb) => createGo([`${base}/ws`], cb),
-      (cb) => createProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => createProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
+      (cb) => createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star'], cb),
+      (cb) => createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star'], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
@@ -103,8 +103,8 @@ module.exports = {
   'js-browser-browser': {
     create: (callback) => series([
       (cb) => createJs([`${base}/ws`], cb),
-      (cb) => createProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => createProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb)
+      (cb) => createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star'], cb),
+      (cb) => createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star'], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
       series([
@@ -118,8 +118,8 @@ module.exports = {
   },
   'browser-browser-go': {
     create: (callback) => series([
-      (cb) => createProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => createProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star'], cb),
+      (cb) => createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star'], cb),
       (cb) => createGo([`${base}/ws`], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {
@@ -134,8 +134,8 @@ module.exports = {
   },
   'browser-browser-js': {
     create: (callback) => series([
-      (cb) => createProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
-      (cb) => createProc([`/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star`], cb),
+      (cb) => createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star'], cb),
+      (cb) => createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-websocket-star'], cb),
       (cb) => createJs([`${base}/ws`], cb)
     ], callback),
     connect: (nodeA, nodeB, relay, callback) => {

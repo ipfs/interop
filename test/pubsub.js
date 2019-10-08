@@ -37,7 +37,7 @@ const waitForTopicPeer = (topic, peer, daemon, callback) => {
 
 const timeout = 20e3
 function createJs () {
-  return spawnInitAndStartJsDaemon({ args: ['--enable-pubsub-experiment'] })
+  return spawnInitAndStartJsDaemon()
 }
 function createGo () {
   return spawnInitAndStartGoDaemon({ args: ['--enable-pubsub-experiment'] })
