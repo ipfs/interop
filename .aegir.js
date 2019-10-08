@@ -1,7 +1,6 @@
 'use strict'
 
 const createServer = require('ipfsd-ctl').createServer
-const parallel = require('async/parallel')
 const rendezvous = require('libp2p-websocket-star-rendezvous')
 
 let rzserver
@@ -20,28 +19,18 @@ module.exports = {
   },
   hooks: {
     browser: {
-      pre: (done) => {
-        parallel([
-          (cb) => server.start(cb),
-          (cb) => {
-            rendezvous.start({
-              port: 24642
-            }, (err, _rzserver) => {
-              if (err) {
-                return done(err)
-              }
-              rzserver = _rzserver
-              cb()
-            })
-          }
-        ], done)
+      pre: async () => {
+        const res = await Promise.all([
+          server.start(),
+          rendezvous.start({ port: 24642 })
+        ])
+
+        rzserver = res[1]
       },
-      post: (done) => {
-        parallel([
-          (cb) => server.stop(cb),
-          (cb) => rzserver.stop(cb)
-        ], done)
-      }
+      post: () => Promise.all([
+        server.stop(),
+        rzserver.stop()
+      ])
     }
   }
 }

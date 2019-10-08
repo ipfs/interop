@@ -20,8 +20,8 @@ const baseTest = {
   timeout
 }
 
-describe('circuit', () => {
-  const tests = all
+describe.only('circuit', () => {
+  const tests = {}
 
   if (!isNode) {
     Object.assign(tests, browser)
@@ -52,8 +52,8 @@ describe('circuit', () => {
 
       after(() => Promise.all(nodes.map((node) => node.stop())))
 
-      it('connect', (done) => {
-        tests[test].connect(nodeA, nodeB, relay, done)
+      it('connect', async () => {
+        await tests[test].connect(nodeA, nodeB, relay)
       })
 
       it('send', (done) => {
