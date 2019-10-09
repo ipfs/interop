@@ -6,7 +6,7 @@ const expect = chai.expect
 chai.use(dirtyChai)
 
 const waterfall = require('async/waterfall')
-const series = require('async/series')
+const delay = require('delay')
 
 const { spawnGoDaemon, spawnJsDaemon } = require('./daemon')
 
@@ -30,8 +30,8 @@ const baseConf = {
   }
 }
 
-exports.createProcNode = (addrs, callback) => {
-  procDf.spawn({
+exports.createProcNode = async (addrs) => {
+  const ipfsd = await procDf.spawn({
     initOptions: { bits: 512 },
     config: Object.assign({}, baseConf, {
       Addresses: {
@@ -44,12 +44,11 @@ exports.createProcNode = (addrs, callback) => {
         enabled: true
       }
     }
-  }, (err, ipfsd) => {
-    expect(err).to.not.exist()
-    ipfsd.api.id((err, id) => {
-      callback(err, { ipfsd, addrs: id.addresses })
-    })
   })
+
+  const id = await ipfsd.api.id()
+
+  return { ipfsd, addrs: id.addresses }
 }
 
 exports.createJsNode = async (addrs) => {
@@ -137,25 +136,18 @@ const getCircuitAddr = (addrs) => addrs
 
 exports.getCircuitAddr = getCircuitAddr
 
-const connect = (nodeA, nodeB, relay, timeout, callback) => {
-  if (typeof timeout === 'function') {
-    callback = timeout
-    timeout = 1000
-  }
-
-  series([
-    (cb) => nodeA.ipfsd.api.swarm.connect(getWsAddr(relay.addrs), cb),
-    (cb) => nodeB.ipfsd.api.swarm.connect(getWsAddr(relay.addrs), cb),
-    // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
-    (cb) => setTimeout(cb, timeout),
-    (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
-  ], callback)
+const connect = async (nodeA, nodeB, relay, timeout = 1000) => {
+  await nodeA.ipfsd.api.swarm.connect(getWsAddr(relay.addrs))
+  await nodeB.ipfsd.api.swarm.connect(getWsAddr(relay.addrs))
+  // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
+  await delay(timeout)
+  await nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs))
 }
 
 exports.connect = connect
 
 exports.connWithTimeout = (timeout) => {
-  return (nodeA, nodeB, relay, callback) => {
-    connect(nodeA, nodeB, relay, timeout, callback)
+  return (nodeA, nodeB, relay) => {
+    connect(nodeA, nodeB, relay, timeout)
   }
 }

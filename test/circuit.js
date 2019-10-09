@@ -52,8 +52,8 @@ describe('circuit', () => {
 
       after(() => Promise.all(nodes.map((node) => node.stop())))
 
-      it('connect', (done) => {
-        tests[test].connect(nodeA, nodeB, relay, done)
+      it('connect', () => {
+        return tests[test].connect(nodeA, nodeB, relay)
       })
 
       it('send', (done) => {

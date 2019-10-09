@@ -20,27 +20,26 @@ module.exports = {
   },
   hooks: {
     browser: {
-      pre: (done) => {
-        parallel([
-          (cb) => server.start(cb),
-          (cb) => {
+      pre: async () => {
+        await server.start()
+        return new Promise((resolve, reject) => {
             rendezvous.start({
               port: 24642
             }, (err, _rzserver) => {
               if (err) {
-                return done(err)
+                return reject(err)
               }
               rzserver = _rzserver
-              cb()
+              resolve()
             })
-          }
-        ], done)
+        })
       },
-      post: (done) => {
-        parallel([
-          (cb) => server.stop(cb),
-          (cb) => rzserver.stop(cb)
-        ], done)
+      post: async () => {
+        await server.stop()
+
+        return new Promise((resolve) => {
+          rzserver.stop(resolve)
+        })
       }
     }
   }
