@@ -2,6 +2,7 @@
 
 const mergeOptions = require('merge-options')
 const DaemonFactory = require('ipfsd-ctl')
+const httpClient = require('ipfs-http-client')
 const goDf = DaemonFactory.create()
 const jsDf = DaemonFactory.create({ type: 'js' })
 
@@ -20,7 +21,8 @@ const spawnDaemon = (factory, options) => {
         }
       }
     },
-    profile: 'test'
+    profile: 'test',
+    IpfsClient: httpClient
   }, options)
 
   return factory.spawn(options)
