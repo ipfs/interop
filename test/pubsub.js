@@ -43,9 +43,9 @@ describe('pubsub', function () {
 
   const tests = {
     'publish from Go, subscribe on Go': [() => spawnGoDaemon(daemonOptions), () => spawnGoDaemon(daemonOptions)],
-    'publish from JS, subscribe on JS': [() => spawnJsDaemon(daemonOptions), () => spawnJsDaemon(daemonOptions)],
-    'publish from JS, subscribe on Go': [() => spawnJsDaemon(daemonOptions), () => spawnGoDaemon(daemonOptions)],
-    'publish from Go, subscribe on JS': [() => spawnGoDaemon(daemonOptions), () => spawnJsDaemon(daemonOptions)]
+    'publish from JS, subscribe on JS': [() => spawnJsDaemon(), () => spawnJsDaemon()],
+    'publish from JS, subscribe on Go': [() => spawnJsDaemon(), () => spawnGoDaemon(daemonOptions)],
+    'publish from Go, subscribe on JS': [() => spawnGoDaemon(daemonOptions), () => spawnJsDaemon()]
   }
 
   Object.keys(tests).forEach((name) => {
