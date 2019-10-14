@@ -36,10 +36,8 @@ const daemonOptions = {
   args: ['--enable-pubsub-experiment']
 }
 
-const timeout = 20e3
-
 describe('pubsub', function () {
-  this.timeout(timeout)
+  this.timeout(60 * 1000)
 
   const tests = {
     'publish from Go, subscribe on Go': [() => spawnGoDaemon(daemonOptions), () => spawnGoDaemon(daemonOptions)],
