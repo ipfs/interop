@@ -47,7 +47,7 @@ describe('CID version agnostic', function () {
     return Promise.all(Object.values(daemons).map((daemon) => daemon.stop()))
   })
 
-  it('should add v0 and cat v1 (go0 -> go0)', async function () {
+  it('should add v0 and cat v1 (go0 -> go0)', async () => {
     const input = Buffer.from(hat())
     const res = await daemons.go0.api.add(input, { cidVersion: 0 })
     const cidv1 = new CID(res[0].hash).toV1()
@@ -55,7 +55,7 @@ describe('CID version agnostic', function () {
     expect(output).to.deep.equal(input)
   })
 
-  it('should add v0 and cat v1 (js0 -> js0)', async function () {
+  it('should add v0 and cat v1 (js0 -> js0)', async () => {
     const input = Buffer.from(hat())
     const res = await daemons.js0.api.add(input, { cidVersion: 0 })
     const cidv1 = new CID(res[0].hash).toV1()
@@ -63,7 +63,7 @@ describe('CID version agnostic', function () {
     expect(output).to.deep.equal(input)
   })
 
-  it('should add v0 and cat v1 (go0 -> go1)', async function () {
+  it('should add v0 and cat v1 (go0 -> go1)', async () => {
     const input = Buffer.from(hat())
     const res = await daemons.go0.api.add(input, { cidVersion: 0 })
     const cidv1 = new CID(res[0].hash).toV1()
@@ -71,7 +71,7 @@ describe('CID version agnostic', function () {
     expect(output).to.deep.equal(input)
   })
 
-  it('should add v0 and cat v1 (js0 -> js1)', async function () {
+  it('should add v0 and cat v1 (js0 -> js1)', async () => {
     const input = Buffer.from(hat())
     const res = await daemons.js0.api.add(input, { cidVersion: 0 })
     const cidv1 = new CID(res[0].hash).toV1()
@@ -79,7 +79,7 @@ describe('CID version agnostic', function () {
     expect(output).to.deep.equal(input)
   })
 
-  it('should add v0 and cat v1 (js0 -> go0)', async function () {
+  it('should add v0 and cat v1 (js0 -> go0)', async () => {
     const input = Buffer.from(hat())
     const res = await daemons.js0.api.add(input, { cidVersion: 0 })
     const cidv1 = new CID(res[0].hash).toV1()
@@ -87,7 +87,7 @@ describe('CID version agnostic', function () {
     expect(output).to.deep.equal(input)
   })
 
-  it('should add v0 and cat v1 (go0 -> js0)', async function () {
+  it('should add v0 and cat v1 (go0 -> js0)', async () => {
     const input = Buffer.from(hat())
     const res = await daemons.go0.api.add(input, { cidVersion: 0 })
     const cidv1 = new CID(res[0].hash).toV1()
@@ -95,7 +95,7 @@ describe('CID version agnostic', function () {
     expect(output).to.deep.equal(input)
   })
 
-  it('should add v1 and cat v0 (go0 -> go0)', async function () {
+  it('should add v1 and cat v0 (go0 -> go0)', async () => {
     const input = Buffer.from(hat())
     const res = await daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = new CID(res[0].hash).toV0()
@@ -103,7 +103,7 @@ describe('CID version agnostic', function () {
     expect(output).to.deep.equal(input)
   })
 
-  it('should add v1 and cat v0 (js0 -> js0)', async function () {
+  it('should add v1 and cat v0 (js0 -> js0)', async () => {
     const input = Buffer.from(hat())
     const res = await daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = new CID(res[0].hash).toV0()
@@ -111,7 +111,7 @@ describe('CID version agnostic', function () {
     expect(output).to.deep.equal(input)
   })
 
-  it('should add v1 and cat v0 (go0 -> go1)', async function () {
+  it('should add v1 and cat v0 (go0 -> go1)', async () => {
     const input = Buffer.from(hat())
     const res = await daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = new CID(res[0].hash).toV0()
@@ -119,7 +119,7 @@ describe('CID version agnostic', function () {
     expect(output).to.deep.equal(input)
   })
 
-  it('should add v1 and cat v0 (js0 -> js1)', async function () {
+  it('should add v1 and cat v0 (js0 -> js1)', async () => {
     const input = Buffer.from(hat())
     const res = await daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = new CID(res[0].hash).toV0()
@@ -127,7 +127,7 @@ describe('CID version agnostic', function () {
     expect(output).to.deep.equal(input)
   })
 
-  it('should add v1 and cat v0 (js0 -> go0)', async function () {
+  it('should add v1 and cat v0 (js0 -> go0)', async () => {
     const input = Buffer.from(hat())
     const res = await daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = new CID(res[0].hash).toV0()
@@ -135,7 +135,7 @@ describe('CID version agnostic', function () {
     expect(output).to.deep.equal(input)
   })
 
-  it('should add v1 and cat v0 (go0 -> js0)', async function () {
+  it('should add v1 and cat v0 (go0 -> js0)', async () => {
     const input = Buffer.from(hat())
     const res = await daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = new CID(res[0].hash).toV0()

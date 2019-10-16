@@ -12,6 +12,7 @@ const ipns = require('ipns')
 
 const retry = require('async/retry')
 const series = require('async/series')
+const delay = require('delay')
 
 const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 
@@ -45,15 +46,13 @@ describe('ipns-pubsub', function () {
       nodes[1].api.id()
     ])
 
-    expect(nodesIds[0]).to.exist()
-    expect(nodesIds[1]).to.exist()
-    expect(nodesIds[0].id).to.exist()
-    expect(nodesIds[1].id).to.exist()
+    expect(nodesIds).to.have.nested.property('[0].id').that.is.ok()
+    expect(nodesIds).to.have.nested.property('[1].id').that.is.ok()
 
     await nodes[0].api.swarm.connect(nodesIds[1].addresses[0])
 
     console.log('wait for republish as we can receive the republish message first') // eslint-disable-line
-    return new Promise((resolve) => setTimeout(resolve, 60000))
+    await delay(60000)
   })
 
   after(function () {

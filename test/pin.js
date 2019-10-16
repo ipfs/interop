@@ -70,7 +70,7 @@ describe('pin', function () {
 
       const [goPins, jsPins] = await withDaemons(pipeline)
 
-      expect(goPins.length).to.be.gt(0)
+      expect(goPins).to.have.property('length').that.is.gt(0)
       expect(jsPins).to.deep.include.members(goPins)
       expect(goPins).to.deep.include.members(jsPins)
     })
@@ -86,7 +86,7 @@ describe('pin', function () {
 
       const [goPins, jsPins] = await withDaemons(pipeline)
 
-      expect(goPins.length).to.be.gt(0)
+      expect(goPins).to.have.property('length').that.is.gt(0)
       expect(jsPins).to.deep.include.members(goPins)
       expect(goPins).to.deep.include.members(jsPins)
     })
@@ -129,7 +129,7 @@ describe('pin', function () {
 
       const [goPins, jsPins] = await withDaemons(pipeline)
 
-      expect(goPins.length).to.be.gt(0)
+      expect(goPins).to.have.property('length').that.is.gt(0)
       expect(goPins).to.deep.include.members(jsPins)
       expect(jsPins).to.deep.include.members(goPins)
 
@@ -148,7 +148,7 @@ describe('pin', function () {
 
       const [goPins, jsPins] = await withDaemons(pipeline)
 
-      expect(goPins.length).to.be.gt(0)
+      expect(goPins).to.have.property('length').that.is.gt(0)
       expect(goPins).to.deep.include.members(jsPins)
       expect(jsPins).to.deep.include.members(goPins)
     })
@@ -181,7 +181,7 @@ describe('pin', function () {
     it('go -> js', function () {
       return pipeline({ first: 'go', second: 'js' })
         .then(([goPins, jsPins]) => {
-          expect(goPins.length).to.be.gt(0)
+          expect(goPins).to.have.property('length').that.is.gt(0)
           expect(jsPins).to.deep.include.members(goPins)
           expect(goPins).to.deep.include.members(jsPins)
         })
