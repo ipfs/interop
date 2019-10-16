@@ -65,6 +65,17 @@ function addFile (daemon, data) {
     })
 }
 
+function createDataStream (size = 262144) {
+  const chunkSize = size
+  const buffer = Buffer.alloc(chunkSize, 0)
+
+  return bufferStream(chunkSize, {
+    generator: (size, callback) => {
+      callback(null, buffer.slice(0, size))
+    }
+  })
+}
+
 const compare = (...ops) => {
   expect(ops.length).to.be.above(1)
 
@@ -280,8 +291,7 @@ describe('files', function () {
       )
     })
 
-    // requires go-ipfs v0.4.21
-    it.skip('small files with CIDv1', () => {
+    it('small files with CIDv1', () => {
       const data = Buffer.from([0x00, 0x01, 0x02])
       const options = {
         cidVersion: 1
@@ -293,8 +303,7 @@ describe('files', function () {
       )
     })
 
-    // requires go-ipfs v0.4.21
-    it.skip('big files with CIDv1', () => {
+    it('big files with CIDv1', () => {
       const data = crypto.randomBytes(1024 * 3000)
       const options = {
         cidVersion: 1
@@ -306,17 +315,7 @@ describe('files', function () {
       )
     })
 
-    // Somehow, the hashes for the same content are not equal
-    // This problem was also detected on
-    // both 'remove a child shared by multiple pins' test and 'print same pins'
-    it.skip('trickle DAGs', () => {
-      const chunkSize = 262144
-      const buffer = Buffer.alloc(chunkSize, 0)
-      const data = bufferStream(chunkSize, {
-        generator: (size, callback) => {
-          callback(null, buffer.slice(0, size))
-        }
-      })
+    it('trickle DAGs', () => {
       const options = {
         cidVersion: 0,
         trickle: true,
@@ -326,20 +325,12 @@ describe('files', function () {
       }
 
       return compare(
-        testHashesAreEqual(go, data, options),
-        testHashesAreEqual(js, data, options)
+        testHashesAreEqual(go, createDataStream(), options),
+        testHashesAreEqual(js, createDataStream(), options)
       )
     })
 
-    // Same problem as the previous test: hashes are not equal
-    it.skip('rabin chunker', () => {
-      const chunkSize = 262144
-      const buffer = Buffer.alloc(chunkSize, 0)
-      const data = bufferStream(chunkSize, {
-        generator: (size, callback) => {
-          callback(null, buffer.slice(0, size))
-        }
-      })
+    it('rabin chunker', () => {
       const options = {
         chunker: 'rabin-512-1024-2048',
         pin: false,
@@ -347,20 +338,12 @@ describe('files', function () {
       }
 
       return compare(
-        testHashesAreEqual(go, data, options),
-        testHashesAreEqual(js, data, options)
+        testHashesAreEqual(go, createDataStream(), options),
+        testHashesAreEqual(js, createDataStream(), options)
       )
     })
 
-    // Same problem as the previous test: hashes are not equal
-    it.skip('rabin chunker small chunks', () => {
-      const chunkSize = 262144
-      const buffer = Buffer.alloc(chunkSize, 0)
-      const data = bufferStream(chunkSize, {
-        generator: (size, callback) => {
-          callback(null, buffer.slice(0, size))
-        }
-      })
+    it('rabin chunker small chunks', () => {
       const options = {
         chunker: 'rabin-16-16-16',
         pin: false,
@@ -368,8 +351,8 @@ describe('files', function () {
       }
 
       return compare(
-        testHashesAreEqual(go, data, options),
-        testHashesAreEqual(js, data, options)
+        testHashesAreEqual(go, createDataStream(), options),
+        testHashesAreEqual(js, createDataStream(), options)
       )
     })
 
