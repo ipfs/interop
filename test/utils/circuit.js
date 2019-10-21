@@ -6,15 +6,15 @@ const expect = chai.expect
 chai.use(dirtyChai)
 
 const waterfall = require('async/waterfall')
-const series = require('async/series')
+const delay = require('delay')
+
+const { spawnGoDaemon, spawnJsDaemon } = require('./daemon')
 
 const crypto = require('crypto')
 
 const IPFS = require('ipfs')
 
 const DaemonFactory = require('ipfsd-ctl')
-const jsDf = DaemonFactory.create({ type: 'js' })
-const goDf = DaemonFactory.create({ type: 'go' })
 const procDf = DaemonFactory.create({ type: 'proc', exec: IPFS })
 
 const baseConf = {
@@ -30,8 +30,8 @@ const baseConf = {
   }
 }
 
-exports.createProcNode = (addrs, callback) => {
-  procDf.spawn({
+exports.createProcNode = async (addrs) => {
+  const ipfsd = await procDf.spawn({
     initOptions: { bits: 512 },
     config: Object.assign({}, baseConf, {
       Addresses: {
@@ -44,16 +44,15 @@ exports.createProcNode = (addrs, callback) => {
         enabled: true
       }
     }
-  }, (err, ipfsd) => {
-    expect(err).to.not.exist()
-    ipfsd.api.id((err, id) => {
-      callback(err, { ipfsd, addrs: id.addresses })
-    })
   })
+
+  const id = await ipfsd.api.id()
+
+  return { ipfsd, addrs: id.addresses }
 }
 
-exports.createJsNode = (addrs, callback) => {
-  jsDf.spawn({
+exports.createJsNode = async (addrs) => {
+  const ipfsd = await spawnJsDaemon({
     initOptions: { bits: 512 },
     config: Object.assign({}, baseConf, {
       Addresses: {
@@ -66,16 +65,15 @@ exports.createJsNode = (addrs, callback) => {
         }
       }
     })
-  }, (err, ipfsd) => {
-    expect(err).to.not.exist()
-    ipfsd.api.id((err, id) => {
-      callback(err, { ipfsd, addrs: id.addresses })
-    })
   })
+
+  const ipfsdId = await ipfsd.api.id()
+
+  return { ipfsd, addrs: ipfsdId.addresses }
 }
 
-exports.createGoNode = (addrs, callback) => {
-  goDf.spawn({
+exports.createGoNode = async (addrs) => {
+  const ipfsd = await spawnGoDaemon({
     initOptions: { bits: 1024 },
     config: Object.assign({}, baseConf, {
       Addresses: {
@@ -86,13 +84,12 @@ exports.createGoNode = (addrs, callback) => {
         EnableRelayHop: true
       }
     })
-  }, (err, ipfsd) => {
-    expect(err).to.not.exist()
-    ipfsd.api.id((err, id) => {
-      const addrs = [].concat(id.addresses, [`/p2p-circuit/ipfs/${id.id}`])
-      callback(err, { ipfsd, addrs: addrs })
-    })
   })
+
+  const ipfsdId = await ipfsd.api.id()
+  const _addrs = [].concat(ipfsdId.addresses, [`/p2p-circuit/ipfs/${ipfsdId.id}`])
+
+  return { ipfsd, addrs: _addrs }
 }
 
 const data = crypto.randomBytes(128)
@@ -139,25 +136,18 @@ const getCircuitAddr = (addrs) => addrs
 
 exports.getCircuitAddr = getCircuitAddr
 
-const connect = (nodeA, nodeB, relay, timeout, callback) => {
-  if (typeof timeout === 'function') {
-    callback = timeout
-    timeout = 1000
-  }
-
-  series([
-    (cb) => nodeA.ipfsd.api.swarm.connect(getWsAddr(relay.addrs), cb),
-    (cb) => nodeB.ipfsd.api.swarm.connect(getWsAddr(relay.addrs), cb),
-    // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
-    (cb) => setTimeout(cb, timeout),
-    (cb) => nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs), cb)
-  ], callback)
+const connect = async (nodeA, nodeB, relay, timeout = 1000) => {
+  await nodeA.ipfsd.api.swarm.connect(getWsAddr(relay.addrs))
+  await nodeB.ipfsd.api.swarm.connect(getWsAddr(relay.addrs))
+  // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
+  await delay(timeout)
+  await nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs))
 }
 
 exports.connect = connect
 
 exports.connWithTimeout = (timeout) => {
-  return (nodeA, nodeB, relay, callback) => {
-    connect(nodeA, nodeB, relay, timeout, callback)
+  return (nodeA, nodeB, relay) => {
+    connect(nodeA, nodeB, relay, timeout)
   }
 }
