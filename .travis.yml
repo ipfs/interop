@@ -32,13 +32,17 @@ jobs:
       name: chrome
       addons:
         chrome: stable
-      script: npx aegir test -t browser
+      script:
+       - npm install ipfs
+       - npx aegir test -t browser
 
     - stage: test
       name: firefox
       addons:
         firefox: latest
-      script: npx aegir test -t browser -- --browsers FirefoxHeadless
+      script:
+        - npm install ipfs
+        - npx aegir test -t browser -- --browsers FirefoxHeadless
 
 notifications:
   email: false
