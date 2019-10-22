@@ -12,7 +12,9 @@ os:
   - linux
   - osx
 
-script: npx nyc -s npm run test:node -- --bail
+script:
+  - npm install ipfs
+  - npx nyc -s npm run test:node -- --bail
 after_success: npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov
 
 jobs:

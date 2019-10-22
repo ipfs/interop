@@ -12,7 +12,13 @@ const { spawnGoDaemon, spawnJsDaemon } = require('./daemon')
 
 const crypto = require('crypto')
 
-const IPFS = require('ipfs')
+let IPFS
+
+if (process.env.IPFS_JS_MODULE) {
+  IPFS = require(process.env.IPFS_JS_MODULE)
+} else {
+  IPFS = require('ipfs')
+}
 
 const DaemonFactory = require('ipfsd-ctl')
 const procDf = DaemonFactory.create({ type: 'proc', exec: IPFS })
