@@ -73,11 +73,11 @@ function createDataStream (size = 262144) {
 }
 
 const compare = async (...ops) => {
-  expect(ops.length).to.be.above(1)
+  expect(ops).to.have.property('length').that.is.above(1)
 
   const results = await Promise.all(ops)
 
-  expect(results.length).to.equal(ops.length)
+  expect(results).to.have.lengthOf(ops.length)
 
   const result = results.pop()
 
@@ -85,7 +85,7 @@ const compare = async (...ops) => {
 }
 
 const compareErrors = async (expectedMessage, ...ops) => {
-  expect(ops.length).to.be.above(1)
+  expect(ops).to.have.property('length').that.is.above(1)
 
   const results = await Promise.all(
     ops.map(async (op) => {
@@ -104,7 +104,7 @@ const compareErrors = async (expectedMessage, ...ops) => {
       }
     }))
 
-  expect(results.length).to.equal(ops.length)
+  expect(results).to.have.lengthOf(ops.length)
 
   // all implementations should have similar error messages
   results.forEach(res => {
@@ -115,7 +115,7 @@ const compareErrors = async (expectedMessage, ...ops) => {
 
   // all implementations should have the same error code
   results.forEach(res => {
-    expect(res.code).to.equal(result.code)
+    expect(res).to.have.property('code', result.code)
   })
 }
 
@@ -126,13 +126,10 @@ describe('files', function () {
   let js
 
   before(async () => {
-    const res = await Promise.all([
+    [go, js] = await Promise.all([
       spawnGoDaemon(goOptions),
       spawnJsDaemon(jsOptions)
     ])
-
-    go = res[0]
-    js = res[1]
   })
 
   after(() => {

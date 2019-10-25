@@ -6,15 +6,10 @@ const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
 
-const series = require('async/series')
 const crypto = require('crypto')
-const parallel = require('async/parallel')
-const waterfall = require('async/waterfall')
 const bl = require('bl')
 
-const DaemonFactory = require('ipfsd-ctl')
-const goDf = DaemonFactory.create()
-const jsDf = DaemonFactory.create({ type: 'js' })
+const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 
 describe.skip('kad-dht', () => {
   describe('a JS node in the land of Go', () => {
@@ -23,87 +18,68 @@ describe.skip('kad-dht', () => {
     let goD2
     let goD3
 
-    before((done) => {
-      parallel([
-        (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-        (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-        (cb) => goDf.spawn({ initOptions: { bits: 1024 } }, cb),
-        (cb) => jsDf.spawn({ initOptions: { bits: 512 } }, cb)
-      ], (err, nodes) => {
-        expect(err).to.not.exist()
-        goD1 = nodes[0]
-        goD2 = nodes[1]
-        goD3 = nodes[2]
-        jsD = nodes[3]
-        done()
-      })
+    before(async () => {
+      [goD1, goD2, goD3, jsD] = await Promise.all([
+        spawnGoDaemon({ initOptions: { bits: 1024 } }),
+        spawnGoDaemon({ initOptions: { bits: 1024 } }),
+        spawnGoDaemon({ initOptions: { bits: 1024 } }),
+        spawnJsDaemon({ initOptions: { bits: 512 } })
+      ])
     })
 
-    after((done) => {
-      series([
-        (cb) => goD1.stop(cb),
-        (cb) => goD2.stop(cb),
-        (cb) => goD3.stop(cb),
-        (cb) => jsD.stop(cb)
-      ], done)
+    after(() => {
+      return Promise.all([goD1, goD2, goD3, jsD].map((node) => node.stop()))
     })
 
-    it('make connections', (done) => {
-      parallel([
-        (cb) => jsD.api.id(cb),
-        (cb) => goD1.api.id(cb),
-        (cb) => goD2.api.id(cb),
-        (cb) => goD3.api.id(cb)
-      ], (err, ids) => {
-        expect(err).to.not.exist()
-        parallel([
-          (cb) => jsD.api.swarm.connect(ids[1].addresses[0], cb),
-          (cb) => goD1.api.swarm.connect(ids[2].addresses[0], cb),
-          (cb) => goD2.api.swarm.connect(ids[3].addresses[0], cb)
-        ], done)
-      })
+    it('make connections', async () => {
+      const ids = await Promise.all([
+        jsD.api.id(),
+        goD1.api.id(),
+        goD2.api.id(),
+        goD3.api.id()
+      ])
+
+      await Promise.all([
+        jsD.api.swarm.connect(ids[1].addresses[0]),
+        goD1.api.swarm.connect(ids[2].addresses[0]),
+        goD2.api.swarm.connect(ids[3].addresses[0])
+      ])
     })
 
-    it('one hop', (done) => {
+    it('one hop', async () => {
       const data = crypto.randomBytes(9001)
 
-      waterfall([
-        (cb) => goD1.api.add(data, cb),
-        (res, cb) => jsD.api.cat(res[0].hash, cb),
-        (stream, cb) => stream.pipe(bl(cb))
-      ], (err, file) => {
-        expect(err).to.not.exist()
-        expect(file).to.be.eql(data)
-        done()
+      const res = await goD1.api.add(data)
+      const stream = await jsD.api.cat(res[0].hash)
+      const file = await new Promise((resolve, reject) => {
+        stream.pipe(bl((err, file) => err ? reject(err) : resolve(file)))
       })
+
+      expect(file).to.be.eql(data)
     })
 
-    it('two hops', (done) => {
+    it('two hops', async () => {
       const data = crypto.randomBytes(9001)
 
-      waterfall([
-        (cb) => goD2.api.add(data, cb),
-        (res, cb) => jsD.api.cat(res[0].hash, cb),
-        (stream, cb) => stream.pipe(bl(cb))
-      ], (err, file) => {
-        expect(err).to.not.exist()
-        expect(file).to.be.eql(data)
-        done()
+      const res = await goD2.api.add(data)
+      const stream = await jsD.api.cat(res[0].hash)
+      const file = await new Promise((resolve, reject) => {
+        stream.pipe(bl((err, file) => err ? reject(err) : resolve(file)))
       })
+
+      expect(file).to.be.eql(data)
     })
 
-    it('three hops', (done) => {
+    it('three hops', async () => {
       const data = crypto.randomBytes(9001)
 
-      waterfall([
-        (cb) => goD3.api.add(data, cb),
-        (res, cb) => jsD.api.cat(res[0].hash, cb),
-        (stream, cb) => stream.pipe(bl(cb))
-      ], (err, file) => {
-        expect(err).to.not.exist()
-        expect(file).to.be.eql(data)
-        done()
+      const res = await goD3.api.add(data)
+      const stream = await jsD.api.cat(res[0].hash)
+      const file = await new Promise((resolve, reject) => {
+        stream.pipe(bl((err, file) => err ? reject(err) : resolve(file)))
       })
+
+      expect(file).to.be.eql(data)
     })
   })
 

@@ -6,6 +6,9 @@ const timeout = require('./timeout')
 /*
  * This is a wrapper for pRetry enabling an interval value
  * i.e., the time to wait between retries, in milliseconds
+ *
+ * This must be removed as soon as https://github.com/sindresorhus/p-retry/issues/27
+ * gets resolved
  */
 module.exports = (input, options = {}) => {
   if (!options.interval) {

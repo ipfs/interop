@@ -50,23 +50,18 @@ describe('pubsub', function () {
       let id2
 
       before('spawn nodes', async function () {
-        this.timeout(timeout)
+        this.timeout(timeout); // eslint-disable-line
 
-        const nodes = await Promise.all(tests[name].map(fn => fn()))
-
-        daemon1 = nodes[0]
-        daemon2 = nodes[1]
+        [daemon1, daemon2] = await Promise.all(tests[name].map(fn => fn()))
       })
 
       before('connect', async function () {
-        this.timeout(timeout)
+        this.timeout(timeout); // eslint-disable-line
 
-        const ids = await Promise.all([
+        [id1, id2] = await Promise.all([
           daemon1.api.id(),
           daemon2.api.id()
         ])
-        id1 = ids[0]
-        id2 = ids[1]
 
         await daemon1.api.swarm.connect(id2.addresses[0])
         await daemon2.api.swarm.connect(id1.addresses[0])
@@ -93,7 +88,7 @@ describe('pubsub', function () {
             expect(msg.data.toString()).to.equal(data.toString())
             expect(msg).to.have.property('seqno')
             expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
-            expect(msg).to.have.property('topicIDs').eql([topic])
+            expect(msg).to.have.property('topicIDs').and.to.include(topic)
             expect(msg).to.have.property('from', id1.id)
             resolve()
           })
@@ -119,7 +114,7 @@ describe('pubsub', function () {
             expect(msg.data.toString()).to.equal(data.toString())
             expect(msg).to.have.property('seqno')
             expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
-            expect(msg).to.have.property('topicIDs').eql([topic])
+            expect(msg).to.have.property('topicIDs').and.to.include(topic)
             expect(msg).to.have.property('from', id1.id)
             resolve()
           })
@@ -145,7 +140,7 @@ describe('pubsub', function () {
             expect(msg.data.toString()).to.equal(data.toString())
             expect(msg).to.have.property('seqno')
             expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
-            expect(msg).to.have.property('topicIDs').eql([topic])
+            expect(msg).to.have.property('topicIDs').and.to.include(topic)
             expect(msg).to.have.property('from', id1.id)
             resolve()
           })

@@ -1,21 +1,22 @@
 'use strict'
 
-/*
- * Wait for a condition to become true.  When its true, callback is called.
- */
-module.exports = (predicate, ttl) => {
-  ttl = ttl ? Date.now() + ttl : Date.now() + (10 * 1000)
+const delay = require('delay')
 
-  return new Promise((resolve, reject) => {
-    const self = setInterval(() => {
-      if (predicate()) {
-        clearInterval(self)
-        resolve()
-      }
-      if (Date.now() > ttl) {
-        clearInterval(self)
-        reject(new Error('waitFor time expired'))
-      }
-    }, 50)
-  })
+/*
+ * Wait for a condition to become true.
+ */
+module.exports = async (predicate, ttl = 10e3, checkInterval = 50) => {
+  const timeout = Date.now() + ttl
+
+  while (true) {
+    if (predicate()) {
+      return
+    }
+
+    await delay(checkInterval)
+
+    if (Date.now() > timeout) {
+      throw new Error('waitFor time expired')
+    }
+  }
 }

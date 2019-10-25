@@ -2,9 +2,11 @@
 'use strict'
 
 const chai = require('chai')
-const dirtyChai = require('dirty-chai')
 const expect = chai.expect
-chai.use(dirtyChai)
+
+// Do not reorder these statements - https://github.com/chaijs/chai/issues/1298
+chai.use(require('chai-as-promised'))
+chai.use(require('dirty-chai'))
 
 const { fromB58String } = require('multihashes')
 const base64url = require('base64url')
@@ -101,33 +103,27 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   const topic = `${namespace}${base64url.encode(keys.routingKey.toBuffer())}`
 
   // try to resolve a unpublished record (will subscribe it)
-  try {
-    await nodeB.api.name.resolve(idA)
-  } catch (err) {
-    expect(err).to.exist() // not found
+  await expect(nodeB.api.name.resolve(idA)).to.be.rejected()
 
-    await waitForPeerToSubscribe(nodeB.api, topic)
-    await nodeB.api.pubsub.subscribe(topic, checkMessage)
-    await waitForNotificationOfSubscription(nodeA.api, topic, idB)
-    const res1 = await nodeA.api.name.publish(ipfsRef, { resolve: false })
-    await waitFor(() => subscribed === true, (50 * 1000))
-    const res2 = await nodeB.api.name.resolve(idA)
+  await waitForPeerToSubscribe(nodeB.api, topic)
+  await nodeB.api.pubsub.subscribe(topic, checkMessage)
+  await waitForNotificationOfSubscription(nodeA.api, topic, idB)
+  const res1 = await nodeA.api.name.publish(ipfsRef, { resolve: false })
+  await waitFor(() => subscribed === true, (50 * 1000))
+  const res2 = await nodeB.api.name.resolve(idA)
 
-    expect(res1.name).to.equal(idA) // Published to Node A ID
-    expect(res2).to.equal(ipfsRef)
-  }
+  expect(res1.name).to.equal(idA) // Published to Node A ID
+  expect(res2).to.equal(ipfsRef)
 }
 
 // wait until a peer know about other peer to subscribe a topic
-const waitForNotificationOfSubscription = async (daemon, topic, peerId) => {
-  await pRetry(async () => {
-    const res = await daemon.pubsub.peers(topic)
+const waitForNotificationOfSubscription = (daemon, topic, peerId) => pRetry(async () => {
+  const res = await daemon.pubsub.peers(topic)
 
-    if (!res || !res.length || !res.includes(peerId)) {
-      throw new Error('Could not find peer subscribing')
-    }
-  }, retryOptions)
-}
+  if (!res || !res.length || !res.includes(peerId)) {
+    throw new Error('Could not find peer subscribing')
+  }
+}, retryOptions)
 
 // Wait until a peer subscribes a topic
 const waitForPeerToSubscribe = async (daemon, topic) => {
