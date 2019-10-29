@@ -2,11 +2,6 @@
 /* eslint-env mocha */
 'use strict'
 
-const chai = require('chai')
-const dirtyChai = require('dirty-chai')
-const expect = chai.expect
-chai.use(dirtyChai)
-
 const crypto = require('crypto')
 const pretty = require('pretty-bytes')
 const randomFs = require('random-fs')
@@ -17,8 +12,8 @@ const hat = require('hat')
 const isCi = require('is-ci')
 const isWindows = require('is-os').isWindows
 const os = require('os')
-
 const rmDir = promisify(rimraf)
+const { expect } = require('./utils/chai')
 
 const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 

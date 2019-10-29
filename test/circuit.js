@@ -2,10 +2,6 @@
 /* eslint-env mocha */
 'use strict'
 
-const chai = require('chai')
-const dirtyChai = require('dirty-chai')
-chai.use(dirtyChai)
-
 const all = require('./circuit/all')
 const browser = require('./circuit/browser')
 

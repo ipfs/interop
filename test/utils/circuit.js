@@ -1,11 +1,7 @@
 'use strict'
 
-const chai = require('chai')
-const dirtyChai = require('dirty-chai')
-const expect = chai.expect
-chai.use(dirtyChai)
-
 const delay = require('delay')
+const { expect } = require('./chai')
 
 const { spawnGoDaemon, spawnJsDaemon } = require('./daemon')
 

@@ -2,12 +2,8 @@
 /* eslint-env mocha */
 'use strict'
 
-const chai = require('chai')
-const dirtyChai = require('dirty-chai')
-const expect = chai.expect
-chai.use(dirtyChai)
-
 const pRetry = require('./utils/p-retry')
+const { expect } = require('./utils/chai')
 
 const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 

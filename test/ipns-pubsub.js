@@ -1,23 +1,15 @@
 /* eslint-env mocha */
 'use strict'
 
-const chai = require('chai')
-const expect = chai.expect
-
-// Do not reorder these statements - https://github.com/chaijs/chai/issues/1298
-chai.use(require('chai-as-promised'))
-chai.use(require('dirty-chai'))
-
 const { fromB58String } = require('multihashes')
 const base64url = require('base64url')
 const ipns = require('ipns')
-
 const delay = require('delay')
 const pRetry = require('./utils/p-retry')
+const waitFor = require('./utils/wait-for')
+const { expect } = require('./utils/chai')
 
 const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
-
-const waitFor = require('./utils/wait-for')
 
 const daemonsOptions = {
   args: ['--enable-namesys-pubsub'] // enable ipns over pubsub
