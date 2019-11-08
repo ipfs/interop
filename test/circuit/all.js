@@ -2,8 +2,6 @@
 /* eslint-env mocha */
 'use strict'
 
-const series = require('async/series')
-
 const utils = require('../utils/circuit')
 
 const createJs = utils.createJsNode
@@ -13,59 +11,59 @@ const base = '/ip4/127.0.0.1/tcp/0'
 
 module.exports = {
   'go-go-go': {
-    create: (callback) => series([
-      (cb) => createGo([`${base}/ws`], cb),
-      (cb) => createGo([`${base}/ws`], cb),
-      (cb) => createGo([`${base}/ws`], cb)
-    ], callback)
+    create: () => Promise.all([
+      createGo([`${base}/ws`]),
+      createGo([`${base}/ws`]),
+      createGo([`${base}/ws`])
+    ])
   },
   'js-go-go': {
-    create: (callback) => series([
-      (cb) => createJs([`${base}/ws`], cb),
-      (cb) => createGo([`${base}/ws`], cb),
-      (cb) => createGo([`${base}/ws`], cb)
-    ], callback)
+    create: () => Promise.all([
+      createJs([`${base}/ws`]),
+      createGo([`${base}/ws`]),
+      createGo([`${base}/ws`])
+    ])
   },
   'go-go-js': {
-    create: (callback) => series([
-      (cb) => createGo([`${base}/ws`], cb),
-      (cb) => createGo([`${base}/ws`], cb),
-      (cb) => createJs([`${base}/ws`], cb)
-    ], callback)
+    create: () => Promise.all([
+      createGo([`${base}/ws`]),
+      createGo([`${base}/ws`]),
+      createJs([`${base}/ws`])
+    ])
   },
   'js-go-js': {
-    create: (callback) => series([
-      (cb) => createJs([`${base}/ws`], cb),
-      (cb) => createGo([`${base}/ws`], cb),
-      (cb) => createJs([`${base}/ws`], cb)
-    ], callback)
+    create: () => Promise.all([
+      createJs([`${base}/ws`]),
+      createGo([`${base}/ws`]),
+      createJs([`${base}/ws`])
+    ])
   },
   'go-js-go': {
-    create: (callback) => series([
-      (cb) => createGo([`${base}/ws`], cb),
-      (cb) => createJs([`${base}/ws`], cb),
-      (cb) => createGo([`${base}/ws`], cb)
-    ], callback)
+    create: () => Promise.all([
+      createGo([`${base}/ws`]),
+      createJs([`${base}/ws`]),
+      createGo([`${base}/ws`])
+    ])
   },
   'js-js-go': {
-    create: (callback) => series([
-      (cb) => createJs([`${base}/ws`], cb),
-      (cb) => createJs([`${base}/ws`], cb),
-      (cb) => createGo([`${base}/ws`], cb)
-    ], callback)
+    create: () => Promise.all([
+      createJs([`${base}/ws`]),
+      createJs([`${base}/ws`]),
+      createGo([`${base}/ws`])
+    ])
   },
   'go-js-js': {
-    create: (callback) => series([
-      (cb) => createGo([`${base}/ws`], cb),
-      (cb) => createJs([`${base}/ws`], cb),
-      (cb) => createJs([`${base}/ws`], cb)
-    ], callback)
+    create: () => Promise.all([
+      createGo([`${base}/ws`]),
+      createJs([`${base}/ws`]),
+      createJs([`${base}/ws`])
+    ])
   },
   'js-js-js': {
-    create: (callback) => series([
-      (cb) => createJs([`${base}/ws`], cb),
-      (cb) => createJs([`${base}/ws`], cb),
-      (cb) => createJs([`${base}/ws`], cb)
-    ], callback)
+    create: () => Promise.all([
+      createJs([`${base}/ws`]),
+      createJs([`${base}/ws`]),
+      createJs([`${base}/ws`])
+    ])
   }
 }

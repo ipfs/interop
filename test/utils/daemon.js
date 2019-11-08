@@ -2,16 +2,16 @@
 
 const mergeOptions = require('merge-options')
 const DaemonFactory = require('ipfsd-ctl')
+const httpClient = require('ipfs-http-client')
 const goDf = DaemonFactory.create()
 const jsDf = DaemonFactory.create({ type: 'js' })
 
-const spawnInitAndStartDaemon = (factory, options) => {
+const spawnDaemon = (factory, options) => {
   options = mergeOptions({
     initOptions: {
       bits: 1024
     },
     config: {
-      Bootstrap: [],
       Discovery: {
         MDNS: {
           Enabled: false
@@ -19,45 +19,20 @@ const spawnInitAndStartDaemon = (factory, options) => {
         webRTCStar: {
           Enabled: false
         }
-      },
-      // enabled sharding for go
-      Experimental: {
-        ShardingEnabled: true
       }
     },
-    // enabled sharding for js
-    args: factory.options.type === 'js' ? [
-      '--enable-sharding-experiment'
-    ] : undefined,
-    profile: 'test'
+    profile: 'test',
+    IpfsClient: httpClient
   }, options)
 
-  return new Promise((resolve, reject) => {
-    factory.spawn(options, (error, instance) => {
-      if (error) {
-        return reject(error)
-      }
-
-      resolve(instance)
-    })
-  })
+  return factory.spawn(options)
 }
 
-const stopDaemon = (daemon) => {
-  return new Promise((resolve, reject) => {
-    daemon.stop((error) => {
-      if (error) {
-        return reject(error)
-      }
-
-      resolve()
-    })
-  })
-}
+const stopDaemon = (daemon) => daemon.stop()
 
 module.exports = {
-  spawnInitAndStartDaemon,
-  spawnInitAndStartGoDaemon: (opts) => spawnInitAndStartDaemon(goDf, opts),
-  spawnInitAndStartJsDaemon: (opts) => spawnInitAndStartDaemon(jsDf, opts),
+  spawnDaemon,
+  spawnGoDaemon: (opts) => spawnDaemon(goDf, opts),
+  spawnJsDaemon: (opts) => spawnDaemon(jsDf, opts),
   stopDaemon
 }

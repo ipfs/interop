@@ -7,17 +7,27 @@ const expect = chai.expect
 chai.use(dirtyChai)
 const crypto = require('crypto')
 const UnixFs = require('ipfs-unixfs')
-const {
-  spawnInitAndStartGoDaemon,
-  spawnInitAndStartJsDaemon,
-  stopDaemon
-} = require('./utils/daemon')
+const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 const bufferStream = require('readable-stream-buffer-stream')
 
 const SHARD_THRESHOLD = 1000
 
 class ExpectedError extends Error {
 
+}
+
+const goOptions = {
+  config: {
+    // enabled sharding for go
+    Experimental: {
+      ShardingEnabled: true
+    }
+  }
+}
+
+const jsOptions = {
+  // enabled sharding for js
+  args: ['--enable-sharding-experiment']
 }
 
 function checkNodeTypes (daemon, file) {
@@ -53,6 +63,17 @@ function addFile (daemon, data) {
     .then(files => {
       return files.filter(file => file.name === fileName).pop()
     })
+}
+
+function createDataStream (size = 262144) {
+  const chunkSize = size
+  const buffer = Buffer.alloc(chunkSize, 0)
+
+  return bufferStream(chunkSize, {
+    generator: (size, callback) => {
+      callback(null, buffer.slice(0, size))
+    }
+  })
 }
 
 const compare = (...ops) => {
@@ -113,8 +134,8 @@ describe('files', function () {
 
   before(() => {
     return Promise.all([
-      spawnInitAndStartGoDaemon(),
-      spawnInitAndStartJsDaemon()
+      spawnGoDaemon(goOptions),
+      spawnJsDaemon(jsOptions)
     ])
       .then(([goDaemon, jsDaemon]) => {
         go = goDaemon
@@ -123,10 +144,7 @@ describe('files', function () {
   })
 
   after(() => {
-    return Promise.all([
-      stopDaemon(go),
-      stopDaemon(js)
-    ])
+    return Promise.all([go, js].map((daemon) => daemon.stop()))
   })
 
   it('returns an error when reading non-existent files', () => {
@@ -273,8 +291,7 @@ describe('files', function () {
       )
     })
 
-    // requires go-ipfs v0.4.21
-    it.skip('small files with CIDv1', () => {
+    it('small files with CIDv1', () => {
       const data = Buffer.from([0x00, 0x01, 0x02])
       const options = {
         cidVersion: 1
@@ -286,8 +303,7 @@ describe('files', function () {
       )
     })
 
-    // requires go-ipfs v0.4.21
-    it.skip('big files with CIDv1', () => {
+    it('big files with CIDv1', () => {
       const data = crypto.randomBytes(1024 * 3000)
       const options = {
         cidVersion: 1
@@ -300,13 +316,6 @@ describe('files', function () {
     })
 
     it('trickle DAGs', () => {
-      const chunkSize = 262144
-      const buffer = Buffer.alloc(chunkSize, 0)
-      const data = bufferStream(chunkSize, {
-        generator: (size, callback) => {
-          callback(null, buffer.slice(0, size))
-        }
-      })
       const options = {
         cidVersion: 0,
         trickle: true,
@@ -316,19 +325,12 @@ describe('files', function () {
       }
 
       return compare(
-        testHashesAreEqual(go, data, options),
-        testHashesAreEqual(js, data, options)
+        testHashesAreEqual(go, createDataStream(), options),
+        testHashesAreEqual(js, createDataStream(), options)
       )
     })
 
     it('rabin chunker', () => {
-      const chunkSize = 262144
-      const buffer = Buffer.alloc(chunkSize, 0)
-      const data = bufferStream(chunkSize, {
-        generator: (size, callback) => {
-          callback(null, buffer.slice(0, size))
-        }
-      })
       const options = {
         chunker: 'rabin-512-1024-2048',
         pin: false,
@@ -336,19 +338,12 @@ describe('files', function () {
       }
 
       return compare(
-        testHashesAreEqual(go, data, options),
-        testHashesAreEqual(js, data, options)
+        testHashesAreEqual(go, createDataStream(), options),
+        testHashesAreEqual(js, createDataStream(), options)
       )
     })
 
     it('rabin chunker small chunks', () => {
-      const chunkSize = 262144
-      const buffer = Buffer.alloc(chunkSize, 0)
-      const data = bufferStream(chunkSize, {
-        generator: (size, callback) => {
-          callback(null, buffer.slice(0, size))
-        }
-      })
       const options = {
         chunker: 'rabin-16-16-16',
         pin: false,
@@ -356,8 +351,8 @@ describe('files', function () {
       }
 
       return compare(
-        testHashesAreEqual(go, data, options),
-        testHashesAreEqual(js, data, options)
+        testHashesAreEqual(go, createDataStream(), options),
+        testHashesAreEqual(js, createDataStream(), options)
       )
     })
 

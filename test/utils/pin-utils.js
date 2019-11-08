@@ -4,23 +4,13 @@ const os = require('os')
 const path = require('path')
 const hat = require('hat')
 
-exports.removeAllPins = function removeAllPins (daemon) {
-  return daemon.api.pin.ls()
-    .then(pins => {
-      const rootPins = pins.filter(
-        pin => pin.type === 'recursive' || pin.type === 'direct'
-      )
-      return Promise.all(rootPins.map(pin => daemon.api.pin.rm(pin.hash)))
-    })
-    .then(() => daemon)
-}
+exports.removeAllPins = async function removeAllPins (daemon) {
+  const pins = await daemon.api.pin.ls()
+  const rootPins = pins.filter(pin => pin.type === 'recursive' || pin.type === 'direct')
 
-exports.stopDaemons = function stopDaemons (daemons) {
-  return Promise.all(
-    daemons.map(daemon => new Promise((resolve, reject) =>
-      daemon.stop(err => err ? reject(err) : resolve())
-    ))
-  )
+  await Promise.all(rootPins.map(pin => daemon.api.pin.rm(pin.hash)))
+
+  return daemon
 }
 
 exports.tmpPath = function tmpPath () {

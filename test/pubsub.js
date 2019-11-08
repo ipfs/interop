@@ -11,10 +11,7 @@ const series = require('async/series')
 const parallel = require('async/parallel')
 const retry = require('async/retry')
 
-const {
-  spawnInitAndStartGoDaemon,
-  spawnInitAndStartJsDaemon
-} = require('./utils/daemon')
+const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 
 const waitForTopicPeer = (topic, peer, daemon, callback) => {
   retry({
@@ -35,20 +32,18 @@ const waitForTopicPeer = (topic, peer, daemon, callback) => {
   }, callback)
 }
 
-const timeout = 20e3
-function createJs () {
-  return spawnInitAndStartJsDaemon({ args: ['--enable-pubsub-experiment'] })
-}
-function createGo () {
-  return spawnInitAndStartGoDaemon({ args: ['--enable-pubsub-experiment'] })
+const daemonOptions = {
+  args: ['--enable-pubsub-experiment']
 }
 
 describe('pubsub', function () {
+  this.timeout(60 * 1000)
+
   const tests = {
-    'publish from Go, subscribe on Go': [createGo, createGo],
-    'publish from JS, subscribe on JS': [createJs, createJs],
-    'publish from JS, subscribe on Go': [createJs, createGo],
-    'publish from Go, subscribe on JS': [createGo, createJs]
+    'publish from Go, subscribe on Go': [() => spawnGoDaemon(daemonOptions), () => spawnGoDaemon(daemonOptions)],
+    'publish from JS, subscribe on JS': [() => spawnJsDaemon(), () => spawnJsDaemon()],
+    'publish from JS, subscribe on Go': [() => spawnJsDaemon(), () => spawnGoDaemon(daemonOptions)],
+    'publish from Go, subscribe on JS': [() => spawnGoDaemon(daemonOptions), () => spawnJsDaemon()]
   }
 
   Object.keys(tests).forEach((name) => {
@@ -59,8 +54,6 @@ describe('pubsub', function () {
       let id2
 
       before('spawn nodes', function () {
-        this.timeout(timeout)
-
         return Promise.all(tests[name].map(fn => fn()))
           .then(nodes => {
             [daemon1, daemon2] = nodes
@@ -68,8 +61,6 @@ describe('pubsub', function () {
       })
 
       before('connect', function (done) {
-        this.timeout(timeout)
-
         series([
           (cb) => parallel([
             (cb) => daemon1.api.id(cb),
@@ -94,10 +85,8 @@ describe('pubsub', function () {
         ], done)
       })
 
-      after('stop nodes', function (done) {
-        this.timeout(timeout)
-
-        parallel([daemon1, daemon2].map((node) => (cb) => node.stop(cb)), done)
+      after('stop nodes', function () {
+        return Promise.all([daemon1, daemon2].map((node) => node.stop()))
       })
 
       it('should exchange ascii data', function (done) {

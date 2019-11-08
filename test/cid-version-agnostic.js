@@ -7,23 +7,24 @@ const expect = chai.expect
 chai.use(dirtyChai)
 const hat = require('hat')
 const CID = require('cids')
-const {
-  spawnInitAndStartGoDaemon,
-  spawnInitAndStartJsDaemon,
-  stopDaemon
-} = require('./utils/daemon')
+const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 
-describe('CID version agnostic', () => {
+const jsDaemonOptions = {
+  config: {
+    Bootstrap: []
+  }
+}
+
+describe('CID version agnostic', function () {
+  this.timeout(50 * 1000)
   const daemons = {}
 
   before(async function () {
-    this.timeout(50 * 1000)
-
     const [js0, js1, go0, go1] = await Promise.all([
-      spawnInitAndStartJsDaemon(),
-      spawnInitAndStartJsDaemon(),
-      spawnInitAndStartGoDaemon(),
-      spawnInitAndStartGoDaemon()
+      spawnJsDaemon(jsDaemonOptions),
+      spawnJsDaemon(jsDaemonOptions),
+      spawnGoDaemon(),
+      spawnGoDaemon()
     ])
     Object.assign(daemons, { js0, js1, go0, go1 })
 
@@ -43,8 +44,7 @@ describe('CID version agnostic', () => {
   })
 
   after(function () {
-    this.timeout(30 * 1000)
-    return Promise.all(Object.values(daemons).map(stopDaemon))
+    return Promise.all(Object.values(daemons).map((daemon) => daemon.stop()))
   })
 
   it('should add v0 and cat v1 (go0 -> go0)', async () => {
