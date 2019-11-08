@@ -1,14 +1,11 @@
 /* eslint-env mocha */
 'use strict'
 
-const chai = require('chai')
-const dirtyChai = require('dirty-chai')
-const expect = chai.expect
-chai.use(dirtyChai)
 const crypto = require('crypto')
 const UnixFs = require('ipfs-unixfs')
 const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
 const bufferStream = require('readable-stream-buffer-stream')
+const { expect } = require('./utils/chai')
 
 const SHARD_THRESHOLD = 1000
 
@@ -30,39 +27,35 @@ const jsOptions = {
   args: ['--enable-sharding-experiment']
 }
 
-function checkNodeTypes (daemon, file) {
-  return daemon.api.object.get(file.hash)
-    .then(node => {
-      const meta = UnixFs.unmarshal(node.Data)
-
-      expect(meta.type).to.equal('file')
-      expect(node.Links.length).to.equal(2)
-
-      return Promise.all(
-        node.Links.map(link => daemon.api.object.get(link.Hash).then(child => {
-          const childMeta = UnixFs.unmarshal(child.Data)
-
-          expect(childMeta.type).to.equal('raw')
-        }))
-      )
-    })
+const createDirectory = (daemon, path, options) => {
+  return daemon.api.files.mkdir(path, options)
 }
 
-function addFile (daemon, data) {
+async function checkNodeTypes (daemon, file) {
+  const node = await daemon.api.object.get(file.hash)
+
+  const meta = UnixFs.unmarshal(node.Data)
+
+  expect(meta.type).to.equal('file')
+  expect(node.Links.length).to.equal(2)
+
+  return Promise.all(
+    node.Links.map(async (link) => {
+      const child = await daemon.api.object.get(link.Hash)
+      const childMeta = UnixFs.unmarshal(child.Data)
+
+      expect(childMeta.type).to.equal('raw')
+    })
+  )
+}
+
+async function addFile (daemon, data) {
   const fileName = 'test-file'
 
-  return daemon.api.files.write(`/${fileName}`, data, {
-    create: true
-  })
-    // cannot list file directly - https://github.com/ipfs/go-ipfs/issues/5044
-    .then(() => {
-      return daemon.api.files.ls('/', {
-        l: true
-      })
-    })
-    .then(files => {
-      return files.filter(file => file.name === fileName).pop()
-    })
+  await daemon.api.files.write(`/${fileName}`, data, { create: true })
+  const files = await daemon.api.files.ls('/', { l: true })
+
+  return files.filter(file => file.name === fileName).pop()
 }
 
 function createDataStream (size = 262144) {
@@ -76,54 +69,51 @@ function createDataStream (size = 262144) {
   })
 }
 
-const compare = (...ops) => {
-  expect(ops.length).to.be.above(1)
+const compare = async (...ops) => {
+  expect(ops).to.have.property('length').that.is.above(1)
 
-  return Promise.all(
-    ops
-  )
-    .then(results => {
-      expect(results.length).to.equal(ops.length)
+  const results = await Promise.all(ops)
 
-      const result = results.pop()
+  expect(results).to.have.lengthOf(ops.length)
 
-      results.forEach(res => expect(res).to.deep.equal(result))
-    })
+  const result = results.pop()
+
+  results.forEach(res => expect(res).to.deep.equal(result))
 }
 
-const compareErrors = (expectedMessage, ...ops) => {
-  expect(ops.length).to.be.above(1)
+const compareErrors = async (expectedMessage, ...ops) => {
+  expect(ops).to.have.property('length').that.is.above(1)
 
-  return Promise.all(
-    // even if operations fail, their errors should be similar
-    ops.map(op => op.then(() => {
-      throw new ExpectedError('Expected operation to fail')
-    }).catch(error => {
-      if (error instanceof ExpectedError) {
-        throw error
-      }
+  const results = await Promise.all(
+    ops.map(async (op) => {
+      try {
+        await op
+        throw new ExpectedError('Expected operation to fail')
+      } catch (error) {
+        if (error instanceof ExpectedError) {
+          throw error
+        }
 
-      return {
-        message: error.message,
-        code: error.code
+        return {
+          message: error.message,
+          code: error.code
+        }
       }
     }))
-  )
-    .then(results => {
-      expect(results.length).to.equal(ops.length)
 
-      // all implementations should have similar error messages
-      results.forEach(res => {
-        expect(res.message.toLowerCase()).to.contain(expectedMessage.toLowerCase())
-      })
+  expect(results).to.have.lengthOf(ops.length)
 
-      const result = results.pop()
+  // all implementations should have similar error messages
+  results.forEach(res => {
+    expect(res.message.toLowerCase()).to.contain(expectedMessage.toLowerCase())
+  })
 
-      // all implementations should have the same error code
-      results.forEach(res => {
-        expect(res.code).to.equal(result.code)
-      })
-    })
+  const result = results.pop()
+
+  // all implementations should have the same error code
+  results.forEach(res => {
+    expect(res).to.have.property('code', result.code)
+  })
 }
 
 describe('files', function () {
@@ -132,15 +122,11 @@ describe('files', function () {
   let go
   let js
 
-  before(() => {
-    return Promise.all([
+  before(async () => {
+    [go, js] = await Promise.all([
       spawnGoDaemon(goOptions),
       spawnJsDaemon(jsOptions)
     ])
-      .then(([goDaemon, jsDaemon]) => {
-        go = goDaemon
-        js = jsDaemon
-      })
   })
 
   after(() => {
@@ -173,9 +159,9 @@ describe('files', function () {
 
   it('uses raw nodes for leaf data', () => {
     const data = crypto.randomBytes(1024 * 300)
-    const testLeavesAreRaw = (daemon) => {
-      return addFile(daemon, data)
-        .then(file => checkNodeTypes(daemon, file))
+    const testLeavesAreRaw = async (daemon) => {
+      const file = await addFile(daemon, data)
+      await checkNodeTypes(daemon, file)
     }
 
     return compare(
@@ -186,49 +172,59 @@ describe('files', function () {
 
   it('errors when creating the same directory twice', () => {
     const path = `/test-dir-${Math.random()}`
+    const createSameDirectory = async (daemon) => {
+      await createDirectory(daemon, path)
+      await createDirectory(daemon, path)
+    }
 
     return compareErrors(
       'already exists',
-      go.api.files.mkdir(path).then(() => go.api.files.mkdir(path)),
-      js.api.files.mkdir(path).then(() => js.api.files.mkdir(path))
+      createSameDirectory(go),
+      createSameDirectory(js)
     )
   })
 
   it('does not error when creating the same directory twice and -p is passed', () => {
     const path = `/test-dir-${Math.random()}`
+    const createSameDirectory = async (daemon) => {
+      await createDirectory(daemon, path)
+      await createDirectory(daemon, path, { p: true })
+    }
 
     return compare(
-      go.api.files.mkdir(path).then(() => go.api.files.mkdir(path, { p: true })),
-      js.api.files.mkdir(path).then(() => js.api.files.mkdir(path, { p: true }))
+      createSameDirectory(go),
+      createSameDirectory(js)
     )
   })
 
   it('errors when creating the root directory', () => {
     const path = '/'
+    const createSameDirectory = async (daemon) => {
+      await createDirectory(daemon, path)
+      await createDirectory(daemon, path)
+    }
 
     return compareErrors(
       'already exists',
-      go.api.files.mkdir(path).then(() => go.api.files.mkdir(path)),
-      js.api.files.mkdir(path).then(() => js.api.files.mkdir(path))
+      createSameDirectory(go),
+      createSameDirectory(js)
     )
   })
 
   describe('has the same hashes for', () => {
-    const testHashesAreEqual = (daemon, data, options = {}) => {
-      return daemon.api.add(data, options)
-        .then(files => files[0].hash)
+    const testHashesAreEqual = async (daemon, data, options = {}) => {
+      const files = await daemon.api.add(data, options)
+
+      return files[0].hash
     }
 
-    const _writeData = (daemon, initialData, newData, options) => {
+    const _writeData = async (daemon, initialData, newData, options) => {
       const fileName = `file-${Math.random()}.txt`
 
-      return daemon.api.files.write(`/${fileName}`, initialData, {
-        create: true
-      })
-        .then(() => daemon.api.files.ls('/', {
-          l: true
-        }))
-        .then(files => files.filter(file => file.name === fileName).pop().hash)
+      await daemon.api.files.write(`/${fileName}`, initialData, { create: true })
+      const files = await daemon.api.files.ls('/', { l: true })
+
+      return files.filter(file => file.name === fileName).pop().hash
     }
 
     const appendData = (daemon, initialData, appendedData) => {

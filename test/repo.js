@@ -1,16 +1,12 @@
 /* eslint-env mocha */
 'use strict'
 
-const chai = require('chai')
-const dirtyChai = require('dirty-chai')
-const expect = chai.expect
-chai.use(dirtyChai)
-
 const crypto = require('crypto')
 const os = require('os')
 const path = require('path')
 const hat = require('hat')
 const delay = require('delay')
+const { expect } = require('./utils/chai')
 
 const isWindows = os.platform() === 'win32'
 
