@@ -2,14 +2,10 @@
 'use strict'
 
 const fs = require('fs')
-const chai = require('chai')
-const dirtyChai = require('dirty-chai')
-const expect = chai.expect
-chai.use(dirtyChai)
+const utils = require('./utils/pin-utils')
+const { expect } = require('./utils/chai')
 
 const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
-
-const utils = require('./utils/pin-utils')
 
 describe('pin', function () {
   this.timeout(60 * 1000)
