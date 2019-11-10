@@ -50,7 +50,6 @@
     "dirty-chai": "^2.0.1",
     "go-ipfs-dep": "~0.4.22",
     "hat": "~0.0.3",
-    "ipfs-repo": "~0.26.6",
     "ipfs-unixfs": "~0.1.16",
     "ipfsd-ctl": "~0.47.4",
     "ipns": "^0.6.1",
