@@ -25,6 +25,9 @@ This repository will be used for interop tests. Please jump into the issues if y
 # optionally install a version of js-ipfs-http-client to test with
 # (otherwise the one ipfs depends on will be used)
 > npm install ipfs-http-client
+
+# install a version of go-ipfs to test with
+> npm install go-ipfs-dep
 ```
 
 ### Run the tests
