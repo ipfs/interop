@@ -18,6 +18,16 @@ This repository will be used for interop tests. Please jump into the issues if y
 > git clone git@github.com:ipfs/interop.git
 > cd interop
 > npm install
+
+# install a version of js-ipfs to test with
+> npm install ipfs
+
+# optionally install a version of js-ipfs-http-client to test with
+# (otherwise the one ipfs depends on will be used)
+> npm install ipfs-http-client
+
+# install a version of go-ipfs to test with
+> npm install go-ipfs-dep
 ```
 
 ### Run the tests
@@ -29,15 +39,8 @@ This repository will be used for interop tests. Please jump into the issues if y
 ### Test with a non yet released version of js-ipfs
 
 ```
-# Do the steps in the install section, then
-> cd ..
-> git clone git@github.com:ipfs/js-ipfs.git
-> cd js-ipfs
-> npm install
-> npm link
-> cd ../interop
-> npm link ipfs
-> npm test
+# Do the steps in the install section but skip installing ipfs, then
+> IPFS_JS_EXEC=/path/to/js-ipfs/src/cli/bin.js IPFS_JS_MODULE=/path/to/js-ipfs npm test
 ```
 
 ### Test with a non yet released version of go-ipfs

@@ -18,7 +18,9 @@ os:
   - linux
   - osx
 
-script: npx nyc -s npm run test:node -- --bail
+script:
+  - npm install ipfs go-ipfs-dep
+  - npx nyc -s npm run test:node -- --bail
 after_success: npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov
 
 jobs:
@@ -36,13 +38,17 @@ jobs:
       name: chrome
       addons:
         chrome: stable
-      script: npx aegir test -t browser
+      script:
+       - npm install ipfs go-ipfs-dep
+       - npx aegir test -t browser
 
     - stage: test
       name: firefox
       addons:
         firefox: latest
-      script: npx aegir test -t browser -- --browsers FirefoxHeadless
+      script:
+        - npm install ipfs go-ipfs-dep
+        - npx aegir test -t browser -- --browsers FirefoxHeadless
 
 notifications:
   email: false
