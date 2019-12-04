@@ -6,7 +6,6 @@ docs
 # Logs
 logs
 *.log
-package-lock.json
 
 coverage
 
