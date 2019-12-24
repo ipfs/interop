@@ -46,7 +46,11 @@ describe('circuit', () => {
         nodeB = _nodes[2]
       })
 
-      after(() => Promise.all(nodes.map((node) => node.stop())))
+      after(async () => {
+        if (nodes) {
+          await Promise.all(nodes.map((node) => node.stop()))
+        }
+      })
 
       it('connect', () => {
         return tests[test].connect(nodeA, nodeB, relay)

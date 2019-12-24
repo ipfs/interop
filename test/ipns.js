@@ -37,7 +37,12 @@ const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
   const result = await publisherDaemon.api.id()
   const nodeId = result.id
 
-  await publisherDaemon.api.name.publish(ipfsRef, { resolve: false, allowOffline: true })
+  await publisherDaemon.api.name.publish(ipfsRef, {
+    resolve: false,
+    // TODO: fix this
+    'allow-offline': true, // ipfs-http-client v39
+    allowOffline: true // ipfs-http-client v40
+  })
 
   !sameDaemon && await stopPublisherAndStartResolverDaemon()
 
