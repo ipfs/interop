@@ -53,6 +53,7 @@
     "ipns": "^0.7.0",
     "is-ci": "^2.0.0",
     "is-os": "^1.0.1",
+    "it-all": "^1.0.1",
     "it-concat": "^1.0.0",
     "it-last": "^1.0.1",
     "libp2p-websocket-star-rendezvous": "~0.4.1",
