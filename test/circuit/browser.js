@@ -4,16 +4,15 @@
 
 const delay = require('delay')
 
-const utils = require('../utils/circuit')
-
-const createJs = utils.createJsNode
-const createProc = utils.createProcNode
-const createGo = utils.createGoNode
-const connWithTimeout = utils.connWithTimeout
-
-const getWsAddr = utils.getWsAddr
-const getWsStarAddr = utils.getWsStarAddr
-const getCircuitAddr = utils.getCircuitAddr
+const {
+  createJs,
+  createGo,
+  createProc,
+  connWithTimeout,
+  getWsAddr,
+  getWsStarAddr,
+  getCircuitAddr
+} = require('../utils/circuit')
 
 const base = '/ip4/127.0.0.1/tcp/0'
 
@@ -95,7 +94,7 @@ module.exports = {
       await delay(5000)
       await nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs))
     },
-    skip: () => false
+    skip: () => true // TODO: use webrtc-star?
   },
   'js-browser-browser': {
     create: () => Promise.all([
@@ -109,7 +108,8 @@ module.exports = {
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(3000)
       await nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs))
-    }
+    },
+    skip: () => true // TODO: use webrtc-star?
   },
   'browser-browser-go': {
     create: () => Promise.all([
@@ -123,7 +123,8 @@ module.exports = {
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(5000)
       await nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs))
-    }
+    },
+    skip: () => true // TODO: use webrtc-star?
   },
   'browser-browser-js': {
     create: () => Promise.all([
@@ -137,6 +138,7 @@ module.exports = {
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(3000)
       await nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs))
-    }
+    },
+    skip: () => true // TODO: use webrtc-star?
   }
 }

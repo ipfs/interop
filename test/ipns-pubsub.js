@@ -5,19 +5,25 @@ const { fromB58String } = require('multihashes')
 const base64url = require('base64url')
 const ipns = require('ipns')
 const delay = require('delay')
-const pRetry = require('./utils/p-retry')
+const last = require('it-last')
+const pRetry = require('p-retry')
 const waitFor = require('./utils/wait-for')
 const { expect } = require('./utils/chai')
-
-const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
+const { goDaemonFactory, jsDaemonFactory } = require('./utils/daemon-factory')
 
 const daemonsOptions = {
-  args: ['--enable-namesys-pubsub'] // enable ipns over pubsub
+  args: ['--enable-namesys-pubsub'], // enable ipns over pubsub
+  ipfsOptions: {
+    config: {
+      // go-ipfs requires at least 1 DHT enabled node to publish to
+      // TODO: remove this when js-ipfs has the DHT enabled
+      Bootstrap: ['/ip4/104.131.131.82/tcp/4001/p2p/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ']
+    }
+  }
 }
 
 const retryOptions = {
-  retries: 5,
-  interval: 2000
+  retries: 5
 }
 
 const namespace = '/record/'
@@ -27,53 +33,43 @@ const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 describe('ipns-pubsub', function () {
   this.timeout(350 * 1000)
   let nodes = []
-  let nodesIds = []
 
   // Spawn daemons
   before(async function () {
     nodes = await Promise.all([
-      spawnGoDaemon(daemonsOptions),
-      spawnJsDaemon(daemonsOptions)
+      goDaemonFactory.spawn(daemonsOptions),
+      jsDaemonFactory.spawn(daemonsOptions)
     ])
   })
 
-  // Get node ids
+  // Connect nodes and wait for republish
   before(async function () {
-    nodesIds = await Promise.all([
-      nodes[0].api.id(),
-      nodes[1].api.id()
-    ])
-
-    expect(nodesIds).to.have.nested.property('[0].id').that.is.ok()
-    expect(nodesIds).to.have.nested.property('[1].id').that.is.ok()
-
-    await nodes[0].api.swarm.connect(nodesIds[1].addresses[0])
+    await nodes[0].api.swarm.connect(nodes[1].api.peerId.addresses[0])
 
     console.log('wait for republish as we can receive the republish message first') // eslint-disable-line
     await delay(60000)
   })
 
-  after(function () {
-    return Promise.all(nodes.map((node) => node.stop()))
-  })
+  after(() => Promise.all([goDaemonFactory.clean(), jsDaemonFactory.clean()]))
 
   it('should get enabled state of pubsub', async function () {
-    const state = await nodes[0].api.name.pubsub.state()
-
-    expect(state).to.exist()
-    expect(state.enabled).to.equal(true)
+    for (const node of nodes) {
+      const state = await node.api.name.pubsub.state()
+      expect(state).to.exist()
+      expect(state.enabled).to.equal(true)
+    }
   })
 
   it('should publish the received record to a go node and a js subscriber should receive it', async function () {
     this.timeout(300 * 1000)
 
-    await subscribeToReceiveByPubsub(nodes[0], nodes[1], nodesIds[0].id, nodesIds[1].id)
+    await subscribeToReceiveByPubsub(nodes[0], nodes[1], nodes[0].api.peerId.id, nodes[1].api.peerId.id)
   })
 
   it('should publish the received record to a js node and a go subscriber should receive it', async function () {
     this.timeout(350 * 1000)
 
-    await subscribeToReceiveByPubsub(nodes[1], nodes[0], nodesIds[1].id, nodesIds[0].id)
+    await subscribeToReceiveByPubsub(nodes[1], nodes[0], nodes[1].api.peerId.id, nodes[0].api.peerId.id)
   })
 })
 
@@ -95,14 +91,14 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   const topic = `${namespace}${base64url.encode(keys.routingKey.toBuffer())}`
 
   // try to resolve a unpublished record (will subscribe it)
-  await expect(nodeB.api.name.resolve(idA)).to.be.rejected()
+  await expect(last(nodeB.api.name.resolve(idA, { stream: false }))).to.be.rejected()
 
   await waitForPeerToSubscribe(nodeB.api, topic)
   await nodeB.api.pubsub.subscribe(topic, checkMessage)
   await waitForNotificationOfSubscription(nodeA.api, topic, idB)
   const res1 = await nodeA.api.name.publish(ipfsRef, { resolve: false })
   await waitFor(() => subscribed === true, (50 * 1000))
-  const res2 = await nodeB.api.name.resolve(idA)
+  const res2 = await last(nodeB.api.name.resolve(idA))
 
   expect(res1.name).to.equal(idA) // Published to Node A ID
   expect(res2).to.equal(ipfsRef)
