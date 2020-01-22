@@ -49,7 +49,7 @@
     "dirty-chai": "^2.0.1",
     "hat": "~0.0.3",
     "ipfs-unixfs": "^0.3.0",
-    "ipfsd-ctl": "github:ipfs/js-ipfsd-ctl#feat/force-kill",
+    "ipfsd-ctl": "github:ipfs/js-ipfsd-ctl#upgrade-multiaddr-move-ipfs-to-peer-deps",
     "ipns": "^0.7.0",
     "is-ci": "^2.0.0",
     "is-os": "^1.0.1",
