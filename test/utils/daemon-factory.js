@@ -16,7 +16,7 @@ const factory = (options, overrides) => createFactory(
   }, options),
   merge({
     js: {
-      ipfsBin: `${require.resolve(process.env.IPFS_JS_MODULE || 'ipfs')}/src/cli/bin.js`
+      ipfsBin: require.resolve(`${process.env.IPFS_JS_MODULE || 'ipfs'}/src/cli/bin.js`)
     }
   }, overrides)
 )
