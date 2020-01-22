@@ -2,9 +2,9 @@
 
 const webpack = require('webpack')
 const createServer = require('ipfsd-ctl').createServer
-const rendezvous = require('libp2p-websocket-star-rendezvous')
+const signaler = require('libp2p-webrtc-star/src/sig-server')
 
-let rzserver
+let signalingServer
 const server = createServer()
 module.exports = {
   webpack: {
@@ -26,13 +26,15 @@ module.exports = {
     browser: {
       pre: async () => {
         await server.start()
-        rzserver =  await rendezvous.start({
-          port: 24642
+        signalingServer = await signaler.start({
+          port: 24642,
+          host: '0.0.0.0',
+          metrics: false
         })
       },
       post: async () => {
         await server.stop()
-        await rzserver.stop()
+        await signalingServer.stop()
       }
     }
   }
