@@ -1,11 +1,17 @@
 'use strict'
 
+const webpack = require('webpack')
 const createServer = require('ipfsd-ctl').createServer
 const rendezvous = require('libp2p-websocket-star-rendezvous')
 
 let rzserver
 const server = createServer()
 module.exports = {
+  webpack: {
+    plugins: [
+      new webpack.EnvironmentPlugin(['IPFS_JS_EXEC', 'IPFS_JS_MODULE'])
+    ]
+  },
   karma: {
     files: [{
       pattern: 'test/fixtures/**/*',

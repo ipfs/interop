@@ -5,19 +5,16 @@ const merge = require('merge-options')
 const factory = (options, overrides) => createFactory(
   merge({
     test: true,
-    ipfsModule: {
-      path: require.resolve(process.env.IPFS_JS_MODULE || 'ipfs'),
-      ref: require(process.env.IPFS_JS_MODULE || 'ipfs')
-    },
+    ipfsModule: process.env.IPFS_JS_MODULE
+      ? { path: require.resolve(process.env.IPFS_JS_MODULE), ref: require(process.env.IPFS_JS_MODULE) }
+      : { path: require.resolve('ipfs'), ref: require('ipfs') },
     ipfsHttpModule: {
       path: require.resolve('ipfs-http-client'),
       ref: require('ipfs-http-client')
     }
   }, options),
   merge({
-    js: {
-      ipfsBin: require.resolve(`${process.env.IPFS_JS_MODULE || 'ipfs'}/src/cli/bin.js`)
-    }
+    js: { ipfsBin: process.env.IPFS_JS_EXEC }
   }, overrides)
 )
 
