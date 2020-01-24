@@ -56,7 +56,7 @@
     "it-all": "^1.0.1",
     "it-concat": "^1.0.0",
     "it-last": "^1.0.1",
-    "libp2p-webrtc-star": "^0.17.2",
+    "libp2p-webrtc-star": "^0.17.3",
     "merge-options": "^2.0.0",
     "mocha": "^5.2.0",
     "multihashes": "~0.4.14",
