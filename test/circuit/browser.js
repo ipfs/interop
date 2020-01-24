@@ -107,8 +107,7 @@ module.exports = {
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(3000)
       await nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs))
-    },
-
+    }
   },
   'browser-browser-go': {
     create: () => Promise.all([
