@@ -7,12 +7,17 @@ const concat = require('it-concat')
 const { expect } = require('./chai')
 const { jsDaemonFactory, jsInProcessDaemonFactory, goDaemonFactory } = require('./daemon-factory')
 
-exports.createProc = () => jsInProcessDaemonFactory.spawn({
+exports.createProc = addrs => jsInProcessDaemonFactory.spawn({
   ipfsOptions: {
-    relay: {
-      enabled: true,
-      hop: {
-        enabled: true
+    config: {
+      Addresses: {
+        Swarm: addrs
+      },
+      relay: {
+        enabled: true,
+        hop: {
+          enabled: true
+        }
       }
     }
   }
@@ -65,7 +70,7 @@ exports.send = async (nodeA, nodeB) => {
 const getWsAddr = (addrs) => addrs
   .map((a) => a.toString())
   .find((a) => {
-    return a.includes('/ws') && !a.includes('/p2p-websocket-star')
+    return a.includes('/ws') && !a.includes('/p2p-webrtc-star')
   })
 
 exports.getWsAddr = getWsAddr
@@ -87,12 +92,6 @@ const getTcpAddr = (addrs) => addrs
   .find((a) => !a.includes('/ws') && !a.includes('/p2p-websocket-star'))
 
 exports.getTcpAddr = getTcpAddr
-
-const getCircuitAddr = (addrs) => addrs
-  .map((a) => a.toString())
-  .find((a) => a.includes('/p2p-circuit/ipfs') || a.includes('/p2p-circuit/p2p'))
-
-exports.getCircuitAddr = getCircuitAddr
 
 const connect = async (nodeA, nodeB, relay, timeout = 1000) => {
   const relayWsAddr = getWsAddr(relay.api.peerId.addresses)

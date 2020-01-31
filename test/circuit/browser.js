@@ -10,8 +10,7 @@ const {
   createProc,
   connWithTimeout,
   getWsAddr,
-  getWrtcStarAddr,
-  getCircuitAddr
+  getWrtcStarAddr
 } = require('../utils/circuit')
 
 const base = '/ip4/127.0.0.1/tcp/0'
@@ -88,12 +87,14 @@ module.exports = {
       createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-webrtc-star'])
     ]),
     connect: async (nodeA, nodeB, relay) => {
-      await relay.ipfsd.api.swarm.connect(getWsAddr(nodeA.addrs))
-      await relay.ipfsd.api.swarm.connect(getWrtcStarAddr(nodeB.addrs))
+      await relay.api.swarm.connect(getWsAddr(nodeA.api.peerId.addresses))
+      await relay.api.swarm.connect(getWrtcStarAddr(nodeB.api.peerId.addresses))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(5000)
-      await nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs))
-    }
+      const nodeBCircuitAddr = `${getWrtcStarAddr(relay.api.peerId.addresses)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+      await nodeA.api.swarm.connect(nodeBCircuitAddr)
+    },
+    skip: () => true // go-ipfs does not know what p2p-webrtc-star is
   },
   'js-browser-browser': {
     create: () => Promise.all([
@@ -102,11 +103,12 @@ module.exports = {
       createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-webrtc-star'])
     ]),
     connect: async (nodeA, nodeB, relay) => {
-      await relay.ipfsd.api.swarm.connect(getWsAddr(nodeA.addrs))
-      await relay.ipfsd.api.swarm.connect(getWrtcStarAddr(nodeB.addrs))
+      await relay.api.swarm.connect(getWsAddr(nodeA.api.peerId.addresses))
+      await relay.api.swarm.connect(getWrtcStarAddr(nodeB.api.peerId.addresses))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(3000)
-      await nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs))
+      const nodeBCircuitAddr = `${getWrtcStarAddr(relay.api.peerId.addresses)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+      await nodeA.api.swarm.connect(nodeBCircuitAddr)
     }
   },
   'browser-browser-go': {
@@ -116,11 +118,12 @@ module.exports = {
       createGo([`${base}/ws`])
     ]),
     connect: async (nodeA, nodeB, relay) => {
-      await relay.ipfsd.api.swarm.connect(getWrtcStarAddr(nodeA.addrs))
-      await relay.ipfsd.api.swarm.connect(getWsAddr(nodeB.addrs))
+      await relay.api.swarm.connect(getWrtcStarAddr(nodeA.api.peerId.addresses))
+      await relay.api.swarm.connect(getWsAddr(nodeB.api.peerId.addresses))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(5000)
-      await nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs))
+      const nodeBCircuitAddr = `${getWrtcStarAddr(relay.api.peerId.addresses)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+      await nodeA.api.swarm.connect(nodeBCircuitAddr)
     }
   },
   'browser-browser-js': {
@@ -130,11 +133,12 @@ module.exports = {
       createJs([`${base}/ws`])
     ]),
     connect: async (nodeA, nodeB, relay) => {
-      await relay.ipfsd.api.swarm.connect(getWrtcStarAddr(nodeA.addrs))
-      await relay.ipfsd.api.swarm.connect(getWsAddr(nodeB.addrs))
+      await relay.api.swarm.connect(getWrtcStarAddr(nodeA.api.peerId.addresses))
+      await relay.api.swarm.connect(getWsAddr(nodeB.api.peerId.addresses))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(3000)
-      await nodeA.ipfsd.api.swarm.connect(getCircuitAddr(nodeB.addrs))
+      const nodeBCircuitAddr = `${getWrtcStarAddr(relay.api.peerId.addresses)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+      await nodeA.api.swarm.connect(nodeBCircuitAddr)
     }
   }
 }
