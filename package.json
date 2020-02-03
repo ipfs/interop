@@ -7,12 +7,7 @@
     "ipfs-interop": "./bin/ipfs-interop.js"
   },
   "browser": {
-    "./src/core/components/init-assets.js": false,
-    "./src/core/runtime/config-nodejs.json": "./src/core/runtime/config-browser.json",
-    "./src/core/runtime/libp2p-nodejs.js": "./src/core/runtime/libp2p-browser.js",
-    "./src/core/runtime/repo-nodejs.js": "./src/core/runtime/repo-browser.js",
-    "./test/utils/create-repo-nodejs.js": "./test/utils/create-repo-browser.js",
-    "stream": "readable-stream"
+    "./test/utils/daemon-factory.js": "./test/utils/daemon-factory.browser.js"
   },
   "engines": {
     "node": ">=10.0.0",
@@ -49,7 +44,7 @@
     "dirty-chai": "^2.0.1",
     "hat": "~0.0.3",
     "ipfs-unixfs": "^0.3.0",
-    "ipfsd-ctl": "^2.1.0",
+    "ipfsd-ctl": "github:ipfs/js-ipfsd-ctl#remove-option-normalisation",
     "ipns": "^0.7.0",
     "is-ci": "^2.0.0",
     "is-os": "^1.0.1",
@@ -57,7 +52,6 @@
     "it-concat": "^1.0.0",
     "it-last": "^1.0.1",
     "libp2p-webrtc-star": "^0.17.3",
-    "merge-options": "^2.0.0",
     "mocha": "^5.2.0",
     "multihashes": "~0.4.14",
     "p-retry": "^4.1.0",

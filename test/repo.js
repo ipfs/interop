@@ -5,6 +5,7 @@ const crypto = require('crypto')
 const os = require('os')
 const path = require('path')
 const hat = require('hat')
+const delay = require('delay')
 const concat = require('it-concat')
 const last = require('it-last')
 const { expect } = require('./utils/chai')
@@ -73,6 +74,8 @@ describe('repo', function () {
 
     await catAndCheck(jsDaemon.api, cid, data)
     await jsDaemon.stop()
+
+    await delay(1000)
 
     const goDaemon = await goDaemonFactory.spawn({
       ipfsOptions: {
