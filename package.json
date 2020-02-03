@@ -59,6 +59,7 @@
     "promisify-es6": "^1.0.3",
     "random-fs": "^1.0.3",
     "readable-stream-buffer-stream": "github:alanshaw/readable-stream-buffer-stream#feat/browser-friendly",
+    "resolve-cwd": "^3.0.0",
     "rimraf": "^3.0.0"
   },
   "contributors": [],
