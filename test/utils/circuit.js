@@ -117,7 +117,7 @@ const getTcpAddr = (addrs) => {
     .find((a) => !a.includes('/ws') && !a.includes('/p2p-websocket-star'))
 
   if (!result) {
-    throw new Error('No webrtcstar address found in ' + addrs)
+    throw new Error('No TCP address found in ' + addrs)
   }
 
   return result
