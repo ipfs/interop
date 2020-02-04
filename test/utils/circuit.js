@@ -67,29 +67,61 @@ exports.send = async (nodeA, nodeB) => {
   expect(buffer.slice()).to.deep.equal(data)
 }
 
-const getWsAddr = (addrs) => addrs
-  .map((a) => a.toString())
-  .find((a) => {
-    return a.includes('/ws') && !a.includes('/p2p-webrtc-star')
-  })
+const getWsAddr = (addrs) => {
+  addrs = addrs.map((a) => a.toString())
+  const result = addrs
+    .find((a) => {
+      return a.includes('/ws') && !a.includes('/p2p-websocket-star')
+    })
+
+  if (!result) {
+    throw new Error('No ws address found in ' + addrs)
+  }
+
+  return result
+}
 
 exports.getWsAddr = getWsAddr
 
-const getWsStarAddr = (addrs) => addrs
-  .map((a) => a.toString())
-  .find((a) => a.includes('/p2p-websocket-star'))
+const getWsStarAddr = (addrs) => {
+  addrs = addrs.map((a) => a.toString())
+  const result = addrs
+    .find((a) => a.includes('/p2p-websocket-star'))
+
+  if (!result) {
+    throw new Error('No wsstar address found in ' + addrs)
+  }
+
+  return result
+}
 
 exports.getWsStarAddr = getWsStarAddr
 
-const getWrtcStarAddr = (addrs) => addrs
-  .map((a) => a.toString())
-  .find((a) => a.includes('/p2p-webrtc-star'))
+const getWrtcStarAddr = (addrs) => {
+  addrs = addrs.map((a) => a.toString())
+  const result = addrs
+    .find((a) => a.includes('/p2p-webrtc-star'))
+
+  if (!result) {
+    throw new Error('No webrtcstar address found in ' + addrs)
+  }
+
+  return result
+}
 
 exports.getWrtcStarAddr = getWrtcStarAddr
 
-const getTcpAddr = (addrs) => addrs
-  .map((a) => a.toString())
-  .find((a) => !a.includes('/ws') && !a.includes('/p2p-websocket-star'))
+const getTcpAddr = (addrs) => {
+  addrs = addrs.map((a) => a.toString())
+  const result = addrs
+    .find((a) => !a.includes('/ws') && !a.includes('/p2p-websocket-star'))
+
+  if (!result) {
+    throw new Error('No TCP address found in ' + addrs)
+  }
+
+  return result
+}
 
 exports.getTcpAddr = getTcpAddr
 
