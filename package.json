@@ -58,7 +58,7 @@
     "pretty-bytes": "^5.1.0",
     "promisify-es6": "^1.0.3",
     "random-fs": "^1.0.3",
-    "readable-stream-buffer-stream": "github:alanshaw/readable-stream-buffer-stream#feat/browser-friendly",
+    "readable-stream-buffer-stream": "^1.0.0",
     "resolve-cwd": "^3.0.0",
     "rimraf": "^3.0.0"
   },
