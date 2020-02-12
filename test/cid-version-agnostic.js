@@ -2,16 +2,10 @@
 'use strict'
 
 const hat = require('hat')
-const CID = require('cids')
+const last = require('it-last')
+const concat = require('it-concat')
 const { expect } = require('./utils/chai')
-
-const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
-
-const jsDaemonOptions = {
-  config: {
-    Bootstrap: []
-  }
-}
+const { jsDaemonFactory, goDaemonFactory } = require('./utils/daemon-factory')
 
 describe('CID version agnostic', function () {
   this.timeout(50 * 1000)
@@ -19,125 +13,118 @@ describe('CID version agnostic', function () {
 
   before(async function () {
     const [js0, js1, go0, go1] = await Promise.all([
-      spawnJsDaemon(jsDaemonOptions),
-      spawnJsDaemon(jsDaemonOptions),
-      spawnGoDaemon(),
-      spawnGoDaemon()
+      jsDaemonFactory.spawn(),
+      jsDaemonFactory.spawn(),
+      goDaemonFactory.spawn(),
+      goDaemonFactory.spawn()
     ])
     Object.assign(daemons, { js0, js1, go0, go1 })
 
-    // Get peer IDs
-    await Promise.all(Object.keys(daemons).map(async k => {
-      daemons[k].peerId = await daemons[k].api.id()
-    }))
-
     await Promise.all([
-      js0.api.swarm.connect(js1.peerId.addresses[0]),
-      js1.api.swarm.connect(js0.peerId.addresses[0]),
-      go0.api.swarm.connect(go1.peerId.addresses[0]),
-      go1.api.swarm.connect(go0.peerId.addresses[0]),
-      js0.api.swarm.connect(go0.peerId.addresses[0]),
-      go0.api.swarm.connect(js0.peerId.addresses[0])
+      js0.api.swarm.connect(js1.api.peerId.addresses[0]),
+      js1.api.swarm.connect(js0.api.peerId.addresses[0]),
+      go0.api.swarm.connect(go1.api.peerId.addresses[0]),
+      go1.api.swarm.connect(go0.api.peerId.addresses[0]),
+      js0.api.swarm.connect(go0.api.peerId.addresses[0]),
+      go0.api.swarm.connect(js0.api.peerId.addresses[0])
     ])
   })
 
-  after(function () {
-    return Promise.all(Object.values(daemons).map((daemon) => daemon.stop()))
-  })
+  after(() => Promise.all([jsDaemonFactory.clean(), goDaemonFactory.clean()]))
 
   it('should add v0 and cat v1 (go0 -> go0)', async () => {
     const input = Buffer.from(hat())
-    const res = await daemons.go0.api.add(input, { cidVersion: 0 })
-    const cidv1 = new CID(res[0].hash).toV1()
-    const output = await daemons.go0.api.cat(cidv1)
-    expect(output).to.deep.equal(input)
+    const { cid } = await last(daemons.go0.api.add(input, { cidVersion: 0 }))
+    const cidv1 = cid.toV1()
+    const output = await concat(daemons.go0.api.cat(cidv1))
+    expect(output.slice()).to.deep.equal(input)
   })
 
   it('should add v0 and cat v1 (js0 -> js0)', async () => {
     const input = Buffer.from(hat())
-    const res = await daemons.js0.api.add(input, { cidVersion: 0 })
-    const cidv1 = new CID(res[0].hash).toV1()
-    const output = await daemons.js0.api.cat(cidv1)
-    expect(output).to.deep.equal(input)
+    const { cid } = await last(daemons.js0.api.add(input, { cidVersion: 0 }))
+    const cidv1 = cid.toV1()
+    const output = await concat(daemons.js0.api.cat(cidv1))
+    expect(output.slice()).to.deep.equal(input)
   })
 
   it('should add v0 and cat v1 (go0 -> go1)', async () => {
     const input = Buffer.from(hat())
-    const res = await daemons.go0.api.add(input, { cidVersion: 0 })
-    const cidv1 = new CID(res[0].hash).toV1()
-    const output = await daemons.go1.api.cat(cidv1)
-    expect(output).to.deep.equal(input)
+    const { cid } = await last(daemons.go0.api.add(input, { cidVersion: 0 }))
+    const cidv1 = cid.toV1()
+    const output = await concat(daemons.go1.api.cat(cidv1))
+    expect(output.slice()).to.deep.equal(input)
   })
 
   it('should add v0 and cat v1 (js0 -> js1)', async () => {
     const input = Buffer.from(hat())
-    const res = await daemons.js0.api.add(input, { cidVersion: 0 })
-    const cidv1 = new CID(res[0].hash).toV1()
-    const output = await daemons.js1.api.cat(cidv1)
-    expect(output).to.deep.equal(input)
+    const { cid } = await last(daemons.js0.api.add(input, { cidVersion: 0 }))
+    const cidv1 = cid.toV1()
+    const output = await concat(daemons.js1.api.cat(cidv1))
+    expect(output.slice()).to.deep.equal(input)
   })
 
   it('should add v0 and cat v1 (js0 -> go0)', async () => {
     const input = Buffer.from(hat())
-    const res = await daemons.js0.api.add(input, { cidVersion: 0 })
-    const cidv1 = new CID(res[0].hash).toV1()
-    const output = await daemons.go0.api.cat(cidv1)
-    expect(output).to.deep.equal(input)
+    const { cid } = await last(daemons.js0.api.add(input, { cidVersion: 0 }))
+    const cidv1 = cid.toV1()
+    const output = await concat(daemons.go0.api.cat(cidv1))
+    expect(output.slice()).to.deep.equal(input)
   })
 
   it('should add v0 and cat v1 (go0 -> js0)', async () => {
     const input = Buffer.from(hat())
-    const res = await daemons.go0.api.add(input, { cidVersion: 0 })
-    const cidv1 = new CID(res[0].hash).toV1()
-    const output = await daemons.js0.api.cat(cidv1)
-    expect(output).to.deep.equal(input)
+    const { cid } = await last(daemons.go0.api.add(input, { cidVersion: 0 }))
+    const cidv1 = cid.toV1()
+    const output = await concat(daemons.js0.api.cat(cidv1))
+    expect(output.slice()).to.deep.equal(input)
   })
 
   it('should add v1 and cat v0 (go0 -> go0)', async () => {
     const input = Buffer.from(hat())
-    const res = await daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false })
-    const cidv0 = new CID(res[0].hash).toV0()
-    const output = await daemons.go0.api.cat(cidv0)
-    expect(output).to.deep.equal(input)
+    const { cid } = await last(daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false }))
+    const cidv0 = cid.toV0()
+    const output = await concat(daemons.go0.api.cat(cidv0))
+    expect(output.slice()).to.deep.equal(input)
   })
 
   it('should add v1 and cat v0 (js0 -> js0)', async () => {
     const input = Buffer.from(hat())
-    const res = await daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false })
-    const cidv0 = new CID(res[0].hash).toV0()
-    const output = await daemons.js0.api.cat(cidv0)
-    expect(output).to.deep.equal(input)
+    const { cid } = await last(daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false }))
+    const cidv0 = cid.toV0()
+    const output = await concat(daemons.js0.api.cat(cidv0))
+    expect(output.slice()).to.deep.equal(input)
   })
 
   it('should add v1 and cat v0 (go0 -> go1)', async () => {
     const input = Buffer.from(hat())
-    const res = await daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false })
-    const cidv0 = new CID(res[0].hash).toV0()
-    const output = await daemons.go1.api.cat(cidv0)
-    expect(output).to.deep.equal(input)
+    const { cid } = await last(daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false }))
+    const cidv0 = cid.toV0()
+    const output = await concat(daemons.go1.api.cat(cidv0))
+    expect(output.slice()).to.deep.equal(input)
   })
 
   it('should add v1 and cat v0 (js0 -> js1)', async () => {
     const input = Buffer.from(hat())
-    const res = await daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false })
-    const cidv0 = new CID(res[0].hash).toV0()
-    const output = await daemons.js1.api.cat(cidv0)
-    expect(output).to.deep.equal(input)
+    const { cid } = await last(daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false }))
+    const cidv0 = cid.toV0()
+    const output = await concat(daemons.js1.api.cat(cidv0))
+    expect(output.slice()).to.deep.equal(input)
   })
 
   it('should add v1 and cat v0 (js0 -> go0)', async () => {
     const input = Buffer.from(hat())
-    const res = await daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false })
-    const cidv0 = new CID(res[0].hash).toV0()
-    const output = await daemons.go0.api.cat(cidv0)
-    expect(output).to.deep.equal(input)
+    const { cid } = await last(daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false }))
+    const cidv0 = cid.toV0()
+    const output = await concat(daemons.go0.api.cat(cidv0))
+    expect(output.slice()).to.deep.equal(input)
   })
 
   it('should add v1 and cat v0 (go0 -> js0)', async () => {
     const input = Buffer.from(hat())
-    const res = await daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false })
-    const cidv0 = new CID(res[0].hash).toV0()
-    const output = await daemons.js0.api.cat(cidv0)
-    expect(output).to.deep.equal(input)
+    const { cid } = await last(daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false }))
+    const cidv0 = cid.toV0()
+    const output = await concat(daemons.js0.api.cat(cidv0))
+    expect(output.slice()).to.deep.equal(input)
   })
 })

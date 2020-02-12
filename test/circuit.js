@@ -6,8 +6,7 @@ const all = require('./circuit/all')
 const browser = require('./circuit/browser')
 
 const isNode = require('detect-node')
-const send = require('./utils/circuit').send
-const connect = require('./utils/circuit').connect
+const { connect, send, clean } = require('./utils/circuit')
 
 const timeout = 80 * 1000
 const baseTest = {
@@ -24,7 +23,6 @@ describe('circuit', () => {
   }
 
   Object.keys(tests).forEach((test) => {
-    let nodes
     let nodeA
     let relay
     let nodeB
@@ -39,25 +37,17 @@ describe('circuit', () => {
       this.timeout(tests[test].timeout)
 
       before(async () => {
-        const _nodes = await tests[test].create()
-        nodes = _nodes.map((n) => n.ipfsd)
-        nodeA = _nodes[0]
-        relay = _nodes[1]
-        nodeB = _nodes[2]
+        [nodeA, relay, nodeB] = await tests[test].create()
       })
 
-      after(async () => {
-        if (nodes) {
-          await Promise.all(nodes.map((node) => node.stop()))
-        }
-      })
+      after(clean)
 
       it('connect', () => {
         return tests[test].connect(nodeA, nodeB, relay)
       })
 
       it('send', () => {
-        return tests[test].send(nodeA.ipfsd.api, nodeB.ipfsd.api)
+        return tests[test].send(nodeA, nodeB)
       })
     })
   })

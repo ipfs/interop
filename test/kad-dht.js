@@ -2,10 +2,10 @@
 'use strict'
 
 const crypto = require('crypto')
-const bl = require('bl')
+const last = require('it-last')
+const concat = require('it-concat')
 const { expect } = require('./utils/chai')
-
-const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
+const { goDaemonFactory, jsDaemonFactory } = require('./utils/daemon-factory')
 
 describe.skip('kad-dht', () => {
   describe('a JS node in the land of Go', () => {
@@ -16,66 +16,48 @@ describe.skip('kad-dht', () => {
 
     before(async () => {
       [goD1, goD2, goD3, jsD] = await Promise.all([
-        spawnGoDaemon({ initOptions: { bits: 1024 } }),
-        spawnGoDaemon({ initOptions: { bits: 1024 } }),
-        spawnGoDaemon({ initOptions: { bits: 1024 } }),
-        spawnJsDaemon({ initOptions: { bits: 512 } })
+        goDaemonFactory.spawn(),
+        goDaemonFactory.spawn(),
+        goDaemonFactory.spawn(),
+        jsDaemonFactory.spawn()
       ])
     })
 
-    after(() => {
-      return Promise.all([goD1, goD2, goD3, jsD].map((node) => node.stop()))
-    })
+    after(() => Promise.all([goDaemonFactory.clean(), jsDaemonFactory.clean()]))
 
     it('make connections', async () => {
-      const ids = await Promise.all([
-        jsD.api.id(),
-        goD1.api.id(),
-        goD2.api.id(),
-        goD3.api.id()
-      ])
-
       await Promise.all([
-        jsD.api.swarm.connect(ids[1].addresses[0]),
-        goD1.api.swarm.connect(ids[2].addresses[0]),
-        goD2.api.swarm.connect(ids[3].addresses[0])
+        jsD.api.swarm.connect(goD1.api.peerId.addresses[0]),
+        goD1.api.swarm.connect(goD2.api.peerId.addresses[0]),
+        goD2.api.swarm.connect(goD3.api.peerId.addresses[0])
       ])
     })
 
     it('one hop', async () => {
       const data = crypto.randomBytes(9001)
 
-      const res = await goD1.api.add(data)
-      const stream = await jsD.api.cat(res[0].hash)
-      const file = await new Promise((resolve, reject) => {
-        stream.pipe(bl((err, file) => err ? reject(err) : resolve(file)))
-      })
+      const { cid } = await last(goD1.api.add(data))
+      const file = await concat(jsD.api.cat(cid))
 
-      expect(file).to.be.eql(data)
+      expect(file.slice()).to.be.eql(data)
     })
 
     it('two hops', async () => {
       const data = crypto.randomBytes(9001)
 
-      const res = await goD2.api.add(data)
-      const stream = await jsD.api.cat(res[0].hash)
-      const file = await new Promise((resolve, reject) => {
-        stream.pipe(bl((err, file) => err ? reject(err) : resolve(file)))
-      })
+      const { cid } = await last(goD2.api.add(data))
+      const file = await concat(jsD.api.cat(cid))
 
-      expect(file).to.be.eql(data)
+      expect(file.slice()).to.be.eql(data)
     })
 
     it('three hops', async () => {
       const data = crypto.randomBytes(9001)
 
-      const res = await goD3.api.add(data)
-      const stream = await jsD.api.cat(res[0].hash)
-      const file = await new Promise((resolve, reject) => {
-        stream.pipe(bl((err, file) => err ? reject(err) : resolve(file)))
-      })
+      const { cid } = await last(goD3.api.add(data))
+      const file = await concat(jsD.api.cat(cid))
 
-      expect(file).to.be.eql(data)
+      expect(file.slice()).to.be.eql(data)
     })
   })
 

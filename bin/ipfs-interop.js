@@ -4,7 +4,7 @@
 
 const { spawn } = require('child_process')
 
-const proc = spawn('npm', ['test'], {
+const proc = spawn('npm', ['test'].concat(process.argv.slice(2)), {
   cwd: __dirname
 })
 proc.stdout.pipe(process.stdout)

@@ -2,10 +2,10 @@
 'use strict'
 
 const fs = require('fs')
+const all = require('it-all')
 const utils = require('./utils/pin-utils')
 const { expect } = require('./utils/chai')
-
-const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
+const { goDaemonFactory, jsDaemonFactory } = require('./utils/daemon-factory')
 
 describe('pin', function () {
   this.timeout(60 * 1000)
@@ -20,11 +20,13 @@ describe('pin', function () {
   let daemons = []
   async function spawnAndStart (type, repoPath = utils.tmpPath()) {
     const daemonOptions = {
-      repoPath,
+      ipfsOptions: {
+        repo: repoPath
+      },
       disposable: false
     }
 
-    const daemon = await (type === 'go' ? spawnGoDaemon(daemonOptions) : spawnJsDaemon(daemonOptions))
+    const daemon = await (type === 'go' ? goDaemonFactory.spawn(daemonOptions) : jsDaemonFactory.spawn(daemonOptions))
     daemons.push(daemon)
 
     if (daemon.initialized) {
@@ -50,7 +52,7 @@ describe('pin', function () {
 
   afterEach(async function () {
     this.timeout(25 * 1000)
-    await Promise.all(daemons.map((daemon) => daemon.stop()))
+    await Promise.all([goDaemonFactory.clean(), jsDaemonFactory.clean()])
     daemons = []
   })
 
@@ -58,10 +60,10 @@ describe('pin', function () {
     // Pinning a large file recursively results in the same pins
     it('pin recursively', async function () {
       async function pipeline (daemon) {
-        const chunks = await daemon.api.add(jupiter, { pin: false })
-        await daemon.api.pin.add(chunks[0].hash)
+        const chunks = await all(daemon.api.add(jupiter, { pin: false }))
+        await daemon.api.pin.add(chunks[0].cid)
 
-        return daemon.api.pin.ls()
+        return all(daemon.api.pin.ls())
       }
 
       const [goPins, jsPins] = await withDaemons(pipeline)
@@ -74,10 +76,10 @@ describe('pin', function () {
     // Pinning a large file with recursive=false results in the same direct pin
     it('pin directly', async function () {
       async function pipeline (daemon) {
-        const chunks = await daemon.api.add(jupiter, { pin: false })
-        await daemon.api.pin.add(chunks[0].hash, { recursive: false })
+        const chunks = await all(daemon.api.add(jupiter, { pin: false }))
+        await daemon.api.pin.add(chunks[0].cid, { recursive: false })
 
-        return daemon.api.pin.ls()
+        return all(daemon.api.pin.ls())
       }
 
       const [goPins, jsPins] = await withDaemons(pipeline)
@@ -93,11 +95,11 @@ describe('pin', function () {
     // not part of another pin's dag
     it('pin recursively, remove the root pin', async function () {
       async function pipeline (daemon) {
-        const chunks = await daemon.api.add(jupiter)
+        const chunks = await all(daemon.api.add(jupiter))
         const testFolder = chunks.find(chunk => chunk.path === 'test')
-        await daemon.api.pin.rm(testFolder.hash)
+        await daemon.api.pin.rm(testFolder.cid)
 
-        return daemon.api.pin.ls()
+        return all(daemon.api.pin.ls())
       }
 
       const [goPins, jsPins] = await withDaemons(pipeline)
@@ -111,16 +113,16 @@ describe('pin', function () {
     it('remove a child shared by multiple pins', async function () {
       let jupiterDir
       async function pipeline (daemon) {
-        const chunks = await daemon.api.add(jupiter, { pin: false })
+        const chunks = await all(daemon.api.add(jupiter, { pin: false }))
         jupiterDir = jupiterDir || chunks.find(chunk => chunk.path === 'test/fixtures/planets')
 
         // by separately pinning all the DAG nodes created when adding,
         // dirs are pinned as type=recursive and
         // nested pins reference each other
-        await daemon.api.pin.add(chunks.map(chunk => chunk.hash))
-        await daemon.api.pin.rm(jupiterDir.hash)
+        await daemon.api.pin.add(chunks.map(chunk => chunk.cid))
+        await daemon.api.pin.rm(jupiterDir.cid)
 
-        return daemon.api.pin.ls()
+        return all(daemon.api.pin.ls())
       }
 
       const [goPins, jsPins] = await withDaemons(pipeline)
@@ -137,9 +139,9 @@ describe('pin', function () {
   describe('ls', function () {
     it('print same pins', async function () {
       async function pipeline (daemon) {
-        await daemon.api.add(jupiter)
+        await all(daemon.api.add(jupiter))
 
-        return daemon.api.pin.ls()
+        return all(daemon.api.pin.ls())
       }
 
       const [goPins, jsPins] = await withDaemons(pipeline)

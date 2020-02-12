@@ -2,10 +2,7 @@
 /* eslint-env mocha */
 'use strict'
 
-const utils = require('../utils/circuit')
-
-const createJs = utils.createJsNode
-const createGo = utils.createGoNode
+const { createJs, createGo } = require('../utils/circuit')
 
 const base = '/ip4/127.0.0.1/tcp/0'
 

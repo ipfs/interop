@@ -1,4 +1,4 @@
-/* eslint max-nested-callbacks: ["error", 6] */
+/* eslint max-nested-callbacks: ["error", 7] */
 /* eslint-env mocha */
 'use strict'
 
@@ -13,9 +13,11 @@ const isCi = require('is-ci')
 const isWindows = require('is-os').isWindows
 const os = require('os')
 const rmDir = promisify(rimraf)
+const last = require('it-last')
+const concat = require('it-concat')
+const { globSource } = require(process.env.IPFS_JS_MODULE || 'ipfs')
 const { expect } = require('./utils/chai')
-
-const { spawnGoDaemon, spawnJsDaemon } = require('./utils/daemon')
+const { goDaemonFactory, jsDaemonFactory } = require('./utils/daemon-factory')
 
 function tmpDir () {
   return join(os.tmpdir(), `ipfs_${hat()}`)
@@ -89,54 +91,41 @@ if (isCi) {
 const min = 60 * 1000
 const timeout = isCi ? 15 * min : 10 * min
 
-const jsDaemonOptions = {
-  config: { Bootstrap: [] }
-}
-
 describe('exchange files', function () {
   this.timeout(timeout)
 
   const tests = {
-    'go -> js': [() => spawnGoDaemon(), () => spawnJsDaemon(jsDaemonOptions)],
-    'go -> go2': [() => spawnGoDaemon(), () => spawnGoDaemon()],
-    'js -> go': [() => spawnJsDaemon(jsDaemonOptions), () => spawnGoDaemon()],
-    'js -> js2': [() => spawnJsDaemon(jsDaemonOptions), () => spawnJsDaemon(jsDaemonOptions)]
+    'go -> js': [goDaemonFactory, jsDaemonFactory],
+    'go -> go2': [goDaemonFactory, goDaemonFactory],
+    'js -> go': [jsDaemonFactory, goDaemonFactory],
+    'js -> js2': [jsDaemonFactory, jsDaemonFactory]
   }
 
   Object.keys(tests).forEach((name) => {
     describe(name, () => {
       let daemon1
       let daemon2
-      let id1
-      let id2
 
       before('spawn nodes', async function () {
-        [daemon1, daemon2] = await Promise.all(tests[name].map(fn => fn()))
+        [daemon1, daemon2] = await Promise.all(tests[name].map(factory => factory.spawn()))
       })
 
       before('connect', async function () {
         this.timeout(timeout); // eslint-disable-line
 
-        [id1, id2] = await Promise.all([
-          daemon1.api.id(),
-          daemon2.api.id()
-        ])
-
-        await daemon1.api.swarm.connect(id2.addresses[0])
-        await daemon2.api.swarm.connect(id1.addresses[0])
+        await daemon1.api.swarm.connect(daemon2.api.peerId.addresses[0])
+        await daemon2.api.swarm.connect(daemon1.api.peerId.addresses[0])
 
         const [peer1, peer2] = await Promise.all([
           daemon1.api.swarm.peers(),
           daemon2.api.swarm.peers()
         ])
 
-        expect(peer1.map((p) => p.peer.toB58String())).to.include(id2.id)
-        expect(peer2.map((p) => p.peer.toB58String())).to.include(id1.id)
+        expect(peer1.map((p) => p.peer.toString())).to.include(daemon2.api.peerId.id)
+        expect(peer2.map((p) => p.peer.toString())).to.include(daemon1.api.peerId.id)
       })
 
-      after('stop nodes', function () {
-        return Promise.all([daemon1, daemon2].map((node) => node.stop()))
-      })
+      after(() => Promise.all([goDaemonFactory.clean(), jsDaemonFactory.clean()]))
 
       describe('cat file', () => sizes.forEach((size) => {
         it(`${name}: ${pretty(size)}`, async function () {
@@ -144,10 +133,10 @@ describe('exchange files', function () {
 
           const data = crypto.randomBytes(size)
 
-          const res = await daemon1.api.add(data)
-          const file = await daemon2.api.cat(res[0].hash)
+          const { cid } = await last(daemon1.api.add(data))
+          const file = await concat(daemon2.api.cat(cid))
 
-          expect(file).to.eql(data)
+          expect(file.slice()).to.eql(data)
         })
       }))
 
@@ -160,17 +149,25 @@ describe('exchange files', function () {
 
           const dir = tmpDir()
 
-          await randomFs({
-            path: dir,
-            depth: d,
-            number: num
-          })
-          const res = await daemon1.api.addFromFs(dir, { recursive: true })
-          const hash = res[res.length - 1].hash
-          const getRes = await daemon2.api.get(hash)
-          expect(getRes).to.exist()
+          try {
+            await randomFs({
+              path: dir,
+              depth: d,
+              number: num
+            })
+            const { cid } = await last(daemon1.api.add(globSource(dir, { recursive: true })))
 
-          return rmDir(dir)
+            let fileCount = 0
+            for await (const file of daemon2.api.get(cid)) {
+              if (file.content) {
+                fileCount++
+                await concat(file.content)
+              }
+            }
+            expect(fileCount).to.equal(num)
+          } finally {
+            await rmDir(dir)
+          }
         })
       })))
     })
