@@ -4,7 +4,7 @@
 
 const pRetry = require('p-retry')
 const { expect } = require('./utils/chai')
-const { goDaemonFactory, jsDaemonFactory } = require('./utils/daemon-factory')
+const daemonFactory = require('./utils/daemon-factory')
 
 const retryOptions = {
   retries: 5
@@ -30,10 +30,10 @@ describe('pubsub', function () {
   this.timeout(60 * 1000)
 
   const tests = {
-    'publish from Go, subscribe on Go': [() => goDaemonFactory.spawn(daemonOptions), () => goDaemonFactory.spawn(daemonOptions)],
-    'publish from JS, subscribe on JS': [() => jsDaemonFactory.spawn(), () => jsDaemonFactory.spawn()],
-    'publish from JS, subscribe on Go': [() => jsDaemonFactory.spawn(), () => goDaemonFactory.spawn(daemonOptions)],
-    'publish from Go, subscribe on JS': [() => goDaemonFactory.spawn(daemonOptions), () => jsDaemonFactory.spawn()]
+    'publish from Go, subscribe on Go': [() => daemonFactory.spawn({ ...daemonOptions, type: 'go' }), () => daemonFactory.spawn({ ...daemonOptions, type: 'go' })],
+    'publish from JS, subscribe on JS': [() => daemonFactory.spawn({ type: 'js' }), () => daemonFactory.spawn({ type: 'js' })],
+    'publish from JS, subscribe on Go': [() => daemonFactory.spawn({ type: 'js' }), () => daemonFactory.spawn({ ...daemonOptions, type: 'go' })],
+    'publish from Go, subscribe on JS': [() => daemonFactory.spawn({ ...daemonOptions, type: 'go' }), () => daemonFactory.spawn({ type: 'js' })]
   }
 
   Object.keys(tests).forEach((name) => {
@@ -61,7 +61,7 @@ describe('pubsub', function () {
         expect(peers[1].map((p) => p.peer.toString())).to.include(daemon1.api.peerId.id)
       })
 
-      after(() => Promise.all([goDaemonFactory.clean(), jsDaemonFactory.clean()]))
+      after(() => daemonFactory.clean())
 
       it('should exchange ascii data', function () {
         const data = Buffer.from('hello world')

@@ -5,7 +5,7 @@ const hat = require('hat')
 const last = require('it-last')
 const concat = require('it-concat')
 const { expect } = require('./utils/chai')
-const { jsDaemonFactory, goDaemonFactory } = require('./utils/daemon-factory')
+const daemonFactory = require('./utils/daemon-factory')
 
 describe('CID version agnostic', function () {
   this.timeout(50 * 1000)
@@ -13,10 +13,10 @@ describe('CID version agnostic', function () {
 
   before(async function () {
     const [js0, js1, go0, go1] = await Promise.all([
-      jsDaemonFactory.spawn(),
-      jsDaemonFactory.spawn(),
-      goDaemonFactory.spawn(),
-      goDaemonFactory.spawn()
+      daemonFactory.spawn({ type: 'js' }),
+      daemonFactory.spawn({ type: 'js' }),
+      daemonFactory.spawn({ type: 'go' }),
+      daemonFactory.spawn({ type: 'go' })
     ])
     Object.assign(daemons, { js0, js1, go0, go1 })
 
@@ -30,7 +30,7 @@ describe('CID version agnostic', function () {
     ])
   })
 
-  after(() => Promise.all([jsDaemonFactory.clean(), goDaemonFactory.clean()]))
+  after(() => daemonFactory)
 
   it('should add v0 and cat v1 (go0 -> go0)', async () => {
     const input = Buffer.from(hat())

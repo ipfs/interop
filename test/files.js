@@ -3,7 +3,7 @@
 
 const crypto = require('crypto')
 const UnixFs = require('ipfs-unixfs')
-const { goDaemonFactory, jsDaemonFactory } = require('./utils/daemon-factory')
+const daemonFactory = require('./utils/daemon-factory')
 const bufferStream = require('readable-stream-buffer-stream')
 const concat = require('it-concat')
 const all = require('it-all')
@@ -129,12 +129,18 @@ describe('files', function () {
 
   before(async () => {
     [go, js] = await Promise.all([
-      goDaemonFactory.spawn(goOptions),
-      jsDaemonFactory.spawn(jsOptions)
+      daemonFactory.spawn({
+        type: 'go',
+        ...goOptions
+      }),
+      daemonFactory.spawn({
+        type: 'js',
+        ...jsOptions
+      })
     ])
   })
 
-  after(() => Promise.all([goDaemonFactory.clean(), jsDaemonFactory.clean()]))
+  after(() => daemonFactory.clean())
 
   it('returns an error when reading non-existent files', () => {
     const readNonExistentFile = (daemon) => {

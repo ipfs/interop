@@ -9,7 +9,7 @@ const last = require('it-last')
 const pRetry = require('p-retry')
 const waitFor = require('./utils/wait-for')
 const { expect } = require('./utils/chai')
-const { goDaemonFactory, jsDaemonFactory } = require('./utils/daemon-factory')
+const daemonFactory = require('./utils/daemon-factory')
 
 const daemonsOptions = {
   args: ['--enable-namesys-pubsub'], // enable ipns over pubsub
@@ -37,8 +37,14 @@ describe('ipns-pubsub', function () {
   // Spawn daemons
   before(async function () {
     nodes = await Promise.all([
-      goDaemonFactory.spawn(daemonsOptions),
-      jsDaemonFactory.spawn(daemonsOptions)
+      daemonFactory.spawn({
+        type: 'go',
+        ...daemonsOptions
+      }),
+      daemonFactory.spawn({
+        type: 'js',
+        ...daemonsOptions
+      })
     ])
   })
 
@@ -50,7 +56,7 @@ describe('ipns-pubsub', function () {
     await delay(60000)
   })
 
-  after(() => Promise.all([goDaemonFactory.clean(), jsDaemonFactory.clean()]))
+  after(() => daemonFactory.clean())
 
   it('should get enabled state of pubsub', async function () {
     for (const node of nodes) {

@@ -5,9 +5,10 @@ const crypto = require('crypto')
 const last = require('it-last')
 const concat = require('it-concat')
 const { expect } = require('./chai')
-const { jsDaemonFactory, jsInProcessDaemonFactory, goDaemonFactory } = require('./daemon-factory')
+const daemonFactory = require('./daemon-factory')
 
-exports.createProc = addrs => jsInProcessDaemonFactory.spawn({
+exports.createProc = addrs => daemonFactory.spawn({
+  type: 'proc',
   ipfsOptions: {
     config: {
       Addresses: {
@@ -23,7 +24,8 @@ exports.createProc = addrs => jsInProcessDaemonFactory.spawn({
   }
 })
 
-exports.createJs = addrs => jsDaemonFactory.spawn({
+exports.createJs = addrs => daemonFactory.spawn({
+  type: 'js',
   ipfsOptions: {
     config: {
       Addresses: {
@@ -39,7 +41,8 @@ exports.createJs = addrs => jsDaemonFactory.spawn({
   }
 })
 
-exports.createGo = addrs => goDaemonFactory.spawn({
+exports.createGo = addrs => daemonFactory.spawn({
+  type: 'go',
   ipfsOptions: {
     config: {
       Addresses: {
@@ -53,11 +56,7 @@ exports.createGo = addrs => goDaemonFactory.spawn({
   }
 })
 
-exports.clean = () => Promise.all([
-  jsInProcessDaemonFactory.clean(),
-  jsDaemonFactory.clean(),
-  goDaemonFactory.clean()
-])
+exports.clean = () => daemonFactory.clean()
 
 const data = crypto.randomBytes(128)
 exports.send = async (nodeA, nodeB) => {

@@ -1,39 +1,28 @@
 'use strict'
 
 const { createFactory } = require('ipfsd-ctl')
-const findBin = require('./find-bin')
+const isNode = require('detect-node')
+let IPFS
 
-exports.goDaemonFactory = createFactory({
+// webpack requires conditional includes to be done this way
+if (process.env.IPFS_JS_MODULE) {
+  IPFS = require(process.env.IPFS_JS_MODULE)
+} else {
+  IPFS = require('ipfs')
+}
+
+module.exports = createFactory({
   type: 'go',
   test: true,
-  ipfsHttpModule: {
-    path: require.resolve('ipfs-http-client'),
-    ref: require('ipfs-http-client')
-  }
+  ipfsHttpModule: require('ipfs-http-client')
 }, {
-  go: { ipfsBin: findBin('go') }
-})
-
-exports.jsDaemonFactory = createFactory({
-  type: 'js',
-  test: true,
-  ipfsModule: {
-    path: require.resolve(process.env.IPFS_JS_MODULE || 'ipfs'),
-    ref: require(process.env.IPFS_JS_MODULE || 'ipfs')
+  proc: {
+    ipfsModule: IPFS
   },
-  ipfsHttpModule: {
-    path: require.resolve('ipfs-http-client'),
-    ref: require('ipfs-http-client')
-  }
-}, {
-  js: { ipfsBin: findBin('js') }
-})
-
-exports.jsInProcessDaemonFactory = createFactory({
-  type: 'proc',
-  test: true,
-  ipfsModule: {
-    path: require.resolve(process.env.IPFS_JS_MODULE || 'ipfs'),
-    ref: require(process.env.IPFS_JS_MODULE || 'ipfs')
+  js: {
+    ipfsBin: isNode ? process.env.IPFS_JS_EXEC || require.resolve(`${process.env.IPFS_JS_MODULE || 'ipfs'}/src/cli/bin.js`) : undefined
+  },
+  go: {
+    ipfsBin: isNode ? process.env.IPFS_GO_EXEC || require('go-ipfs-dep').path.silent() : undefined
   }
 })

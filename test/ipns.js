@@ -7,7 +7,7 @@ const hat = require('hat')
 const delay = require('delay')
 const last = require('it-last')
 const { expect } = require('./utils/chai')
-const { goDaemonFactory, jsDaemonFactory } = require('./utils/daemon-factory')
+const daemonFactory = require('./utils/daemon-factory')
 
 const dir = path.join(os.tmpdir(), hat())
 
@@ -59,22 +59,36 @@ const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
 describe('ipns locally using the same repo across implementations', function () {
   this.timeout(160 * 1000)
 
+  afterEach(() => daemonFactory.clean())
+
   it('should publish an ipns record to a js daemon and resolve it using the same js daemon', async function () {
-    const jsDaemon = await jsDaemonFactory.spawn(daemonOptions)
+    const jsDaemon = await daemonFactory.spawn({
+      ...daemonOptions,
+      type: 'js'
+    })
 
     await publishAndResolve(jsDaemon)
   })
 
   it('should publish an ipns record to a go daemon and resolve it using the same go daemon', async function () {
-    const goDaemon = await goDaemonFactory.spawn(daemonOptions)
+    const goDaemon = await daemonFactory.spawn({
+      ...daemonOptions,
+      type: 'go'
+    })
 
     await publishAndResolve(goDaemon)
   })
 
   it('should publish an ipns record to a js daemon and resolve it using a go daemon through the reuse of the same repo', async function () {
     const daemons = await Promise.all([
-      jsDaemonFactory.spawn(daemonOptions),
-      goDaemonFactory.spawn(daemonOptions)
+      daemonFactory.spawn({
+        ...daemonOptions,
+        type: 'js'
+      }),
+      daemonFactory.spawn({
+        ...daemonOptions,
+        type: 'go'
+      })
     ])
 
     await publishAndResolve(daemons[0], daemons[1])
@@ -82,8 +96,14 @@ describe('ipns locally using the same repo across implementations', function () 
 
   it('should publish an ipns record to a go daemon and resolve it using a js daemon through the reuse of the same repo', async function () {
     const daemons = await Promise.all([
-      goDaemonFactory.spawn(daemonOptions),
-      jsDaemonFactory.spawn(daemonOptions)
+      daemonFactory.spawn({
+        ...daemonOptions,
+        type: 'go'
+      }),
+      daemonFactory.spawn({
+        ...daemonOptions,
+        type: 'js'
+      })
     ])
 
     await publishAndResolve(daemons[0], daemons[1])
