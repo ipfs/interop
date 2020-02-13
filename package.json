@@ -48,7 +48,7 @@
     "it-all": "^1.0.1",
     "it-concat": "^1.0.0",
     "it-last": "^1.0.1",
-    "libp2p-webrtc-star": "^0.17.3",
+    "libp2p-webrtc-star": "^0.17.7",
     "mocha": "^5.2.0",
     "multihashes": "~0.4.14",
     "p-retry": "^4.1.0",
@@ -62,7 +62,7 @@
   "contributors": [],
   "devDependencies": {
     "go-ipfs-dep": "0.4.23-3",
-    "ipfs": "^0.41.0-rc.2",
+    "ipfs": "^0.41.0",
     "ipfs-http-client": "^42.0.0"
   },
   "peerDependencies": {
