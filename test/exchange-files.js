@@ -17,7 +17,7 @@ const last = require('it-last')
 const concat = require('it-concat')
 const { globSource } = require(process.env.IPFS_JS_MODULE || 'ipfs')
 const { expect } = require('./utils/chai')
-const { goDaemonFactory, jsDaemonFactory } = require('./utils/daemon-factory')
+const daemonFactory = require('./utils/daemon-factory')
 
 function tmpDir () {
   return join(os.tmpdir(), `ipfs_${hat()}`)
@@ -95,10 +95,10 @@ describe('exchange files', function () {
   this.timeout(timeout)
 
   const tests = {
-    'go -> js': [goDaemonFactory, jsDaemonFactory],
-    'go -> go2': [goDaemonFactory, goDaemonFactory],
-    'js -> go': [jsDaemonFactory, goDaemonFactory],
-    'js -> js2': [jsDaemonFactory, jsDaemonFactory]
+    'go -> js': ['go', 'js'],
+    'go -> go2': ['go', 'go'],
+    'js -> go': ['js', 'go'],
+    'js -> js2': ['js', 'js']
   }
 
   Object.keys(tests).forEach((name) => {
@@ -107,7 +107,7 @@ describe('exchange files', function () {
       let daemon2
 
       before('spawn nodes', async function () {
-        [daemon1, daemon2] = await Promise.all(tests[name].map(factory => factory.spawn()))
+        [daemon1, daemon2] = await Promise.all(tests[name].map(type => daemonFactory.spawn({ type })))
       })
 
       before('connect', async function () {
@@ -125,7 +125,7 @@ describe('exchange files', function () {
         expect(peer2.map((p) => p.peer.toString())).to.include(daemon1.api.peerId.id)
       })
 
-      after(() => Promise.all([goDaemonFactory.clean(), jsDaemonFactory.clean()]))
+      after(() => daemonFactory.clean())
 
       describe('cat file', () => sizes.forEach((size) => {
         it(`${name}: ${pretty(size)}`, async function () {

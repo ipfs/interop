@@ -5,7 +5,7 @@ const crypto = require('crypto')
 const last = require('it-last')
 const concat = require('it-concat')
 const { expect } = require('./utils/chai')
-const { goDaemonFactory, jsDaemonFactory } = require('./utils/daemon-factory')
+const daemonFactory = require('./utils/daemon-factory')
 
 describe.skip('kad-dht', () => {
   describe('a JS node in the land of Go', () => {
@@ -16,14 +16,14 @@ describe.skip('kad-dht', () => {
 
     before(async () => {
       [goD1, goD2, goD3, jsD] = await Promise.all([
-        goDaemonFactory.spawn(),
-        goDaemonFactory.spawn(),
-        goDaemonFactory.spawn(),
-        jsDaemonFactory.spawn()
+        daemonFactory.spawn({ type: 'go' }),
+        daemonFactory.spawn({ type: 'go' }),
+        daemonFactory.spawn({ type: 'go' }),
+        daemonFactory.spawn({ type: 'js' })
       ])
     })
 
-    after(() => Promise.all([goDaemonFactory.clean(), jsDaemonFactory.clean()]))
+    after(() => daemonFactory.clean())
 
     it('make connections', async () => {
       await Promise.all([

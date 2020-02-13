@@ -9,7 +9,7 @@ const delay = require('delay')
 const concat = require('it-concat')
 const last = require('it-last')
 const { expect } = require('./utils/chai')
-const { goDaemonFactory, jsDaemonFactory } = require('./utils/daemon-factory')
+const daemonFactory = require('./utils/daemon-factory')
 
 const isWindows = os.platform() === 'win32'
 
@@ -25,11 +25,14 @@ describe('repo', function () {
     return
   }
 
+  afterEach(() => daemonFactory.clean())
+
   it('read repo: go -> js', async function () {
     const dir = path.join(os.tmpdir(), hat())
     const data = crypto.randomBytes(1024 * 5)
 
-    const goDaemon = await goDaemonFactory.spawn({
+    const goDaemon = await daemonFactory.spawn({
+      type: 'go',
       ipfsOptions: {
         repo: dir
       },
@@ -43,7 +46,8 @@ describe('repo', function () {
     await catAndCheck(goDaemon.api, cid, data)
     await goDaemon.stop()
 
-    const jsDaemon = await jsDaemonFactory.spawn({
+    const jsDaemon = await daemonFactory.spawn({
+      type: 'js',
       ipfsOptions: {
         repo: dir
       },
@@ -61,7 +65,8 @@ describe('repo', function () {
     const dir = path.join(os.tmpdir(), hat())
     const data = crypto.randomBytes(1024 * 5)
 
-    const jsDaemon = await jsDaemonFactory.spawn({
+    const jsDaemon = await daemonFactory.spawn({
+      type: 'js',
       ipfsOptions: {
         repo: dir
       },
@@ -77,7 +82,8 @@ describe('repo', function () {
 
     await delay(1000)
 
-    const goDaemon = await goDaemonFactory.spawn({
+    const goDaemon = await daemonFactory.spawn({
+      type: 'go',
       ipfsOptions: {
         repo: dir
       },

@@ -5,7 +5,7 @@ const fs = require('fs')
 const all = require('it-all')
 const utils = require('./utils/pin-utils')
 const { expect } = require('./utils/chai')
-const { goDaemonFactory, jsDaemonFactory } = require('./utils/daemon-factory')
+const daemonFactory = require('./utils/daemon-factory')
 
 describe('pin', function () {
   this.timeout(60 * 1000)
@@ -26,7 +26,10 @@ describe('pin', function () {
       disposable: false
     }
 
-    const daemon = await (type === 'go' ? goDaemonFactory.spawn(daemonOptions) : jsDaemonFactory.spawn(daemonOptions))
+    const daemon = await daemonFactory.spawn({
+      ...daemonOptions,
+      type
+    })
     daemons.push(daemon)
 
     if (daemon.initialized) {
@@ -52,7 +55,7 @@ describe('pin', function () {
 
   afterEach(async function () {
     this.timeout(25 * 1000)
-    await Promise.all([goDaemonFactory.clean(), jsDaemonFactory.clean()])
+    await daemonFactory.clean()
     daemons = []
   })
 
