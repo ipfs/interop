@@ -300,7 +300,9 @@ describe('files', function () {
       )
     })
 
-    it('small files with CIDv1', () => {
+    // skipped because small files with raw leaves should still result in a UnixFS entry
+    // https://github.com/ipfs/go-ipfs/issues/6940
+    it.skip('small files with CIDv1', () => {
       const data = Buffer.from([0x00, 0x01, 0x02])
       const options = {
         cidVersion: 1
