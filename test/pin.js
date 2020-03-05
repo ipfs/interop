@@ -6,6 +6,7 @@ const all = require('it-all')
 const utils = require('./utils/pin-utils')
 const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
+const drain = require('it-drain')
 
 describe('pin', function () {
   this.timeout(60 * 1000)
@@ -64,7 +65,7 @@ describe('pin', function () {
     it('pin recursively', async function () {
       async function pipeline (daemon) {
         const chunks = await all(daemon.api.add(jupiter, { pin: false }))
-        await daemon.api.pin.add(chunks[0].cid)
+        await drain(daemon.api.pin.add(chunks[0].cid))
 
         return all(daemon.api.pin.ls())
       }
@@ -80,7 +81,7 @@ describe('pin', function () {
     it('pin directly', async function () {
       async function pipeline (daemon) {
         const chunks = await all(daemon.api.add(jupiter, { pin: false }))
-        await daemon.api.pin.add(chunks[0].cid, { recursive: false })
+        await drain(daemon.api.pin.add(chunks[0].cid, { recursive: false }))
 
         return all(daemon.api.pin.ls())
       }
@@ -100,7 +101,7 @@ describe('pin', function () {
       async function pipeline (daemon) {
         const chunks = await all(daemon.api.add(jupiter))
         const testFolder = chunks.find(chunk => chunk.path === 'test')
-        await daemon.api.pin.rm(testFolder.cid)
+        await drain(daemon.api.pin.rm(testFolder.cid))
 
         return all(daemon.api.pin.ls())
       }
@@ -122,8 +123,8 @@ describe('pin', function () {
         // by separately pinning all the DAG nodes created when adding,
         // dirs are pinned as type=recursive and
         // nested pins reference each other
-        await daemon.api.pin.add(chunks.map(chunk => chunk.cid))
-        await daemon.api.pin.rm(jupiterDir.cid)
+        await drain(daemon.api.pin.add(chunks.map(chunk => chunk.cid)))
+        await drain(daemon.api.pin.rm(jupiterDir.cid))
 
         return all(daemon.api.pin.ls())
       }
