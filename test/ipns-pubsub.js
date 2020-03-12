@@ -97,7 +97,13 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   const topic = `${namespace}${base64url.encode(keys.routingKey.toBuffer())}`
 
   // try to resolve a unpublished record (will subscribe it)
-  await expect(last(nodeB.api.name.resolve(idA, { stream: false }))).to.be.rejected()
+  try {
+    await last(nodeB.api.name.resolve(idA, { stream: false }))
+  } catch (err) {
+    if(!err.message.includes('was not found in the network')){
+      throw err
+    }
+  }
 
   await waitForPeerToSubscribe(nodeB.api, topic)
   await nodeB.api.pubsub.subscribe(topic, checkMessage)
