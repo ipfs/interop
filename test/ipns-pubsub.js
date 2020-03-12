@@ -100,7 +100,7 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   try {
     await last(nodeB.api.name.resolve(idA, { stream: false }))
   } catch (err) {
-    if(!err.message.includes('was not found in the network')){
+    if (!err.message.includes('was not found in the network')) {
       throw err
     }
   }
