@@ -79,7 +79,10 @@ describe('ipns locally using the same repo across implementations', function () 
     await publishAndResolve(goDaemon)
   })
 
-  it('should publish an ipns record to a js daemon and resolve it using a go daemon through the reuse of the same repo', async function () {
+  // FIXME: https://github.com/ipfs/js-ipfs/issues/1467
+  //
+  // Repo versions are different.
+  it.skip('should publish an ipns record to a js daemon and resolve it using a go daemon through the reuse of the same repo', async function () {
     const daemons = await Promise.all([
       daemonFactory.spawn({
         ...daemonOptions,
@@ -94,7 +97,10 @@ describe('ipns locally using the same repo across implementations', function () 
     await publishAndResolve(daemons[0], daemons[1])
   })
 
-  it('should publish an ipns record to a go daemon and resolve it using a js daemon through the reuse of the same repo', async function () {
+  // FIXME: https://github.com/ipfs/js-ipfs/issues/1467
+  //
+  // Repo versions are different.
+  it.skip('should publish an ipns record to a go daemon and resolve it using a js daemon through the reuse of the same repo', async function () {
     const daemons = await Promise.all([
       daemonFactory.spawn({
         ...daemonOptions,
