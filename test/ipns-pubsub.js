@@ -68,13 +68,14 @@ describe('ipns-pubsub', function () {
 
   it('should publish the received record to a go node and a js subscriber should receive it', async function () {
     this.timeout(300 * 1000)
-
+    // TODO find out why JS doesn't resolve, might be just missing a DHT
+    await expect(last(nodes[1].api.name.resolve(nodes[0].api.peerId.id, { stream: false }))).to.eventually.be.rejected.with(/was not found in the network/)
     await subscribeToReceiveByPubsub(nodes[0], nodes[1], nodes[0].api.peerId.id, nodes[1].api.peerId.id)
   })
 
   it('should publish the received record to a js node and a go subscriber should receive it', async function () {
     this.timeout(350 * 1000)
-
+    await last(nodes[0].api.name.resolve(nodes[1].api.peerId.id, { stream: false }))
     await subscribeToReceiveByPubsub(nodes[1], nodes[0], nodes[1].api.peerId.id, nodes[0].api.peerId.id)
   })
 })
@@ -95,15 +96,6 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
 
   const keys = ipns.getIdKeys(fromB58String(idA))
   const topic = `${namespace}${base64url.encode(keys.routingKey.toBuffer())}`
-
-  // try to resolve a unpublished record (will subscribe it)
-  try {
-    await last(nodeB.api.name.resolve(idA, { stream: false }))
-  } catch (err) {
-    if (!err.message.includes('was not found in the network')) {
-      throw err
-    }
-  }
 
   await waitForPeerToSubscribe(nodeB.api, topic)
   await nodeB.api.pubsub.subscribe(topic, checkMessage)
