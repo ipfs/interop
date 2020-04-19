@@ -14,7 +14,14 @@ const dir = path.join(os.tmpdir(), hat())
 const daemonOptions = {
   disposable: false,
   args: ['--offline'],
-  ipfsOptions: { repo: dir }
+  ipfsOptions: {
+    repo: dir,
+    config: {
+      Routing: {
+        Type: 'none'
+      }
+    }
+  }
 }
 
 const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
