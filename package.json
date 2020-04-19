@@ -62,12 +62,12 @@
   "contributors": [],
   "devDependencies": {
     "go-ipfs-dep": "0.4.23-3",
-    "ipfs": "^0.41.0",
-    "ipfs-http-client": "^42.0.0"
+    "ipfs": "^0.43.0",
+    "ipfs-http-client": "^44.0.0"
   },
   "peerDependencies": {
     "go-ipfs-dep": "^0.4.23-3",
-    "ipfs": "^0.41.0",
-    "ipfs-http-client": "^42.0.0"
+    "ipfs": "^0.43.0",
+    "ipfs-http-client": "^44.0.0"
   }
 }
