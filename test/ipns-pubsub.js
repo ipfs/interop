@@ -12,14 +12,7 @@ const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 
 const daemonsOptions = {
-  args: ['--enable-namesys-pubsub'], // enable ipns over pubsub
-  ipfsOptions: {
-    config: {
-      // go-ipfs requires at least 1 DHT enabled node to publish to
-      // TODO: remove this when js-ipfs has the DHT enabled
-      Bootstrap: ['/ip4/104.131.131.82/tcp/4001/p2p/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ']
-    }
-  }
+  args: ['--enable-namesys-pubsub'] // enable ipns over pubsub
 }
 
 const retryOptions = {
@@ -39,10 +32,19 @@ describe('ipns-pubsub', function () {
     nodes = await Promise.all([
       daemonFactory.spawn({
         type: 'go',
+        test: true,
         ...daemonsOptions
       }),
       daemonFactory.spawn({
         type: 'js',
+        test: true,
+        ...daemonsOptions
+      }),
+      // TODO: go-ipfs needs two nodes in the DHT to be able to publish a record
+      // Remove this when js-ipfs has a DHT
+      daemonFactory.spawn({
+        type: 'go',
+        test: true,
         ...daemonsOptions
       })
     ])
@@ -51,6 +53,10 @@ describe('ipns-pubsub', function () {
   // Connect nodes and wait for republish
   before(async function () {
     await nodes[0].api.swarm.connect(nodes[1].api.peerId.addresses[0])
+
+    // TODO: go-ipfs needs two nodes in the DHT to be able to publish a record
+    // Remove this when js-ipfs has a DHT
+    await nodes[0].api.swarm.connect(nodes[2].api.peerId.addresses[0])
 
     console.log('wait for republish as we can receive the republish message first') // eslint-disable-line
     await delay(60000)
