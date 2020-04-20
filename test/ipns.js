@@ -15,12 +15,7 @@ const daemonOptions = {
   disposable: false,
   args: ['--offline'],
   ipfsOptions: {
-    repo: dir,
-    config: {
-      Routing: {
-        Type: 'none'
-      }
-    }
+    repo: dir
   }
 }
 
