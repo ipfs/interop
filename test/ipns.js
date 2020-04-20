@@ -14,7 +14,9 @@ const dir = path.join(os.tmpdir(), hat())
 const daemonOptions = {
   disposable: false,
   args: ['--offline'],
-  ipfsOptions: { repo: dir }
+  ipfsOptions: {
+    repo: dir
+  }
 }
 
 const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
@@ -40,9 +42,7 @@ const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
 
   await publisherDaemon.api.name.publish(ipfsRef, {
     resolve: false,
-    // TODO: fix this
-    'allow-offline': true, // ipfs-http-client v39
-    allowOffline: true // ipfs-http-client v40
+    allowOffline: true
   })
 
   !sameDaemon && await stopPublisherAndStartResolverDaemon()

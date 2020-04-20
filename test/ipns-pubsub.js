@@ -12,14 +12,7 @@ const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 
 const daemonsOptions = {
-  args: ['--enable-namesys-pubsub'], // enable ipns over pubsub
-  ipfsOptions: {
-    config: {
-      // go-ipfs requires at least 1 DHT enabled node to publish to
-      // TODO: remove this when js-ipfs has the DHT enabled
-      Bootstrap: ['/ip4/104.131.131.82/tcp/4001/p2p/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ']
-    }
-  }
+  args: ['--enable-namesys-pubsub'] // enable ipns over pubsub
 }
 
 const retryOptions = {
@@ -39,10 +32,19 @@ describe('ipns-pubsub', function () {
     nodes = await Promise.all([
       daemonFactory.spawn({
         type: 'go',
+        test: true,
         ...daemonsOptions
       }),
       daemonFactory.spawn({
         type: 'js',
+        test: true,
+        ...daemonsOptions
+      }),
+      // TODO: go-ipfs needs two nodes in the DHT to be able to publish a record
+      // Remove this when js-ipfs has a DHT
+      daemonFactory.spawn({
+        type: 'go',
+        test: true,
         ...daemonsOptions
       })
     ])
@@ -51,6 +53,10 @@ describe('ipns-pubsub', function () {
   // Connect nodes and wait for republish
   before(async function () {
     await nodes[0].api.swarm.connect(nodes[1].api.peerId.addresses[0])
+
+    // TODO: go-ipfs needs two nodes in the DHT to be able to publish a record
+    // Remove this when js-ipfs has a DHT
+    await nodes[0].api.swarm.connect(nodes[2].api.peerId.addresses[0])
 
     console.log('wait for republish as we can receive the republish message first') // eslint-disable-line
     await delay(60000)
@@ -68,13 +74,14 @@ describe('ipns-pubsub', function () {
 
   it('should publish the received record to a go node and a js subscriber should receive it', async function () {
     this.timeout(300 * 1000)
-
+    // TODO find out why JS doesn't resolve, might be just missing a DHT
+    await expect(last(nodes[1].api.name.resolve(nodes[0].api.peerId.id, { stream: false }))).to.eventually.be.rejected.with(/was not found in the network/)
     await subscribeToReceiveByPubsub(nodes[0], nodes[1], nodes[0].api.peerId.id, nodes[1].api.peerId.id)
   })
 
   it('should publish the received record to a js node and a go subscriber should receive it', async function () {
     this.timeout(350 * 1000)
-
+    await last(nodes[0].api.name.resolve(nodes[1].api.peerId.id, { stream: false }))
     await subscribeToReceiveByPubsub(nodes[1], nodes[0], nodes[1].api.peerId.id, nodes[0].api.peerId.id)
   })
 })
@@ -95,9 +102,6 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
 
   const keys = ipns.getIdKeys(fromB58String(idA))
   const topic = `${namespace}${base64url.encode(keys.routingKey.toBuffer())}`
-
-  // try to resolve a unpublished record (will subscribe it)
-  await expect(last(nodeB.api.name.resolve(idA, { stream: false }))).to.be.rejected()
 
   await waitForPeerToSubscribe(nodeB.api, topic)
   await nodeB.api.pubsub.subscribe(topic, checkMessage)
