@@ -38,14 +38,14 @@ jobs:
       addons:
         chrome: stable
       script:
-       - npx aegir test -t browser
+       - npx aegir test -t browser --bail
 
     - stage: test
       name: firefox
       addons:
         firefox: latest
       script:
-        - npx aegir test -t browser -- --browsers FirefoxHeadless
+        - npx aegir test -t browser --bail -- --browsers FirefoxHeadless
 
 notifications:
   email: false
