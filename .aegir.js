@@ -10,7 +10,7 @@ let ipfsdServer
 module.exports = {
   webpack: {
     plugins: [
-      new webpack.EnvironmentPlugin(['IPFS_JS_EXEC', 'IPFS_JS_MODULE'])
+      new webpack.EnvironmentPlugin(['IPFS_JS_EXEC'])
     ]
   },
   karma: {
@@ -21,7 +21,20 @@ module.exports = {
       included: false
     }],
     singleRun: true,
-    browserNoActivityTimeout: 100 * 1000
+    browserNoActivityTimeout: 100 * 1000,
+    webpack: {
+      resolve: {
+        alias: {
+          ipfs$: process.env.IPFS_JS_MODULE
+        }
+      },
+      plugins: [
+        new webpack.DefinePlugin({
+          // override js module location because we override `require('ipfs')` above
+          'process.env.IPFS_JS_MODULE': 'undefined'
+        })
+      ]
+    }
   },
   hooks: {
     browser: {
