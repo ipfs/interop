@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/ipfs/interop#readme",
   "dependencies": {
-    "aegir": "^21.4.4",
+    "aegir": "^22.0.0",
     "base64url": "^3.0.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
@@ -41,7 +41,7 @@
     "dirty-chai": "^2.0.1",
     "hat": "~0.0.3",
     "ipfs-unixfs": "^1.0.1",
-    "ipfsd-ctl": "^3.0.0",
+    "ipfsd-ctl": "^4.1.0",
     "ipns": "^0.7.0",
     "is-ci": "^2.0.0",
     "is-os": "^1.0.1",
