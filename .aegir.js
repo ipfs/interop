@@ -25,13 +25,15 @@ module.exports = {
     webpack: {
       resolve: {
         alias: {
-          ipfs$: process.env.IPFS_JS_MODULE
+          ipfs$: process.env.IPFS_JS_MODULE,
+          'ipfs-http-client$': process.env.IPFS_JS_HTTP_MODULE,
         }
       },
       plugins: [
         new webpack.DefinePlugin({
-          // override js module location because we override `require('ipfs')` above
-          'process.env.IPFS_JS_MODULE': 'undefined'
+          // override js module locations because we override them above
+          'process.env.IPFS_JS_MODULE': 'undefined',
+          'process.env.IPFS_JS_HTTP_MODULE': 'undefined'
         })
       ]
     }
