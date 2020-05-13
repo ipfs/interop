@@ -25,8 +25,8 @@ module.exports = {
     webpack: {
       resolve: {
         alias: {
-          ipfs$: process.env.IPFS_JS_MODULE,
-          'ipfs-http-client$': process.env.IPFS_JS_HTTP_MODULE,
+          ipfs$: process.env.IPFS_JS_MODULE || require.resolve('ipfs'),
+          'ipfs-http-client$': process.env.IPFS_JS_HTTP_MODULE || require.resolve('ipfs-http-client'),
         }
       },
       plugins: [
