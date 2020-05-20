@@ -47,7 +47,7 @@ module.exports = {
         }, {
           type: 'go',
           test: true,
-          ipfsHttpModule: require('ipfs-http-client')
+          ipfsHttpModule: require(process.env.IPFS_JS_HTTP_MODULE || 'ipfs-http-client')
         }, {
           go: {
             ipfsBin: process.env.IPFS_GO_EXEC || require('go-ipfs-dep').path()
