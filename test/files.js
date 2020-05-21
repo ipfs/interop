@@ -354,7 +354,7 @@ describe('files', function () {
 
     it('rabin chunker small chunks', () => {
       const options = {
-        chunker: 'rabin-16-16-16',
+        chunker: 'rabin-16-32-64',
         pin: false,
         preload: false
       }
