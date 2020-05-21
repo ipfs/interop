@@ -134,7 +134,7 @@ describe('pin', function () {
       expect(goPins).to.deep.include.members(jsPins)
       expect(jsPins).to.deep.include.members(goPins)
 
-      const dirPin = goPins.find(pin => pin.hash === jupiterDir.hash)
+      const dirPin = goPins.find(pin => pin.cid.equals(jupiterDir.cid))
       expect(dirPin.type).to.eql('indirect')
     })
   })
