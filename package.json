@@ -61,13 +61,13 @@
   },
   "contributors": [],
   "devDependencies": {
-    "go-ipfs-dep": "0.4.23-3",
-    "ipfs": "^0.43.0",
+    "go-ipfs-dep": "^0.5.0",
+    "ipfs": "^0.44.0",
     "ipfs-http-client": "^44.0.0"
   },
   "peerDependencies": {
-    "go-ipfs-dep": "^0.4.23-3",
-    "ipfs": "^0.43.0",
+    "go-ipfs-dep": "^0.5.0",
+    "ipfs": "^0.44.0",
     "ipfs-http-client": "^44.0.0"
   }
 }
