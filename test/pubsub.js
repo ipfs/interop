@@ -5,29 +5,28 @@
 const pRetry = require('p-retry')
 const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
-
-const retryOptions = {
-  retries: 5
-}
+const delay = require('delay')
 
 const waitForTopicPeer = (topic, peer, daemon) => {
-  return pRetry(async () => {
+  const start = Date.now()
+
+  return pRetry(async (attempt) => {
     const peers = await daemon.api.pubsub.peers(topic)
 
     if (!peers.includes(peer.id)) {
-      throw new Error(`Could not find peer ${peer.id}`)
+      throw new Error(`Could not find peer ${peer.id} after ${attempt} retries and ${Date.now() - start}ms`)
     }
-  }, retryOptions)
+  })
 }
 
 const daemonOptions = {
   args: ['--enable-pubsub-experiment']
 }
 
-const timeout = 20e3
+const timeout = 60 * 1000
 
 describe('pubsub', function () {
-  this.timeout(60 * 1000)
+  this.timeout(timeout)
 
   const tests = {
     'publish from Go, subscribe on Go': [() => daemonFactory.spawn({ ...daemonOptions, type: 'go' }), () => daemonFactory.spawn({ ...daemonOptions, type: 'go' })],
@@ -42,13 +41,10 @@ describe('pubsub', function () {
       let daemon2
 
       before('spawn nodes', async function () {
-        this.timeout(timeout)
-        ;[daemon1, daemon2] = await Promise.all(tests[name].map(fn => fn()))
+        [daemon1, daemon2] = await Promise.all(tests[name].map(fn => fn()))
       })
 
       before('connect', async function () {
-        this.timeout(timeout)
-
         await daemon1.api.swarm.connect(daemon2.api.peerId.addresses[0])
         await daemon2.api.swarm.connect(daemon1.api.peerId.addresses[0])
 
@@ -63,23 +59,30 @@ describe('pubsub', function () {
 
       after(() => daemonFactory.clean())
 
-      it('should exchange ascii data', function () {
-        const data = Buffer.from('hello world')
-        const topic = 'pubsub-ascii'
+      function testPubsub (data) {
+        const topic = 'pubsub-' + Math.random()
 
-        const subscriber = () => new Promise((resolve) => {
+        const subscriber = () => new Promise((resolve, reject) => {
+          daemon1.api.pubsub.subscribe(topic, () => {})
           daemon2.api.pubsub.subscribe(topic, (msg) => {
-            expect(msg.data.toString()).to.equal(data.toString())
-            expect(msg).to.have.property('seqno')
-            expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
-            expect(msg).to.have.property('topicIDs').and.to.include(topic)
-            expect(msg).to.have.property('from', daemon1.api.peerId.id)
-            resolve()
+            try {
+              expect(msg.data).to.deep.equal(data)
+              expect(msg).to.have.property('seqno')
+              expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
+              expect(msg).to.have.property('topicIDs').and.to.include(topic)
+              expect(msg).to.have.property('from', daemon1.api.peerId.id)
+
+              resolve()
+            } catch (err) {
+              reject(err)
+            }
           })
         })
 
         const publisher = async () => {
+          await waitForTopicPeer(topic, daemon1.api.peerId, daemon2)
           await waitForTopicPeer(topic, daemon2.api.peerId, daemon1)
+          await delay(10000) // FIXME: https://github.com/libp2p/go-libp2p-pubsub/issues/331
           await daemon1.api.pubsub.publish(topic, data)
         }
 
@@ -87,58 +90,18 @@ describe('pubsub', function () {
           subscriber(),
           publisher()
         ])
+      }
+
+      it('should exchange ascii data', function () {
+        return testPubsub(Buffer.from('hello world'))
       })
 
       it('should exchange non ascii data', function () {
-        const data = Buffer.from('你好世界')
-        const topic = 'pubsub-non-ascii'
-
-        const subscriber = () => new Promise((resolve) => {
-          daemon2.api.pubsub.subscribe(topic, (msg) => {
-            expect(msg.data.toString()).to.equal(data.toString())
-            expect(msg).to.have.property('seqno')
-            expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
-            expect(msg).to.have.property('topicIDs').and.to.include(topic)
-            expect(msg).to.have.property('from', daemon1.api.peerId.id)
-            resolve()
-          })
-        })
-
-        const publisher = async () => {
-          await waitForTopicPeer(topic, daemon2.api.peerId, daemon1)
-          await daemon1.api.pubsub.publish(topic, data)
-        }
-
-        return Promise.all([
-          subscriber(),
-          publisher()
-        ])
+        return testPubsub(Buffer.from('你好世界'))
       })
 
       it('should exchange binary data', function () {
-        const data = Buffer.from('a36161636179656162830103056164a16466666666f400010203040506070809', 'hex')
-        const topic = 'pubsub-binary'
-
-        const subscriber = () => new Promise((resolve) => {
-          daemon2.api.pubsub.subscribe(topic, (msg) => {
-            expect(msg.data.toString()).to.equal(data.toString())
-            expect(msg).to.have.property('seqno')
-            expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
-            expect(msg).to.have.property('topicIDs').and.to.include(topic)
-            expect(msg).to.have.property('from', daemon1.api.peerId.id)
-            resolve()
-          })
-        })
-
-        const publisher = async () => {
-          await waitForTopicPeer(topic, daemon2.api.peerId, daemon1)
-          await daemon1.api.pubsub.publish(topic, data)
-        }
-
-        return Promise.all([
-          subscriber(),
-          publisher()
-        ])
+        return testPubsub(Buffer.from('a36161636179656162830103056164a16466666666f400010203040506070809', 'hex'))
       })
     })
   })
