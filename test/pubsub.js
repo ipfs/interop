@@ -82,7 +82,7 @@ describe('pubsub', function () {
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon1.api.peerId, daemon2)
           await waitForTopicPeer(topic, daemon2.api.peerId, daemon1)
-          await delay(10000) // FIXME: https://github.com/libp2p/go-libp2p-pubsub/issues/331
+          await delay(20000) // FIXME: https://github.com/libp2p/go-libp2p-pubsub/issues/331
           await daemon1.api.pubsub.publish(topic, data)
         }
 
