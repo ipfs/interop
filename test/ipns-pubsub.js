@@ -109,7 +109,6 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   await waitForPeerToSubscribe(nodeB.api, topic)
   await nodeB.api.pubsub.subscribe(topic, checkMessage)
   await waitForNotificationOfSubscription(nodeA.api, topic, idB)
-  await delay(20000) // FIXME: gossipsub need this delay https://github.com/libp2p/go-libp2p-pubsub/issues/331
   const res1 = await nodeA.api.name.publish(ipfsRef, { resolve: false })
   await waitFor(() => subscribed === true, (50 * 1000))
   const res2 = await last(nodeB.api.name.resolve(idA))

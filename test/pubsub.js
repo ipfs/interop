@@ -5,7 +5,6 @@
 const pRetry = require('p-retry')
 const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
-const delay = require('delay')
 
 const waitForTopicPeer = (topic, peer, daemon) => {
   const start = Date.now()
@@ -82,7 +81,6 @@ describe('pubsub', function () {
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon1.api.peerId, daemon2)
           await waitForTopicPeer(topic, daemon2.api.peerId, daemon1)
-          await delay(20000) // FIXME: https://github.com/libp2p/go-libp2p-pubsub/issues/331
           await daemon1.api.pubsub.publish(topic, data)
         }
 
