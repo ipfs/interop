@@ -30,16 +30,15 @@
   },
   "homepage": "https://github.com/ipfs/interop#readme",
   "dependencies": {
-    "aegir": "^22.0.0",
+    "aegir": "^23.0.0",
     "base64url": "^3.0.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "cids": "~0.8.0",
+    "cids": "^0.8.0",
     "cross-env": "^7.0.2",
     "delay": "^4.3.0",
     "detect-node": "^2.0.4",
     "dirty-chai": "^2.0.1",
-    "hat": "~0.0.3",
     "ipfs-unixfs": "^1.0.1",
     "ipfsd-ctl": "^4.1.0",
     "ipns": "^0.7.0",
@@ -48,9 +47,10 @@
     "it-all": "^1.0.1",
     "it-concat": "^1.0.0",
     "it-last": "^1.0.1",
-    "libp2p-webrtc-star": "^0.17.9",
-    "mocha": "^7.1.1",
-    "multihashes": "~0.4.14",
+    "libp2p-webrtc-star": "^0.18.5",
+    "mocha": "^8.0.1",
+    "multihashes": "^1.0.1",
+    "nanoid": "^3.1.10",
     "p-retry": "^4.1.0",
     "pretty-bytes": "^5.1.0",
     "promisify-es6": "^1.0.3",
@@ -61,12 +61,12 @@
   },
   "contributors": [],
   "devDependencies": {
-    "go-ipfs-dep": "^0.5.1",
+    "go-ipfs-dep": "^0.6.0",
     "ipfs": "^0.46.0",
     "ipfs-http-client": "^44.2.0"
   },
   "peerDependencies": {
-    "go-ipfs-dep": "^0.5.1",
+    "go-ipfs-dep": "^0.6.0",
     "ipfs": "^0.46.0",
     "ipfs-http-client": "^44.2.0"
   }

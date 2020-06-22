@@ -2,7 +2,7 @@
 
 const os = require('os')
 const path = require('path')
-const hat = require('hat')
+const { nanoid } = require('nanoid')
 const all = require('it-all')
 
 exports.removeAllPins = async function removeAllPins (daemon) {
@@ -15,5 +15,5 @@ exports.removeAllPins = async function removeAllPins (daemon) {
 }
 
 exports.tmpPath = function tmpPath () {
-  return path.join(os.tmpdir(), hat())
+  return path.join(os.tmpdir(), nanoid())
 }
