@@ -3,13 +3,13 @@
 
 const os = require('os')
 const path = require('path')
-const hat = require('hat')
+const { nanoid } = require('nanoid')
 const delay = require('delay')
 const last = require('it-last')
 const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 
-const dir = path.join(os.tmpdir(), hat())
+const dir = path.join(os.tmpdir(), nanoid())
 
 const daemonOptions = {
   disposable: false,

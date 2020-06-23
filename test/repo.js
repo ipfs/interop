@@ -4,7 +4,7 @@
 const crypto = require('crypto')
 const os = require('os')
 const path = require('path')
-const hat = require('hat')
+const { nanoid } = require('nanoid')
 const delay = require('delay')
 const concat = require('it-concat')
 const last = require('it-last')
@@ -31,7 +31,7 @@ describe.skip('repo', function () {
   afterEach(() => daemonFactory.clean())
 
   it('read repo: go -> js', async function () {
-    const dir = path.join(os.tmpdir(), hat())
+    const dir = path.join(os.tmpdir(), nanoid())
     const data = crypto.randomBytes(1024 * 5)
 
     const goDaemon = await daemonFactory.spawn({
@@ -65,7 +65,7 @@ describe.skip('repo', function () {
   })
 
   it('read repo: js -> go', async function () {
-    const dir = path.join(os.tmpdir(), hat())
+    const dir = path.join(os.tmpdir(), nanoid())
     const data = crypto.randomBytes(1024 * 5)
 
     const jsDaemon = await daemonFactory.spawn({

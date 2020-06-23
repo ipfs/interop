@@ -8,7 +8,7 @@ const randomFs = require('random-fs')
 const promisify = require('promisify-es6')
 const rimraf = require('rimraf')
 const join = require('path').join
-const hat = require('hat')
+const { nanoid } = require('nanoid')
 const isCi = require('is-ci')
 const isWindows = require('is-os').isWindows
 const os = require('os')
@@ -20,7 +20,7 @@ const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 
 function tmpDir () {
-  return join(os.tmpdir(), `ipfs_${hat()}`)
+  return join(os.tmpdir(), `ipfs_${nanoid()}`)
 }
 
 const KB = 1024
