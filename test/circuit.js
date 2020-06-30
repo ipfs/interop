@@ -16,11 +16,7 @@ const baseTest = {
 }
 
 describe('circuit', () => {
-  const tests = all
-
-  if (!isNode) {
-    Object.assign(tests, browser)
-  }
+  const tests = isNode ? all : browser
 
   Object.keys(tests).forEach((test) => {
     let nodeA

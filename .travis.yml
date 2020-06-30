@@ -12,14 +12,13 @@ stages:
   - cov
 
 node_js:
-  - '10'
+  - '12'
 
 os:
   - linux
   - osx
 
 script:
-  - npm install ipfs@0.41.0-rc.1 go-ipfs-dep ipfs-http-client@42.0.0
   - npx nyc -s npm run test:node -- --bail
 after_success: npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov
 
@@ -39,16 +38,14 @@ jobs:
       addons:
         chrome: stable
       script:
-       - npm install ipfs@0.41.0-rc.1 go-ipfs-dep ipfs-http-client@42.0.0
-       - npx aegir test -t browser
+       - npx aegir test -t browser --bail
 
     - stage: test
       name: firefox
       addons:
         firefox: latest
       script:
-        - npm install ipfs@0.41.0-rc.1 go-ipfs-dep ipfs-http-client@42.0.0
-        - npx aegir test -t browser -- --browsers FirefoxHeadless
+        - npx aegir test -t browser --bail -- --browsers FirefoxHeadless
 
 notifications:
   email: false

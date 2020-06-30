@@ -3,18 +3,20 @@
 
 const os = require('os')
 const path = require('path')
-const hat = require('hat')
+const { nanoid } = require('nanoid')
 const delay = require('delay')
 const last = require('it-last')
 const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 
-const dir = path.join(os.tmpdir(), hat())
+const dir = path.join(os.tmpdir(), nanoid())
 
 const daemonOptions = {
   disposable: false,
   args: ['--offline'],
-  ipfsOptions: { repo: dir }
+  ipfsOptions: {
+    repo: dir
+  }
 }
 
 const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
@@ -40,9 +42,7 @@ const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
 
   await publisherDaemon.api.name.publish(ipfsRef, {
     resolve: false,
-    // TODO: fix this
-    'allow-offline': true, // ipfs-http-client v39
-    allowOffline: true // ipfs-http-client v40
+    allowOffline: true
   })
 
   !sameDaemon && await stopPublisherAndStartResolverDaemon()
@@ -79,7 +79,10 @@ describe('ipns locally using the same repo across implementations', function () 
     await publishAndResolve(goDaemon)
   })
 
-  it('should publish an ipns record to a js daemon and resolve it using a go daemon through the reuse of the same repo', async function () {
+  // FIXME: https://github.com/ipfs/js-ipfs/issues/1467
+  //
+  // Repo versions are different.
+  it.skip('should publish an ipns record to a js daemon and resolve it using a go daemon through the reuse of the same repo', async function () {
     const daemons = await Promise.all([
       daemonFactory.spawn({
         ...daemonOptions,
@@ -94,7 +97,10 @@ describe('ipns locally using the same repo across implementations', function () 
     await publishAndResolve(daemons[0], daemons[1])
   })
 
-  it('should publish an ipns record to a go daemon and resolve it using a js daemon through the reuse of the same repo', async function () {
+  // FIXME: https://github.com/ipfs/js-ipfs/issues/1467
+  //
+  // Repo versions are different.
+  it.skip('should publish an ipns record to a go daemon and resolve it using a js daemon through the reuse of the same repo', async function () {
     const daemons = await Promise.all([
       daemonFactory.spawn({
         ...daemonOptions,
