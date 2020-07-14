@@ -226,9 +226,9 @@ describe('files', function () {
 
   describe('has the same hashes for', () => {
     const testHashesAreEqual = async (daemon, data, options = {}) => {
-      const files = await all(daemon.api.add(data, options))
+      const { cid } = await daemon.api.add(data, options)
 
-      return files[0].cid
+      return cid
     }
 
     const _writeData = async (daemon, initialData, newData, options) => {
@@ -417,7 +417,7 @@ describe('files', function () {
 
       // will operate on sub-shard three levels deep
       const testHamtShardHashesAreEqual = async (daemon, data) => {
-        const { cid } = await last(daemon.api.add(data))
+        const { cid } = await last(daemon.api.addAll(data))
 
         await daemon.api.files.cp(`/ipfs/${cid}`, dir)
 

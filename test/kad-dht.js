@@ -2,7 +2,6 @@
 'use strict'
 
 const crypto = require('crypto')
-const last = require('it-last')
 const concat = require('it-concat')
 const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
@@ -36,7 +35,7 @@ describe.skip('kad-dht', () => {
     it('one hop', async () => {
       const data = crypto.randomBytes(9001)
 
-      const { cid } = await last(goD1.api.add(data))
+      const { cid } = await goD1.api.add(data)
       const file = await concat(jsD.api.cat(cid))
 
       expect(file.slice()).to.be.eql(data)
@@ -45,7 +44,7 @@ describe.skip('kad-dht', () => {
     it('two hops', async () => {
       const data = crypto.randomBytes(9001)
 
-      const { cid } = await last(goD2.api.add(data))
+      const { cid } = await goD2.api.add(data)
       const file = await concat(jsD.api.cat(cid))
 
       expect(file.slice()).to.be.eql(data)
@@ -54,7 +53,7 @@ describe.skip('kad-dht', () => {
     it('three hops', async () => {
       const data = crypto.randomBytes(9001)
 
-      const { cid } = await last(goD3.api.add(data))
+      const { cid } = await goD3.api.add(data)
       const file = await concat(jsD.api.cat(cid))
 
       expect(file.slice()).to.be.eql(data)

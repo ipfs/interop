@@ -13,7 +13,6 @@ const isCi = require('is-ci')
 const isWindows = require('is-os').isWindows
 const os = require('os')
 const rmDir = promisify(rimraf)
-const last = require('it-last')
 const concat = require('it-concat')
 const { globSource } = require(process.env.IPFS_JS_MODULE || 'ipfs')
 const { expect } = require('./utils/chai')
@@ -133,7 +132,7 @@ describe('exchange files', function () {
 
           const data = crypto.randomBytes(size)
 
-          const { cid } = await last(daemon1.api.add(data))
+          const { cid } = await daemon1.api.add(data)
           const file = await concat(daemon2.api.cat(cid))
 
           expect(file.slice()).to.eql(data)
@@ -155,7 +154,7 @@ describe('exchange files', function () {
               depth: d,
               number: num
             })
-            const { cid } = await last(daemon1.api.add(globSource(dir, { recursive: true })))
+            const { cid } = await daemon1.api.add(globSource(dir, { recursive: true }))
 
             let fileCount = 0
             for await (const file of daemon2.api.get(cid)) {
