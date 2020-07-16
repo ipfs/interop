@@ -7,7 +7,6 @@ const path = require('path')
 const { nanoid } = require('nanoid')
 const delay = require('delay')
 const concat = require('it-concat')
-const last = require('it-last')
 const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 
@@ -44,7 +43,7 @@ describe.skip('repo', function () {
     await goDaemon.init()
     await goDaemon.start()
 
-    const { cid } = await last(goDaemon.api.add(data))
+    const { cid } = await goDaemon.api.add(data)
 
     await catAndCheck(goDaemon.api, cid, data)
     await goDaemon.stop()
@@ -78,7 +77,7 @@ describe.skip('repo', function () {
     await jsDaemon.init()
     await jsDaemon.start()
 
-    const { cid } = await last(jsDaemon.api.add(data))
+    const { cid } = await jsDaemon.api.add(data)
 
     await catAndCheck(jsDaemon.api, cid, data)
     await jsDaemon.stop()

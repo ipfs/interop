@@ -2,7 +2,6 @@
 'use strict'
 
 const { nanoid } = require('nanoid')
-const last = require('it-last')
 const concat = require('it-concat')
 const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
@@ -34,7 +33,7 @@ describe('CID version agnostic', function () {
 
   it('should add v0 and cat v1 (go0 -> go0)', async () => {
     const input = Buffer.from(nanoid())
-    const { cid } = await last(daemons.go0.api.add(input, { cidVersion: 0 }))
+    const { cid } = await daemons.go0.api.add(input, { cidVersion: 0 })
     const cidv1 = cid.toV1()
     const output = await concat(daemons.go0.api.cat(cidv1))
     expect(output.slice()).to.deep.equal(input)
@@ -42,7 +41,7 @@ describe('CID version agnostic', function () {
 
   it('should add v0 and cat v1 (js0 -> js0)', async () => {
     const input = Buffer.from(nanoid())
-    const { cid } = await last(daemons.js0.api.add(input, { cidVersion: 0 }))
+    const { cid } = await daemons.js0.api.add(input, { cidVersion: 0 })
     const cidv1 = cid.toV1()
     const output = await concat(daemons.js0.api.cat(cidv1))
     expect(output.slice()).to.deep.equal(input)
@@ -50,7 +49,7 @@ describe('CID version agnostic', function () {
 
   it('should add v0 and cat v1 (go0 -> go1)', async () => {
     const input = Buffer.from(nanoid())
-    const { cid } = await last(daemons.go0.api.add(input, { cidVersion: 0 }))
+    const { cid } = await daemons.go0.api.add(input, { cidVersion: 0 })
     const cidv1 = cid.toV1()
     const output = await concat(daemons.go1.api.cat(cidv1))
     expect(output.slice()).to.deep.equal(input)
@@ -58,7 +57,7 @@ describe('CID version agnostic', function () {
 
   it('should add v0 and cat v1 (js0 -> js1)', async () => {
     const input = Buffer.from(nanoid())
-    const { cid } = await last(daemons.js0.api.add(input, { cidVersion: 0 }))
+    const { cid } = await daemons.js0.api.add(input, { cidVersion: 0 })
     const cidv1 = cid.toV1()
     const output = await concat(daemons.js1.api.cat(cidv1))
     expect(output.slice()).to.deep.equal(input)
@@ -66,7 +65,7 @@ describe('CID version agnostic', function () {
 
   it('should add v0 and cat v1 (js0 -> go0)', async () => {
     const input = Buffer.from(nanoid())
-    const { cid } = await last(daemons.js0.api.add(input, { cidVersion: 0 }))
+    const { cid } = await daemons.js0.api.add(input, { cidVersion: 0 })
     const cidv1 = cid.toV1()
     const output = await concat(daemons.go0.api.cat(cidv1))
     expect(output.slice()).to.deep.equal(input)
@@ -74,7 +73,7 @@ describe('CID version agnostic', function () {
 
   it('should add v0 and cat v1 (go0 -> js0)', async () => {
     const input = Buffer.from(nanoid())
-    const { cid } = await last(daemons.go0.api.add(input, { cidVersion: 0 }))
+    const { cid } = await daemons.go0.api.add(input, { cidVersion: 0 })
     const cidv1 = cid.toV1()
     const output = await concat(daemons.js0.api.cat(cidv1))
     expect(output.slice()).to.deep.equal(input)
@@ -82,7 +81,7 @@ describe('CID version agnostic', function () {
 
   it('should add v1 and cat v0 (go0 -> go0)', async () => {
     const input = Buffer.from(nanoid())
-    const { cid } = await last(daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false }))
+    const { cid } = await daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = cid.toV0()
     const output = await concat(daemons.go0.api.cat(cidv0))
     expect(output.slice()).to.deep.equal(input)
@@ -90,7 +89,7 @@ describe('CID version agnostic', function () {
 
   it('should add v1 and cat v0 (js0 -> js0)', async () => {
     const input = Buffer.from(nanoid())
-    const { cid } = await last(daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false }))
+    const { cid } = await daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = cid.toV0()
     const output = await concat(daemons.js0.api.cat(cidv0))
     expect(output.slice()).to.deep.equal(input)
@@ -98,7 +97,7 @@ describe('CID version agnostic', function () {
 
   it('should add v1 and cat v0 (go0 -> go1)', async () => {
     const input = Buffer.from(nanoid())
-    const { cid } = await last(daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false }))
+    const { cid } = await daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = cid.toV0()
     const output = await concat(daemons.go1.api.cat(cidv0))
     expect(output.slice()).to.deep.equal(input)
@@ -106,7 +105,7 @@ describe('CID version agnostic', function () {
 
   it('should add v1 and cat v0 (js0 -> js1)', async () => {
     const input = Buffer.from(nanoid())
-    const { cid } = await last(daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false }))
+    const { cid } = await daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = cid.toV0()
     const output = await concat(daemons.js1.api.cat(cidv0))
     expect(output.slice()).to.deep.equal(input)
@@ -114,7 +113,7 @@ describe('CID version agnostic', function () {
 
   it('should add v1 and cat v0 (js0 -> go0)', async () => {
     const input = Buffer.from(nanoid())
-    const { cid } = await last(daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false }))
+    const { cid } = await daemons.js0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = cid.toV0()
     const output = await concat(daemons.go0.api.cat(cidv0))
     expect(output.slice()).to.deep.equal(input)
@@ -122,7 +121,7 @@ describe('CID version agnostic', function () {
 
   it('should add v1 and cat v0 (go0 -> js0)', async () => {
     const input = Buffer.from(nanoid())
-    const { cid } = await last(daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false }))
+    const { cid } = await daemons.go0.api.add(input, { cidVersion: 1, rawLeaves: false })
     const cidv0 = cid.toV0()
     const output = await concat(daemons.js0.api.cat(cidv0))
     expect(output.slice()).to.deep.equal(input)
