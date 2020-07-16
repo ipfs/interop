@@ -14,40 +14,57 @@ This repository will be used for interop tests. Please jump into the issues if y
 
 ### Install
 
-```
-> git clone git@github.com:ipfs/interop.git
-> cd interop
-> npm install
-
-# install a version of js-ipfs to test with
-> npm install ipfs
-
-# optionally install a version of js-ipfs-http-client to test with
-# (otherwise the one ipfs depends on will be used)
-> npm install ipfs-http-client
-
-# install a version of go-ipfs to test with
-> npm install go-ipfs
+```console
+$ npm install -g ipfs-interop
 ```
 
 ### Run the tests
 
-```
-> npm test
-```
-
-### Test with a non yet released version of js-ipfs
-
-```
-# Do the steps in the install section but skip installing ipfs, then
-> IPFS_JS_EXEC=/path/to/js-ipfs/src/cli/bin.js IPFS_JS_MODULE=/path/to/js-ipfs npm test
+```console
+$ ipfs-interop
 ```
 
-### Test with a non yet released version of go-ipfs
+## Testing with different versions of go/js IPFS
 
+### As a project
+
+This module declares peer dependencies of `ipfs`, `ipfs-http-client` and `go-ipfs` so if you have `ipfs-interop` as a dependecy of your project, simply add the extra IPFS dependencies:
+
+```json
+{
+  "name": "my-project",
+  "scripts": {
+    "interop": "ipfs-interop"
+  },
+  "dependencies": {
+    "go-ipfs": "...",
+    "ipfs": "...",
+    "ipfs-http-client": "...",
+    "ipfs-interop": "..."
+  }
+}
 ```
-> Do the steps in the install section, then
-> IPFS_GO_EXEC=<path to the go-ipfs version you want to try> npm test
+
+Then run:
+
+```console
+$ npm run interop
+```
+
+### As environmental variables
+
+Specify the following environmental variables to control which versions of IPFS ipfs-interop uses when installed globally:
+
+- `IPFS_GO_EXEC` A path to a go-IPFS binary
+- `IPFS_JS_EXEC` A path to `/src/cli/bin.js` inside a js-IPFS install
+- `IPFS_JS_MODULE` A path to a js-IPFS install
+- `IPFS_JS_HTTP_MODULE` A path to a ipfs-http-client install (optional)
+
+Then run:
+
+```console
+$ npm install -g ipfs-interop
+$ IPFS_GO_EXEC=/path IPFS_JS_EXEC=/path IPFS_JS_MODULE=/path IPFS_JS_HTTP_MODULE=/path ipfs-interop
 ```
 
 ## Contribute
