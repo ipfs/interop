@@ -51,7 +51,7 @@ Then run:
 $ npm run interop
 ```
 
-### As environmental variables
+### As environmental variables
 
 Specify the following environmental variables to control which versions of IPFS ipfs-interop uses when installed globally:
 
