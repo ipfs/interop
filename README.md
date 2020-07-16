@@ -27,7 +27,7 @@ This repository will be used for interop tests. Please jump into the issues if y
 > npm install ipfs-http-client
 
 # install a version of go-ipfs to test with
-> npm install go-ipfs-dep
+> npm install go-ipfs
 ```
 
 ### Run the tests

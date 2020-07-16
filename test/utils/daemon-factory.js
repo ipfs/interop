@@ -30,6 +30,6 @@ module.exports = createFactory({
     ipfsBin: isNode ? process.env.IPFS_JS_EXEC || require.resolve(`${process.env.IPFS_JS_MODULE || 'ipfs'}/src/cli/bin.js`) : undefined
   },
   go: {
-    ipfsBin: isNode ? process.env.IPFS_GO_EXEC || require('go-ipfs-dep').path.silent() : undefined
+    ipfsBin: isNode ? process.env.IPFS_GO_EXEC || require('go-ipfs').path() : undefined
   }
 })

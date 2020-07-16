@@ -40,7 +40,7 @@
     "detect-node": "^2.0.4",
     "dirty-chai": "^2.0.1",
     "ipfs-unixfs": "^1.0.1",
-    "ipfsd-ctl": "^4.1.0",
+    "ipfsd-ctl": "^5.0.0",
     "ipns": "^0.7.0",
     "is-ci": "^2.0.0",
     "is-os": "^1.0.1",
@@ -61,12 +61,12 @@
   },
   "contributors": [],
   "devDependencies": {
-    "go-ipfs-dep": "^0.6.0",
+    "go-ipfs": "^0.6.0",
     "ipfs": "^0.46.0",
     "ipfs-http-client": "^44.2.0"
   },
   "peerDependencies": {
-    "go-ipfs-dep": "^0.6.0",
+    "go-ipfs": "^0.6.0",
     "ipfs": "^0.46.0",
     "ipfs-http-client": "^44.2.0"
   }
