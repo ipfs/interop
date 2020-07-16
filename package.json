@@ -40,7 +40,7 @@
     "detect-node": "^2.0.4",
     "dirty-chai": "^2.0.1",
     "ipfs-unixfs": "^1.0.1",
-    "ipfsd-ctl": "^4.1.0",
+    "ipfsd-ctl": "^5.0.0",
     "ipns": "^0.7.0",
     "is-ci": "^2.0.0",
     "is-os": "^1.0.1",
