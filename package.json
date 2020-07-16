@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/ipfs/interop#readme",
   "dependencies": {
-    "aegir": "^23.0.0",
+    "aegir": "^25.0.0",
     "base64url": "^3.0.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
