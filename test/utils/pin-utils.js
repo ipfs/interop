@@ -10,7 +10,7 @@ exports.removeAllPins = async function removeAllPins (daemon) {
   const pins = await all(daemon.api.pin.ls())
   const rootPins = pins.filter(pin => pin.type === 'recursive' || pin.type === 'direct')
 
-  await drain(daemon.api.pin.rm(rootPins.map(pin => pin.cid)))
+  await drain(daemon.api.pin.rmAll(rootPins.map(pin => pin.cid)))
 
   return daemon
 }
