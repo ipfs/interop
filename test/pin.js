@@ -64,8 +64,8 @@ describe('pin', function () {
     // Pinning a large file recursively results in the same pins
     it('pin recursively', async function () {
       async function pipeline (daemon) {
-        const chunks = await all(daemon.api.add(jupiter, { pin: false }))
-        await daemon.api.pin.add(chunks[0].cid)
+        const { cid } = await daemon.api.add(jupiter, { pin: false })
+        await daemon.api.pin.add(cid)
 
         return all(daemon.api.pin.ls())
       }
@@ -80,8 +80,8 @@ describe('pin', function () {
     // Pinning a large file with recursive=false results in the same direct pin
     it('pin directly', async function () {
       async function pipeline (daemon) {
-        const chunks = await all(daemon.api.add(jupiter, { pin: false }))
-        await daemon.api.pin.add(chunks[0].cid, { recursive: false })
+        const { cid } = await daemon.api.add(jupiter, { pin: false })
+        await daemon.api.pin.add(cid, { recursive: false })
 
         return all(daemon.api.pin.ls())
       }
@@ -99,9 +99,8 @@ describe('pin', function () {
     // not part of another pin's dag
     it('pin recursively, remove the root pin', async function () {
       async function pipeline (daemon) {
-        const chunks = await all(daemon.api.add(jupiter))
-        const testFolder = chunks.find(chunk => chunk.path === 'test')
-        await daemon.api.pin.rm(testFolder.cid)
+        const { cid } = await daemon.api.add(jupiter)
+        await daemon.api.pin.rm(cid)
 
         return all(daemon.api.pin.ls())
       }
@@ -117,13 +116,21 @@ describe('pin', function () {
     it('remove a child shared by multiple pins', async function () {
       let jupiterDir
       async function pipeline (daemon) {
-        const chunks = await all(daemon.api.add(jupiter, { pin: false }))
-        jupiterDir = jupiterDir || chunks.find(chunk => chunk.path === 'test/fixtures/planets')
+        const { cid } = await daemon.api.add(jupiter, { pin: false, wrapWithDirectory: true })
+        jupiterDir = jupiterDir || await daemon.api.files.stat(`/ipfs/${cid}/test/fixtures/planets`)
 
         // by separately pinning all the DAG nodes created when adding,
         // dirs are pinned as type=recursive and
         // nested pins reference each other
-        await drain(daemon.api.pin.addAll(chunks.map(chunk => chunk.cid)))
+        let fullPath = ''
+        await Promise.all(
+          filePath.split('/').map(path => {
+            fullPath = `${fullPath}/${path}`
+
+            return daemon.api.files.stat(`/ipfs/${cid}${fullPath}`)
+              .then(result => daemon.api.pin.add(result.cid)) // eslint-disable-line max-nested-callbacks
+          })
+        )
         await daemon.api.pin.rm(jupiterDir.cid)
 
         return all(daemon.api.pin.ls())
@@ -143,7 +150,7 @@ describe('pin', function () {
   describe('ls', function () {
     it('print same pins', async function () {
       async function pipeline (daemon) {
-        await all(daemon.api.add(jupiter))
+        await daemon.api.add(jupiter)
 
         return all(daemon.api.pin.ls())
       }

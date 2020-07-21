@@ -2,7 +2,6 @@
 
 const delay = require('delay')
 const crypto = require('crypto')
-const last = require('it-last')
 const concat = require('it-concat')
 const { expect } = require('./chai')
 const daemonFactory = require('./daemon-factory')
@@ -60,7 +59,7 @@ exports.clean = () => daemonFactory.clean()
 
 const data = crypto.randomBytes(128)
 exports.send = async (nodeA, nodeB) => {
-  const { cid } = await last(nodeA.api.add(data))
+  const { cid } = await nodeA.api.add(data)
   const buffer = await concat(nodeB.api.cat(cid))
 
   expect(buffer.slice()).to.deep.equal(data)

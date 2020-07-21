@@ -50,7 +50,7 @@ module.exports = {
           ipfsHttpModule: require(process.env.IPFS_JS_HTTP_MODULE || 'ipfs-http-client')
         }, {
           go: {
-            ipfsBin: process.env.IPFS_GO_EXEC || require('go-ipfs-dep').path()
+            ipfsBin: process.env.IPFS_GO_EXEC || require('go-ipfs').path()
           },
           js: {
             ipfsOptions: {
