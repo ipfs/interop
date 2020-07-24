@@ -51,7 +51,7 @@
     "mocha": "^8.0.1",
     "multihashes": "^1.0.1",
     "nanoid": "^3.1.10",
-    "peer-id": "^0.13.0",
+    "peer-id": "^0.13.13",
     "p-retry": "^4.1.0",
     "pretty-bytes": "^5.1.0",
     "promisify-es6": "^1.0.3",
