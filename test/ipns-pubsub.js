@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 'use strict'
 
+const PeerID = require('peer-id')
 const { fromB58String } = require('multihashes')
 const base64url = require('base64url')
 const ipns = require('ipns')
@@ -110,7 +111,7 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   await waitFor(() => subscribed === true, (50 * 1000))
   const res2 = await last(nodeB.api.name.resolve(idA))
 
-  expect(res1.name).to.equal(idA) // Published to Node A ID
+  expect(PeerID.createFromCID(res1.name).toString()).to.equal(PeerID.createFromB58String(idA).toString()) // Published to Node A ID
   expect(res2).to.equal(ipfsRef)
 }
 
