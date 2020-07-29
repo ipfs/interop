@@ -28,6 +28,7 @@ describe('ipns-pubsub', function () {
 
   // Spawn daemons
   before(async function () {
+    this.timeout(10e3)
     nodes = await Promise.all([
       daemonFactory.spawn({
         type: 'go',
@@ -51,6 +52,7 @@ describe('ipns-pubsub', function () {
 
   // Connect nodes and wait for republish
   before(async function () {
+    this.timeout(10e3)
     // TODO: go-ipfs needs two nodes in the DHT to be able to publish a record
     // Remove the second connect when js-ipfs runs a DHT server
     await Promise.all([
