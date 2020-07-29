@@ -24,7 +24,6 @@ const namespace = '/record/'
 const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 
 describe('ipns-pubsub', function () {
-  this.timeout(350 * 1000)
   let nodes = []
 
   // Spawn daemons
@@ -71,7 +70,6 @@ describe('ipns-pubsub', function () {
   })
 
   it('should publish the received record to a go node and a js subscriber should receive it', async function () {
-    this.timeout(300 * 1000)
     // TODO find out why JS doesn't resolve, might be just missing a DHT
     await Promise.all([
       subscribeToReceiveByPubsub(nodes[0], nodes[1], nodes[0].api.peerId.id, nodes[1].api.peerId.id),
@@ -80,7 +78,6 @@ describe('ipns-pubsub', function () {
   })
 
   it('should publish the received record to a js node and a go subscriber should receive it', async function () {
-    this.timeout(350 * 1000)
     await Promise.all([
       subscribeToReceiveByPubsub(nodes[1], nodes[0], nodes[1].api.peerId.id, nodes[0].api.peerId.id),
       last(nodes[0].api.name.resolve(nodes[1].api.peerId.id, { stream: false }))
