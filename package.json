@@ -34,7 +34,7 @@
     "base64url": "^3.0.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "cids": "^0.8.0",
+    "cids": "^1.0.0",
     "cross-env": "^7.0.2",
     "delay": "^4.3.0",
     "detect-node": "^2.0.4",
