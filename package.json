@@ -39,7 +39,7 @@
     "delay": "^4.3.0",
     "detect-node": "^2.0.4",
     "dirty-chai": "^2.0.1",
-    "ipfs-unixfs": "^1.0.1",
+    "ipfs-unixfs": "^2.0.2",
     "ipfsd-ctl": "^5.0.0",
     "ipns": "^0.7.0",
     "is-ci": "^2.0.0",
