@@ -31,7 +31,6 @@
   "homepage": "https://github.com/ipfs/interop#readme",
   "dependencies": {
     "aegir": "^26.0.0",
-    "base64url": "^3.0.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cids": "^1.0.0",
@@ -58,7 +57,8 @@
     "random-fs": "^1.0.3",
     "readable-stream-buffer-stream": "^1.0.0",
     "resolve-cwd": "^3.0.0",
-    "rimraf": "^3.0.0"
+    "rimraf": "^3.0.0",
+    "uint8arrays": "^1.1.0"
   },
   "contributors": [],
   "devDependencies": {
