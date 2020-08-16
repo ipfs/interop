@@ -2,7 +2,7 @@
 /* eslint-env mocha */
 'use strict'
 
-const crypto = require('crypto')
+const randomBytes = require('iso-random-stream/src/random')
 const pretty = require('pretty-bytes')
 const randomFs = require('random-fs')
 const promisify = require('promisify-es6')
@@ -130,7 +130,7 @@ describe('exchange files', function () {
         it(`${name}: ${pretty(size)}`, async function () {
           this.timeout(timeout)
 
-          const data = crypto.randomBytes(size)
+          const data = randomBytes(size)
 
           const { cid } = await daemon1.api.add(data)
           const file = await concat(daemon2.api.cat(cid))

@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 'use strict'
 
-const crypto = require('crypto')
+const randomBytes = require('iso-random-stream/src/random')
 const os = require('os')
 const path = require('path')
 const { nanoid } = require('nanoid')
@@ -31,7 +31,7 @@ describe.skip('repo', function () {
 
   it('read repo: go -> js', async function () {
     const dir = path.join(os.tmpdir(), nanoid())
-    const data = crypto.randomBytes(1024 * 5)
+    const data = randomBytes(1024 * 5)
 
     const goDaemon = await daemonFactory.spawn({
       type: 'go',
@@ -65,7 +65,7 @@ describe.skip('repo', function () {
 
   it('read repo: js -> go', async function () {
     const dir = path.join(os.tmpdir(), nanoid())
-    const data = crypto.randomBytes(1024 * 5)
+    const data = randomBytes(1024 * 5)
 
     const jsDaemon = await daemonFactory.spawn({
       type: 'js',

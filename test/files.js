@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 'use strict'
 
-const crypto = require('crypto')
+const randomBytes = require('iso-random-stream/src/random')
 const UnixFs = require('ipfs-unixfs')
 const daemonFactory = require('./utils/daemon-factory')
 const bufferStream = require('readable-stream-buffer-stream')
@@ -171,7 +171,7 @@ describe('files', function () {
   // Similar to the problem we worked around here:
   // https://github.com/ipfs/js-ipfs-http-client/blob/d7eb0e8ffb15e207a8a6062e292a3b5babf35a9e/src/lib/error-handler.js#L12-L23
   it.skip('uses raw nodes for leaf data', () => {
-    const data = crypto.randomBytes(1024 * 300)
+    const data = randomBytes(1024 * 300)
     const testLeavesAreRaw = async (daemon) => {
       const file = await addFile(daemon, data)
       await checkNodeTypes(daemon, file)
@@ -271,7 +271,7 @@ describe('files', function () {
     })
 
     it('big files', () => {
-      const data = crypto.randomBytes(1024 * 3000)
+      const data = randomBytes(1024 * 3000)
 
       return compare(
         testHashesAreEqual(go, data),
@@ -280,8 +280,8 @@ describe('files', function () {
     })
 
     it('files that have had data appended', () => {
-      const initialData = crypto.randomBytes(1024 * 300)
-      const appendedData = crypto.randomBytes(1024 * 300)
+      const initialData = randomBytes(1024 * 300)
+      const appendedData = randomBytes(1024 * 300)
 
       return compare(
         appendData(go, initialData, appendedData),
@@ -291,8 +291,8 @@ describe('files', function () {
 
     it('files that have had data overwritten', () => {
       const bytes = 1024 * 300
-      const initialData = crypto.randomBytes(bytes)
-      const newData = crypto.randomBytes(bytes)
+      const initialData = randomBytes(bytes)
+      const newData = randomBytes(bytes)
 
       return compare(
         overwriteData(go, initialData, newData),
@@ -313,7 +313,7 @@ describe('files', function () {
     })
 
     it('big files with CIDv1', () => {
-      const data = crypto.randomBytes(1024 * 3000)
+      const data = randomBytes(1024 * 3000)
       const options = {
         cidVersion: 1
       }
@@ -366,7 +366,7 @@ describe('files', function () {
     })
 
     it('hamt shards', () => {
-      const data = crypto.randomBytes(100)
+      const data = randomBytes(100)
       const files = []
       const dir = `/shard-${Date.now()}`
 
@@ -385,7 +385,7 @@ describe('files', function () {
 
     it('updating mfs hamt shards', () => {
       const dir = `/shard-${Date.now()}`
-      const data = crypto.randomBytes(100)
+      const data = randomBytes(100)
       const nodeGrContent = Buffer.from([0, 1, 2, 3, 4])
       const superModuleContent = Buffer.from([5, 6, 7, 8, 9])
       const files = [{
@@ -393,19 +393,19 @@ describe('files', function () {
         content: nodeGrContent
       }, {
         path: `${dir}/yanvoidmodule`,
-        content: crypto.randomBytes(5)
+        content: randomBytes(5)
       }, {
         path: `${dir}/methodify`,
-        content: crypto.randomBytes(5)
+        content: randomBytes(5)
       }, {
         path: `${dir}/fis-msprd-style-loader_0_13_1`,
-        content: crypto.randomBytes(5)
+        content: randomBytes(5)
       }, {
         path: `${dir}/js-form`,
-        content: crypto.randomBytes(5)
+        content: randomBytes(5)
       }, {
         path: `${dir}/vivanov-sliceart`,
-        content: crypto.randomBytes(5)
+        content: randomBytes(5)
       }]
 
       for (let i = 0; i < SHARD_THRESHOLD; i++) {
