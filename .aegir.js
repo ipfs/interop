@@ -17,7 +17,11 @@ module.exports = {
       stream: true,
 
       // needed by core-is-lib
-      Buffer: true
+      Buffer: true,
+
+      // needed by go-ipfs
+      path: true,
+      os: true
     }
   },
   karma: {
