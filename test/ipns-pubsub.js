@@ -1,9 +1,9 @@
 /* eslint-env mocha */
 'use strict'
 
+const PeerID = require('peer-id')
 const { fromB58String } = require('multihashes')
 const ipns = require('ipns')
-const delay = require('delay')
 const last = require('it-last')
 const pRetry = require('p-retry')
 const waitFor = require('./utils/wait-for')
@@ -24,11 +24,11 @@ const namespace = '/record/'
 const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 
 describe('ipns-pubsub', function () {
-  this.timeout(350 * 1000)
   let nodes = []
 
   // Spawn daemons
-  before(async function () {
+  before('create the nodes', async function () {
+    this.timeout(20e3)
     nodes = await Promise.all([
       daemonFactory.spawn({
         type: 'go',
@@ -51,15 +51,14 @@ describe('ipns-pubsub', function () {
   })
 
   // Connect nodes and wait for republish
-  before(async function () {
-    await nodes[0].api.swarm.connect(nodes[1].api.peerId.addresses[0])
-
+  before('connect the nodes', async function () {
+    this.timeout(10e3)
     // TODO: go-ipfs needs two nodes in the DHT to be able to publish a record
-    // Remove this when js-ipfs has a DHT
-    await nodes[0].api.swarm.connect(nodes[2].api.peerId.addresses[0])
-
-    console.log('wait for republish as we can receive the republish message first') // eslint-disable-line
-    await delay(60000)
+    // Remove the second connect when js-ipfs runs a DHT server
+    await Promise.all([
+      nodes[0].api.swarm.connect(nodes[1].api.peerId.addresses[0]),
+      nodes[0].api.swarm.connect(nodes[2].api.peerId.addresses[0])
+    ])
   })
 
   after(() => daemonFactory.clean())
@@ -73,16 +72,18 @@ describe('ipns-pubsub', function () {
   })
 
   it('should publish the received record to a go node and a js subscriber should receive it', async function () {
-    this.timeout(300 * 1000)
     // TODO find out why JS doesn't resolve, might be just missing a DHT
-    await expect(last(nodes[1].api.name.resolve(nodes[0].api.peerId.id, { stream: false }))).to.eventually.be.rejected.with(/was not found in the network/)
-    await subscribeToReceiveByPubsub(nodes[0], nodes[1], nodes[0].api.peerId.id, nodes[1].api.peerId.id)
+    await Promise.all([
+      subscribeToReceiveByPubsub(nodes[0], nodes[1], nodes[0].api.peerId.id, nodes[1].api.peerId.id),
+      expect(last(nodes[1].api.name.resolve(nodes[0].api.peerId.id, { stream: false }))).to.eventually.be.rejected.with(/was not found in the network/)
+    ])
   })
 
   it('should publish the received record to a js node and a go subscriber should receive it', async function () {
-    this.timeout(350 * 1000)
-    await last(nodes[0].api.name.resolve(nodes[1].api.peerId.id, { stream: false }))
-    await subscribeToReceiveByPubsub(nodes[1], nodes[0], nodes[1].api.peerId.id, nodes[0].api.peerId.id)
+    await Promise.all([
+      subscribeToReceiveByPubsub(nodes[1], nodes[0], nodes[1].api.peerId.id, nodes[0].api.peerId.id),
+      last(nodes[0].api.name.resolve(nodes[1].api.peerId.id, { stream: false }))
+    ])
   })
 })
 
@@ -110,7 +111,7 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   await waitFor(() => subscribed === true, (50 * 1000))
   const res2 = await last(nodeB.api.name.resolve(idA))
 
-  expect(res1.name).to.equal(idA) // Published to Node A ID
+  expect(PeerID.createFromCID(res1.name).toString()).to.equal(PeerID.createFromCID(idA).toString()) // Published to Node A ID
   expect(res2).to.equal(ipfsRef)
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "ipfs-interop",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Interoperability Tests for IPFS",
   "main": "",
   "bin": {
@@ -52,6 +52,7 @@
     "mocha": "^8.0.1",
     "multihashes": "^3.0.1",
     "nanoid": "^3.1.10",
+    "peer-id": "^0.13.13",
     "p-retry": "^4.1.0",
     "pretty-bytes": "^5.1.0",
     "promisify-es6": "^1.0.3",
@@ -61,7 +62,22 @@
     "rimraf": "^3.0.0",
     "uint8arrays": "^1.1.0"
   },
-  "contributors": [],
+  "contributors": [
+    "achingbrain <alex@achingbrain.net>",
+    "David Dias <daviddias.p@gmail.com>",
+    "Steven Allen <steven@stebalien.com>",
+    "Vasco Santos <vasco.santos@moxy.studio>",
+    "Alan Shaw <alan.shaw@protocol.ai>",
+    "Dmitriy Ryajov <dryajov@gmail.com>",
+    "Jacob Heun <jacobheun@gmail.com>",
+    "Hugo Dias <hugomrdias@gmail.com>",
+    "Hector Sanjuan <code@hector.link>",
+    "Pedro Santos <pedro.santos@moxy.studio>",
+    "Bryan Stenson <bryan.stenson@gmail.com>",
+    "Jonathan <jkrone@vt.edu>",
+    "Petar Maymounkov <petarm@gmail.com>",
+    "Richard Littauer <richard.littauer@gmail.com>"
+  ],
   "devDependencies": {
     "go-ipfs": "^0.6.0",
     "ipfs": "^0.49.0",
