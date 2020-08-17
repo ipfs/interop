@@ -65,11 +65,11 @@ async function addFile (daemon, data) {
 
 function createDataStream (size = 262144) {
   const chunkSize = size
-  const buffer = Buffer.alloc(chunkSize, 0)
+  const buffer = new Uint8Array(chunkSize)
 
   return bufferStream(chunkSize, {
     generator: (size, callback) => {
-      callback(null, buffer.slice(0, size))
+      callback(null, buffer.subarray(0, size))
     }
   })
 }
@@ -156,7 +156,7 @@ describe('files', function () {
 
   it('returns an error when writing deeply nested files and the parents do not exist', () => {
     const writeNonExistentFile = (daemon) => {
-      return daemon.api.files.write(`/foo-${Math.random()}/bar-${Math.random()}/baz-${Math.random()}/i-do-not-exist-${Math.random()}`, Buffer.from([0, 1, 2, 3]))
+      return daemon.api.files.write(`/foo-${Math.random()}/bar-${Math.random()}/baz-${Math.random()}/i-do-not-exist-${Math.random()}`, Uint8Array.from([0, 1, 2, 3]))
     }
 
     return compareErrors(
@@ -253,7 +253,7 @@ describe('files', function () {
     }
 
     it('empty files', () => {
-      const data = Buffer.alloc(0)
+      const data = new Uint8Array(0)
 
       return compare(
         testHashesAreEqual(go, data),
@@ -262,7 +262,7 @@ describe('files', function () {
     })
 
     it('small files', () => {
-      const data = Buffer.from([0x00, 0x01, 0x02])
+      const data = Uint8Array.from([0x00, 0x01, 0x02])
 
       return compare(
         testHashesAreEqual(go, data),
@@ -301,7 +301,7 @@ describe('files', function () {
     })
 
     it('small files with CIDv1', () => {
-      const data = Buffer.from([0x00, 0x01, 0x02])
+      const data = Uint8Array.from([0x00, 0x01, 0x02])
       const options = {
         cidVersion: 1
       }
@@ -386,8 +386,8 @@ describe('files', function () {
     it('updating mfs hamt shards', () => {
       const dir = `/shard-${Date.now()}`
       const data = randomBytes(100)
-      const nodeGrContent = Buffer.from([0, 1, 2, 3, 4])
-      const superModuleContent = Buffer.from([5, 6, 7, 8, 9])
+      const nodeGrContent = Uint8Array.from([0, 1, 2, 3, 4])
+      const superModuleContent = Uint8Array.from([5, 6, 7, 8, 9])
       const files = [{
         path: `${dir}/node-gr`,
         content: nodeGrContent
