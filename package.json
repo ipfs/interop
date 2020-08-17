@@ -29,6 +29,9 @@
     "url": "https://github.com/ipfs/interop/issues"
   },
   "homepage": "https://github.com/ipfs/interop#readme",
+  "browser": {
+    "go-ipfs": false
+  },
   "dependencies": {
     "aegir": "^26.0.0",
     "chai": "^4.2.0",
