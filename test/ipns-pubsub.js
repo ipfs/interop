@@ -3,13 +3,13 @@
 
 const PeerID = require('peer-id')
 const { fromB58String } = require('multihashes')
-const base64url = require('base64url')
 const ipns = require('ipns')
 const last = require('it-last')
 const pRetry = require('p-retry')
 const waitFor = require('./utils/wait-for')
 const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
+const uint8ArrayToString = require('uint8arrays/to-string')
 
 const daemonsOptions = {
   args: ['--enable-namesys-pubsub'] // enable ipns over pubsub
@@ -102,7 +102,7 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   }
 
   const keys = ipns.getIdKeys(fromB58String(idA))
-  const topic = `${namespace}${base64url.encode(keys.routingKey.toBuffer())}`
+  const topic = `${namespace}${uint8ArrayToString(keys.routingKey.uint8Array(), 'base64url')}`
 
   await waitForPeerToSubscribe(nodeB.api, topic)
   await nodeB.api.pubsub.subscribe(topic, checkMessage)

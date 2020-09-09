@@ -5,6 +5,8 @@
 const pRetry = require('p-retry')
 const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
+const uint8ArrayFromString = require('uint8arrays/from-string')
+const uint8ArrayEquals = require('uint8arrays/equals')
 
 const retryOptions = {
   retries: 5
@@ -64,14 +66,14 @@ describe('pubsub', function () {
       after(() => daemonFactory.clean())
 
       it('should exchange ascii data', function () {
-        const data = Buffer.from('hello world')
+        const data = uint8ArrayFromString('hello world')
         const topic = 'pubsub-ascii'
 
         const subscriber = () => new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
-            expect(msg.data.toString()).to.equal(data.toString())
+            expect(uint8ArrayEquals(data, msg.data)).to.be.true()
             expect(msg).to.have.property('seqno')
-            expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
+            expect(msg.seqno).to.be.an.instanceof(Uint8Array)
             expect(msg).to.have.property('topicIDs').and.to.include(topic)
             expect(msg).to.have.property('from', daemon1.api.peerId.id)
             resolve()
@@ -90,14 +92,14 @@ describe('pubsub', function () {
       })
 
       it('should exchange non ascii data', function () {
-        const data = Buffer.from('你好世界')
+        const data = uint8ArrayFromString('你好世界')
         const topic = 'pubsub-non-ascii'
 
         const subscriber = () => new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
-            expect(msg.data.toString()).to.equal(data.toString())
+            expect(uint8ArrayEquals(data, msg.data)).to.be.true()
             expect(msg).to.have.property('seqno')
-            expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
+            expect(msg.seqno).to.be.an.instanceof(Uint8Array)
             expect(msg).to.have.property('topicIDs').and.to.include(topic)
             expect(msg).to.have.property('from', daemon1.api.peerId.id)
             resolve()
@@ -116,14 +118,14 @@ describe('pubsub', function () {
       })
 
       it('should exchange binary data', function () {
-        const data = Buffer.from('a36161636179656162830103056164a16466666666f400010203040506070809', 'hex')
+        const data = uint8ArrayFromString('a36161636179656162830103056164a16466666666f400010203040506070809', 'base16')
         const topic = 'pubsub-binary'
 
         const subscriber = () => new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
-            expect(msg.data.toString()).to.equal(data.toString())
+            expect(uint8ArrayEquals(data, msg.data)).to.be.true()
             expect(msg).to.have.property('seqno')
-            expect(Buffer.isBuffer(msg.seqno)).to.be.eql(true)
+            expect(msg.seqno).to.be.an.instanceof(Uint8Array)
             expect(msg).to.have.property('topicIDs').and.to.include(topic)
             expect(msg).to.have.property('from', daemon1.api.peerId.id)
             resolve()

@@ -6,6 +6,7 @@ const all = require('it-all')
 const utils = require('./utils/pin-utils')
 const { expect } = require('./utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
+const uint8ArrayFromString = require('uint8arrays/from-string')
 
 describe('pin', function () {
   this.timeout(60 * 1000)
@@ -168,7 +169,7 @@ describe('pin', function () {
       // by starting each daemon with the same repoPath, they
       // will read/write pins from the same datastore.
       const repoPath = utils.tmpPath()
-      const content = Buffer.from(String(Math.random()))
+      const content = uint8ArrayFromString(String(Math.random()))
       const pins = []
 
       return spawnAndStart(options.first, repoPath)

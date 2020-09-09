@@ -4,12 +4,13 @@ const os = require('os')
 const path = require('path')
 const { nanoid } = require('nanoid')
 const all = require('it-all')
+const drain = require('it-drain')
 
 exports.removeAllPins = async function removeAllPins (daemon) {
   const pins = await all(daemon.api.pin.ls())
   const rootPins = pins.filter(pin => pin.type === 'recursive' || pin.type === 'direct')
 
-  await Promise.all(rootPins.map(pin => daemon.api.pin.rm(pin.cid)))
+  await drain(daemon.api.pin.rmAll(rootPins.map(pin => pin.cid)))
 
   return daemon
 }

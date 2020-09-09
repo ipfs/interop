@@ -1,7 +1,7 @@
 'use strict'
 
 const delay = require('delay')
-const crypto = require('crypto')
+const randomBytes = require('iso-random-stream/src/random')
 const concat = require('it-concat')
 const { expect } = require('./chai')
 const daemonFactory = require('./daemon-factory')
@@ -57,7 +57,7 @@ exports.createGo = addrs => daemonFactory.spawn({
 
 exports.clean = () => daemonFactory.clean()
 
-const data = crypto.randomBytes(128)
+const data = randomBytes(128)
 exports.send = async (nodeA, nodeB) => {
   const { cid } = await nodeA.api.add(data)
   const buffer = await concat(nodeB.api.cat(cid))

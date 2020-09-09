@@ -11,7 +11,14 @@ module.exports = {
   webpack: {
     plugins: [
       new webpack.EnvironmentPlugin(['IPFS_JS_EXEC'])
-    ]
+    ],
+    node: {
+      // needed by binary-parse-stream
+      stream: true,
+
+      // needed by core-is-lib
+      Buffer: true
+    }
   },
   karma: {
     files: [{
