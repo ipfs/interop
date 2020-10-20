@@ -33,7 +33,7 @@
     "go-ipfs": false
   },
   "dependencies": {
-    "aegir": "^26.0.0",
+    "aegir": "^28.0.1",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cids": "^1.0.0",
@@ -55,8 +55,8 @@
     "mocha": "^8.0.1",
     "multihashes": "^3.0.1",
     "nanoid": "^3.1.10",
-    "peer-id": "^0.14.0",
     "p-retry": "^4.1.0",
+    "peer-id": "^0.14.0",
     "pretty-bytes": "^5.1.0",
     "promisify-es6": "^1.0.3",
     "random-fs": "^1.0.3",
@@ -82,13 +82,13 @@
     "Richard Littauer <richard.littauer@gmail.com>"
   ],
   "devDependencies": {
-    "go-ipfs": "^0.6.0",
+    "go-ipfs": "^0.7.0",
     "ipfs": "^0.50.1",
-    "ipfs-http-client": "^46.1.0"
+    "ipfs-http-client": "^47.0.1"
   },
   "peerDependencies": {
-    "go-ipfs": "^0.6.0",
-    "ipfs": "^0.50.0",
-    "ipfs-http-client": "^46.1.0"
+    "go-ipfs": "^0.7.0",
+    "ipfs": "^0.50.1",
+    "ipfs-http-client": "^47.0.1"
   }
 }
