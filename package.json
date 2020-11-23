@@ -33,7 +33,7 @@
     "go-ipfs": false
   },
   "dependencies": {
-    "aegir": "^28.0.1",
+    "aegir": "^29.0.1",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cids": "^1.0.0",
