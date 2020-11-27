@@ -4,7 +4,7 @@
   "description": "Interoperability Tests for IPFS",
   "main": "",
   "bin": {
-    "ipfs-interop": "./bin/ipfs-interop.js"
+    "ipfs-interop": "bin/ipfs-interop.js"
   },
   "engines": {
     "node": ">=12.0.0",
@@ -33,7 +33,7 @@
     "go-ipfs": false
   },
   "dependencies": {
-    "aegir": "^28.0.1",
+    "aegir": "^29.1.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cids": "^1.0.0",
@@ -83,12 +83,12 @@
   ],
   "devDependencies": {
     "go-ipfs": "^0.7.0",
-    "ipfs": "^0.50.1",
-    "ipfs-http-client": "^47.0.1"
+    "ipfs": "^0.52.2",
+    "ipfs-http-client": "^48.1.2"
   },
   "peerDependencies": {
-    "go-ipfs": "^0.7.0",
-    "ipfs": "^0.50.1",
-    "ipfs-http-client": "^47.0.1"
+    "go-ipfs": "*",
+    "ipfs": "*",
+    "ipfs-http-client": "*"
   }
 }
