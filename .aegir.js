@@ -70,7 +70,7 @@ module.exports = {
               }
             },
             ipfsModule: require(process.env.IPFS_JS_MODULE || 'ipfs'),
-            ipfsBin: process.env.IPFS_JS_EXEC || require.resolve(`${process.env.IPFS_JS_MODULE || 'ipfs'}/src/cli/bin.js`)
+            ipfsBin: process.env.IPFS_JS_EXEC || require.resolve(`${process.env.IPFS_JS_MODULE || 'ipfs'}/src/cli.js`)
           }
         }).start()
 

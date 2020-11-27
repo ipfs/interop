@@ -56,7 +56,7 @@ $ npm run interop
 Specify the following environmental variables to control which versions of IPFS ipfs-interop uses when installed globally:
 
 - `IPFS_GO_EXEC` A path to a go-IPFS binary
-- `IPFS_JS_EXEC` A path to `/src/cli/bin.js` inside a js-IPFS install
+- `IPFS_JS_EXEC` A path to `/src/cli.js` inside a js-IPFS install
 - `IPFS_JS_MODULE` A path to a js-IPFS install
 - `IPFS_JS_HTTP_MODULE` A path to a ipfs-http-client install (optional)
 
