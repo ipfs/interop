@@ -3,6 +3,10 @@
 const delay = require('delay')
 const randomBytes = require('iso-random-stream/src/random')
 const concat = require('it-concat')
+const WS = require('libp2p-websockets')
+const filters = require('libp2p-websockets/src/filters')
+const transportKey = WS.prototype[Symbol.toStringTag]
+
 const { expect } = require('./chai')
 const daemonFactory = require('./daemon-factory')
 
@@ -17,6 +21,15 @@ exports.createProc = addrs => daemonFactory.spawn({
         enabled: true,
         hop: {
           enabled: true
+        }
+      }
+    },
+    libp2p: {
+      config: {
+        transport: {
+          [transportKey]: {
+            filter: filters.all
+          }
         }
       }
     }
