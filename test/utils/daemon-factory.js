@@ -2,16 +2,14 @@
 
 const { createFactory } = require('ipfsd-ctl')
 const isNode = require('detect-node')
-const ipfsModule = require('ipfs')
-const ipfsHttpModule = require('ipfs-http-client')
 
 module.exports = createFactory({
   type: 'go',
   test: true,
-  ipfsHttpModule
+  ipfsHttpModule: require.resolve(`${process.env.IPFS_JS_HTTP_MODULE}`)
 }, {
   proc: {
-    ipfsModule
+    ipfsModule: require.resolve(`${process.env.IPFS_JS_MODULE}`)
   },
   js: {
     ipfsBin: isNode ? process.env.IPFS_JS_EXEC || require.resolve(`${process.env.IPFS_JS_MODULE || 'ipfs'}/src/cli.js`) : undefined
