@@ -18,10 +18,10 @@ const esbuild = {
         })
 
         build.onResolve({ filter: /^ipfs$/ }, () => {
-          return { path: process.env.IPFS_JS_MODULE || require.resolve('ipfs') }
+          return { path: require.resolve(process.env.IPFS_JS_MODULE) || require.resolve('ipfs') }
         })
         build.onResolve({ filter: /^ipfs-http-client$/ }, () => {
-          return { path: process.env.IPFS_JS_MODULE || require.resolve('ipfs-http-client') }
+          return { path: require.resolve(process.env.IPFS_JS_MODULE) || require.resolve('ipfs-http-client') }
         })
       }
     }
