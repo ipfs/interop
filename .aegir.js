@@ -1,48 +1,39 @@
 'use strict'
 
-const webpack = require('webpack')
+const path = require('path')
 const createServer = require('ipfsd-ctl').createServer
 const signaler = require('libp2p-webrtc-star/src/sig-server')
 
 let signalingServer
 let ipfsdServer
 
-module.exports = {
-  webpack: {
-    plugins: [
-      new webpack.EnvironmentPlugin(['IPFS_JS_EXEC'])
-    ],
-    node: {
-      // needed by binary-parse-stream
-      stream: true,
-
-      // needed by core-is-lib
-      Buffer: true
-    }
-  },
-  karma: {
-    files: [{
-      pattern: 'test/fixtures/**/*',
-      watched: false,
-      served: true,
-      included: false
-    }],
-    singleRun: true,
-    browserNoActivityTimeout: 100 * 1000,
-    webpack: {
-      resolve: {
-        alias: {
-          ipfs$: process.env.IPFS_JS_MODULE || require.resolve('ipfs'),
-          'ipfs-http-client$': process.env.IPFS_JS_HTTP_MODULE || require.resolve('ipfs-http-client'),
-        }
-      },
-      plugins: [
-        new webpack.DefinePlugin({
-          // override js module locations because we override them above
-          'process.env.IPFS_JS_MODULE': 'undefined',
-          'process.env.IPFS_JS_HTTP_MODULE': 'undefined'
+const esbuild = {
+  inject: [path.join(__dirname, 'node-globals.js')],
+  plugins: [
+    {
+      name: 'node built ins',
+      setup (build) {
+        build.onResolve({ filter: /^stream$/ }, () => {
+          return { path: require.resolve('readable-stream') }
         })
-      ]
+
+        build.onResolve({ filter: /^ipfs$/ }, () => {
+          return { path: process.env.IPFS_JS_MODULE || require.resolve('ipfs') }
+        })
+        build.onResolve({ filter: /^ipfs-http-client$/ }, () => {
+          return { path: process.env.IPFS_JS_MODULE || require.resolve('ipfs-http-client') }
+        })
+      }
+    }
+  ]
+}
+
+module.exports = {
+  test: {
+    browser :{
+      config: {
+        buildConfig: esbuild
+      }
     }
   },
   hooks: {
