@@ -21,7 +21,7 @@ const esbuild = {
           return { path: require.resolve(process.env.IPFS_JS_MODULE) || require.resolve('ipfs') }
         })
         build.onResolve({ filter: /^ipfs-http-client$/ }, () => {
-          return { path: require.resolve(process.env.IPFS_JS_MODULE) || require.resolve('ipfs-http-client') }
+          return { path: require.resolve(process.env.IPFS_JS_HTTP_MODULE) || require.resolve('ipfs-http-client') }
         })
       }
     }
