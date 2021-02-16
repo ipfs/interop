@@ -14,6 +14,7 @@
     "lint": "aegir lint",
     "test": "cross-env IPFS_REUSEPORT=false aegir test",
     "test:node": "cross-env IPFS_REUSEPORT=false aegir test -t node -f test/node.js",
+    "test:node-ipns": "cross-env IPFS_REUSEPORT=false aegir test -t node -f test/node-ipns.js",
     "test:browser": "cross-env IPFS_REUSEPORT=false aegir test -t browser --no-cors -f test/browser.js"
   },
   "repository": {
