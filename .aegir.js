@@ -4,9 +4,7 @@ const path = require('path')
 const createServer = require('ipfsd-ctl').createServer
 const signaler = require('libp2p-webrtc-star/src/sig-server')
 
-let signalingServer
-let ipfsdServer
-
+/** @type {import('aegir').Options["build"]["config"]} */
 const esbuild = {
   inject: [path.join(__dirname, 'node-globals.js')],
   plugins: [
@@ -28,18 +26,17 @@ const esbuild = {
   ]
 }
 
+/** @type {import('aegir').PartialOptions} */
 module.exports = {
   test: {
-    browser :{
+    browser: {
       config: {
         buildConfig: esbuild
       }
-    }
-  },
-  hooks: {
-    browser: {
-      pre: async () => {
-        ipfsdServer = await createServer({
+    },
+    async before (options) {
+      if (options.runner !== 'node') {
+        const ipfsdServer = await createServer({
           host: '127.0.0.1',
           port: 43134
         }, {
@@ -65,16 +62,20 @@ module.exports = {
           }
         }).start()
 
-        signalingServer = await signaler.start({
+        const signalingServer = await signaler.start({
           port: 24642,
           host: '0.0.0.0',
           metrics: false
         })
-      },
-      post: async () => {
-        await ipfsdServer.stop()
-        await signalingServer.stop()
+        return {
+          ipfsdServer,
+          signalingServer
+        }
       }
+    },
+    async after (options, before) {
+      await before.ipfsdServer.stop()
+      await before.signalingServer.stop()
     }
   }
 }

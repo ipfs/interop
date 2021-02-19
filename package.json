@@ -14,7 +14,7 @@
     "lint": "aegir lint",
     "test": "cross-env IPFS_REUSEPORT=false aegir test",
     "test:node": "cross-env IPFS_REUSEPORT=false aegir test -t node -f test/node.js",
-    "test:browser": "cross-env IPFS_REUSEPORT=false aegir test -t browser --no-cors -f test/browser.js"
+    "test:browser": "cross-env IPFS_REUSEPORT=false aegir test -t browser -f test/browser.js"
   },
   "repository": {
     "type": "git",
@@ -65,7 +65,10 @@
     "uint8arrays": "^2.0.5"
   },
   "eslintConfig": {
-    "extends": "ipfs"
+    "extends": "ipfs",
+    "ignorePatterns": [
+      "!.aegir.js"
+    ]
   },
   "contributors": [
     "achingbrain <alex@achingbrain.net>",
