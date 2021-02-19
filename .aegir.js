@@ -74,8 +74,10 @@ module.exports = {
       }
     },
     async after (options, before) {
-      await before.ipfsdServer.stop()
-      await before.signalingServer.stop()
+      if (options.runner !== 'node') {
+        await before.ipfsdServer.stop()
+        await before.signalingServer.stop()
+      }
     }
   }
 }
