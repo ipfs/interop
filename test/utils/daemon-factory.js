@@ -7,7 +7,7 @@ let ipfsHttpModule
 let ipfsModule
 try {
   ipfsHttpModule = require(process.env.IPFS_JS_HTTP_MODULE)
-} catch (err) {
+} catch {
   ipfsHttpModule = require('ipfs-http-client')
 }
 
