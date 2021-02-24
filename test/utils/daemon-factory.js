@@ -13,7 +13,7 @@ try {
 
 try {
   ipfsModule = require(process.env.IPFS_JS_MODULE)
-} catch (err) {
+} catch {
   ipfsModule = require('ipfs')
 }
 module.exports = createFactory({
