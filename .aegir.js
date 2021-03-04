@@ -1,54 +1,42 @@
 'use strict'
 
-const webpack = require('webpack')
+const path = require('path')
 const createServer = require('ipfsd-ctl').createServer
 const signaler = require('libp2p-webrtc-star/src/sig-server')
 
-let signalingServer
-let ipfsdServer
-
-module.exports = {
-  webpack: {
-    plugins: [
-      new webpack.EnvironmentPlugin(['IPFS_JS_EXEC'])
-    ],
-    node: {
-      // needed by binary-parse-stream
-      stream: true,
-
-      // needed by core-is-lib
-      Buffer: true
-    }
-  },
-  karma: {
-    files: [{
-      pattern: 'test/fixtures/**/*',
-      watched: false,
-      served: true,
-      included: false
-    }],
-    singleRun: true,
-    browserNoActivityTimeout: 100 * 1000,
-    webpack: {
-      resolve: {
-        alias: {
-          ipfs$: process.env.IPFS_JS_MODULE || require.resolve('ipfs'),
-          'ipfs-http-client$': process.env.IPFS_JS_HTTP_MODULE || require.resolve('ipfs-http-client'),
-        }
-      },
-      plugins: [
-        new webpack.DefinePlugin({
-          // override js module locations because we override them above
-          'process.env.IPFS_JS_MODULE': 'undefined',
-          'process.env.IPFS_JS_HTTP_MODULE': 'undefined'
+/** @type {import('aegir').Options["build"]["config"]} */
+const esbuild = {
+  inject: [path.join(__dirname, 'scripts/node-globals.js')],
+  plugins: [
+    {
+      name: 'node built ins',
+      setup (build) {
+        build.onResolve({ filter: /^stream$/ }, () => {
+          return { path: require.resolve('readable-stream') }
         })
-      ]
+
+        build.onResolve({ filter: /^ipfs$/ }, () => {
+          return { path: require.resolve(process.env.IPFS_JS_MODULE || 'ipfs') }
+        })
+        build.onResolve({ filter: /^ipfs-http-client$/ }, () => {
+          return { path: require.resolve(process.env.IPFS_JS_HTTP_MODULE || 'ipfs-http-client') }
+        })
+      }
     }
-  },
-  hooks: {
+  ]
+}
+
+/** @type {import('aegir').PartialOptions} */
+module.exports = {
+  test: {
     browser: {
-      pre: async () => {
-        ipfsdServer = await createServer({
+      config: {
+        buildConfig: esbuild
+      }
+    },
+    async before (options) {
+      if (options.runner !== 'node') {
+        const ipfsdServer = await createServer({
           host: '127.0.0.1',
           port: 43134
         }, {
@@ -74,15 +62,21 @@ module.exports = {
           }
         }).start()
 
-        signalingServer = await signaler.start({
+        const signalingServer = await signaler.start({
           port: 24642,
           host: '0.0.0.0',
           metrics: false
         })
-      },
-      post: async () => {
-        await ipfsdServer.stop()
-        await signalingServer.stop()
+        return {
+          ipfsdServer,
+          signalingServer
+        }
+      }
+    },
+    async after (options, before) {
+      if (options.runner !== 'node') {
+        await before.ipfsdServer.stop()
+        await before.signalingServer.stop()
       }
     }
   }

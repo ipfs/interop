@@ -2,22 +2,20 @@
 
 const { createFactory } = require('ipfsd-ctl')
 const isNode = require('detect-node')
-let ipfsModule
+
 let ipfsHttpModule
-
-// webpack requires conditional includes to be done this way
-if (process.env.IPFS_JS_MODULE) {
-  ipfsModule = require(process.env.IPFS_JS_MODULE)
-} else {
-  ipfsModule = require('ipfs')
-}
-
-if (process.env.IPFS_JS_HTTP_MODULE) {
+let ipfsModule
+try {
   ipfsHttpModule = require(process.env.IPFS_JS_HTTP_MODULE)
-} else {
+} catch {
   ipfsHttpModule = require('ipfs-http-client')
 }
 
+try {
+  ipfsModule = require(process.env.IPFS_JS_MODULE)
+} catch {
+  ipfsModule = require('ipfs')
+}
 module.exports = createFactory({
   type: 'go',
   test: true,
