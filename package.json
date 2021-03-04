@@ -88,7 +88,7 @@
   ],
   "devDependencies": {
     "go-ipfs": "^0.7.0",
-    "ipfs": "^0.53.2",
+    "ipfs": "^0.54.2",
     "ipfs-http-client": "^48.1.2",
     "webpack": "^4.46.0"
   },
