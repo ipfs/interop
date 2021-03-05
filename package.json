@@ -87,7 +87,7 @@
     "Richard Littauer <richard.littauer@gmail.com>"
   ],
   "devDependencies": {
-    "go-ipfs": "^0.7.0",
+    "go-ipfs": "^0.8.0",
     "ipfs": "^0.53.2",
     "ipfs-http-client": "^48.1.2",
     "webpack": "^4.46.0"
