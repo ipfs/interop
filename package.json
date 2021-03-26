@@ -53,7 +53,7 @@
     "it-last": "^1.0.1",
     "libp2p-webrtc-star": "^0.21.0",
     "libp2p-websockets": "^0.15.0",
-    "multihashes": "^3.0.1",
+    "multihashes": "^4.0.2",
     "nanoid": "^3.1.10",
     "p-retry": "^4.1.0",
     "peer-id": "^0.14.0",
