@@ -38,7 +38,7 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cross-env": "^7.0.2",
-    "delay": "^4.3.0",
+    "delay": "^5.0.0",
     "detect-node": "^2.0.4",
     "dirty-chai": "^2.0.1",
     "ipfs-unixfs": "^2.0.2",
