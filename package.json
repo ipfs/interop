@@ -44,7 +44,7 @@
     "ipfs-unixfs": "^2.0.2",
     "ipfsd-ctl": "^8.0.0",
     "ipns": "^0.8.0",
-    "is-ci": "^2.0.0",
+    "is-ci": "^3.0.0",
     "is-os": "^1.0.1",
     "iso-random-stream": "^1.1.1",
     "it-all": "^1.0.1",
