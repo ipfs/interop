@@ -1,10 +1,11 @@
 language: node_js
 cache: npm
+dist: bionic
 
-# only build PRs and master
 branches:
   only:
   - master
+  - /^release\/.*$/
 
 stages:
   - check
@@ -12,14 +13,16 @@ stages:
   - cov
 
 node_js:
-  - '12'
+  - 'lts/*'
+  - 'node'
 
 os:
   - linux
   - osx
+  - windows
 
-script:
-  - npx nyc -s npm run test:node -- --bail
+before_install: npm install -g @mapbox/node-pre-gyp
+script: npm run test:node -- --cov
 after_success: npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov
 
 jobs:
@@ -36,15 +39,7 @@ jobs:
       name: chrome
       addons:
         chrome: stable
-      script:
-       - npx aegir test -t browser --bail
-
-    - stage: test
-      name: firefox
-      addons:
-        firefox: latest
-      script:
-        - npx aegir test -t browser --bail -- --browsers FirefoxHeadless
+      script: npx aegir test -t browser -t webworker
 
 notifications:
   email: false
