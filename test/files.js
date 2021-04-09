@@ -2,7 +2,7 @@
 'use strict'
 
 const randomBytes = require('iso-random-stream/src/random')
-const UnixFs = require('ipfs-unixfs')
+const { UnixFS } = require('ipfs-unixfs')
 const daemonFactory = require('./utils/daemon-factory')
 const bufferStream = require('readable-stream-buffer-stream')
 const concat = require('it-concat')
@@ -39,7 +39,7 @@ const createDirectory = (daemon, path, options) => {
 async function checkNodeTypes (daemon, file) {
   const node = await daemon.api.object.get(file.cid)
 
-  const meta = UnixFs.unmarshal(node.Data)
+  const meta = UnixFS.unmarshal(node.Data)
 
   expect(meta.type).to.equal('file')
   expect(node.Links.length).to.equal(2)
@@ -47,7 +47,7 @@ async function checkNodeTypes (daemon, file) {
   return Promise.all(
     node.Links.map(async (link) => {
       const child = await daemon.api.object.get(link.Hash)
-      const childMeta = UnixFs.unmarshal(child.Data)
+      const childMeta = UnixFS.unmarshal(child.Data)
 
       expect(childMeta.type).to.equal('raw')
     })
@@ -422,7 +422,7 @@ describe('files', function () {
         await daemon.api.files.cp(`/ipfs/${cid}`, dir)
 
         const node = await daemon.api.object.get(cid)
-        const meta = UnixFs.unmarshal(node.Data)
+        const meta = UnixFS.unmarshal(node.Data)
 
         expect(meta.type).to.equal('hamt-sharded-directory')
 
@@ -444,7 +444,7 @@ describe('files', function () {
 
         const stats = await daemon.api.files.stat(dir)
         const nodeAfterUpdates = await daemon.api.object.get(stats.cid)
-        const metaAfterUpdates = UnixFs.unmarshal(nodeAfterUpdates.Data)
+        const metaAfterUpdates = UnixFS.unmarshal(nodeAfterUpdates.Data)
 
         expect(metaAfterUpdates.type).to.equal('hamt-sharded-directory')
 
