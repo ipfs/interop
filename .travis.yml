@@ -39,13 +39,13 @@ jobs:
       name: chrome
       addons:
         chrome: stable
-      script: npx aegir test -t browser -t webworker
+      script: npx aegir test -t browser
 
     - stage: test
       name: firefox
       addons:
         firefox: latest
-      script: npx aegir test -t browser -t webworker -- --browser firefox
+      script: npx aegir test -t browser -- --browser firefox
 
 notifications:
   email: false
