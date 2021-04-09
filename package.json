@@ -1,6 +1,6 @@
 {
   "name": "ipfs-interop",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Interoperability Tests for IPFS",
   "main": "",
   "bin": {
