@@ -3,6 +3,9 @@
 'use strict'
 
 const delay = require('delay')
+const {
+  isWebWorker
+} = require('wherearewe')
 
 const {
   createJs,
@@ -109,7 +112,8 @@ module.exports = {
       await delay(3000)
       const nodeBCircuitAddr = `${getWrtcStarAddr(relay.api.peerId.addresses)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
       await nodeA.api.swarm.connect(nodeBCircuitAddr)
-    }
+    },
+    skip: () => isWebWorker // no webrtc support in webworkers
   },
   'browser-browser-go': {
     create: () => Promise.all([
@@ -124,7 +128,8 @@ module.exports = {
       await delay(5000)
       const nodeBCircuitAddr = `${getWrtcStarAddr(relay.api.peerId.addresses)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
       await nodeA.api.swarm.connect(nodeBCircuitAddr)
-    }
+    },
+    skip: () => isWebWorker // no webrtc support in webworkers
   },
   'browser-browser-js': {
     create: () => Promise.all([
@@ -139,6 +144,7 @@ module.exports = {
       await delay(3000)
       const nodeBCircuitAddr = `${getWrtcStarAddr(relay.api.peerId.addresses)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
       await nodeA.api.swarm.connect(nodeBCircuitAddr)
-    }
+    },
+    skip: () => isWebWorker // no webrtc support in webworkers
   }
 }
