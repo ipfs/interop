@@ -1,0 +1,119 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "11:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: aegir
+    versions:
+    - 30.3.0
+    - 31.0.4
+    - 32.0.2
+    - 32.1.0
+    - 32.2.0
+    - 33.0.0
+    - 33.1.0
+    - 33.1.1
+  - dependency-name: ipns
+    versions:
+    - 0.10.1
+  - dependency-name: libp2p-webrtc-star
+    versions:
+    - 0.21.1
+    - 0.21.2
+    - 0.22.0
+  - dependency-name: peer-id
+    versions:
+    - 0.14.7
+  - dependency-name: libp2p-websockets
+    versions:
+    - 0.15.1
+    - 0.15.2
+    - 0.15.3
+    - 0.15.5
+  - dependency-name: webpack
+    versions:
+    - 5.24.3
+    - 5.24.4
+    - 5.25.0
+    - 5.25.1
+    - 5.26.0
+    - 5.26.2
+    - 5.26.3
+    - 5.27.1
+    - 5.27.2
+    - 5.28.0
+    - 5.30.0
+    - 5.31.0
+  - dependency-name: multihashes
+    versions:
+    - 4.0.2
+  - dependency-name: ipfs-unixfs
+    versions:
+    - 2.0.4
+    - 3.0.1
+    - 4.0.0
+    - 4.0.1
+  - dependency-name: ipfs-http-client
+    versions:
+    - 48.2.2
+    - 49.0.0
+    - 49.0.1
+    - 49.0.2
+    - 49.0.3
+    - 49.0.4
+  - dependency-name: ipfs
+    versions:
+    - 0.54.0
+    - 0.54.1
+    - 0.54.2
+    - 0.54.3
+    - 0.54.4
+  - dependency-name: delay
+    versions:
+    - 5.0.0
+  - dependency-name: is-ci
+    versions:
+    - 3.0.0
+  - dependency-name: go-ipfs
+    versions:
+    - 0.8.0
+  - dependency-name: chai
+    versions:
+    - 4.3.0
+    - 4.3.1
+    - 4.3.3
+  - dependency-name: uint8arrays
+    versions:
+    - 2.0.5
+    - 2.1.0
+    - 2.1.2
+    - 2.1.3
+  - dependency-name: it-all
+    versions:
+    - 1.0.4
+    - 1.0.5
+  - dependency-name: it-drain
+    versions:
+    - 1.0.4
+  - dependency-name: socket.io
+    versions:
+    - 2.4.1
+  - dependency-name: ini
+    versions:
+    - 1.3.7
+  - dependency-name: nanoid
+    versions:
+    - 3.1.20
+  - dependency-name: ipfsd-ctl
+    versions:
+    - 7.1.1
+  - dependency-name: cross-env
+    versions:
+    - 7.0.3
+  - dependency-name: highlight.js
+    versions:
+    - 10.4.1
