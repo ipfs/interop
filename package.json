@@ -91,6 +91,7 @@
   "devDependencies": {
     "go-ipfs": "^0.8.0",
     "ipfs": "^0.55.3",
-    "ipfs-http-client": "^50.1.1"
+    "ipfs-http-client": "^50.1.1",
+    "node-pre-gyp": "^0.17.0"
   }
 }
