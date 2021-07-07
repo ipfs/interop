@@ -57,7 +57,7 @@
     "multihashes": "^4.0.2",
     "nanoid": "^3.1.10",
     "p-retry": "^4.1.0",
-    "peer-id": "^0.14.0",
+    "peer-id": "^0.15.0",
     "pretty-bytes": "^5.1.0",
     "promisify-es6": "^1.0.3",
     "random-fs": "^1.0.3",
