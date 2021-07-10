@@ -3,7 +3,7 @@
 'use strict'
 
 const pRetry = require('p-retry')
-const { expect } = require('./utils/chai')
+const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 const uint8ArrayFromString = require('uint8arrays/from-string')
 const uint8ArrayEquals = require('uint8arrays/equals')

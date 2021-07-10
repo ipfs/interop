@@ -2,12 +2,12 @@
 'use strict'
 
 const PeerID = require('peer-id')
-const { fromB58String } = require('multihashes')
+const { base58btc } = require('multiformats/bases/base58')
 const ipns = require('ipns')
 const last = require('it-last')
 const pRetry = require('p-retry')
 const waitFor = require('./utils/wait-for')
-const { expect } = require('./utils/chai')
+const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 const uint8ArrayToString = require('uint8arrays/to-string')
 
@@ -101,7 +101,7 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
     subscribed = true
   }
 
-  const keys = ipns.getIdKeys(fromB58String(idA))
+  const keys = ipns.getIdKeys(base58btc.decode(`z${idA}`))
   const topic = `${namespace}${uint8ArrayToString(keys.routingKey.uint8Array(), 'base64url')}`
 
   await waitForPeerToSubscribe(nodeB.api, topic)

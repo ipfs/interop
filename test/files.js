@@ -8,7 +8,7 @@ const bufferStream = require('readable-stream-buffer-stream')
 const concat = require('it-concat')
 const all = require('it-all')
 const last = require('it-last')
-const { expect } = require('./utils/chai')
+const { expect } = require('aegir/utils/chai')
 
 const SHARD_THRESHOLD = 1000
 

@@ -4,7 +4,7 @@
 const fs = require('fs')
 const all = require('it-all')
 const utils = require('./utils/pin-utils')
-const { expect } = require('./utils/chai')
+const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 const uint8ArrayFromString = require('uint8arrays/from-string')
 

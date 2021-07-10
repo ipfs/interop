@@ -15,7 +15,7 @@ const os = require('os')
 const rmDir = promisify(rimraf)
 const concat = require('it-concat')
 const { globSource } = require(process.env.IPFS_JS_MODULE || 'ipfs')
-const { expect } = require('./utils/chai')
+const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 
 function tmpDir () {
