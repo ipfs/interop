@@ -6,7 +6,7 @@ const path = require('path')
 const { nanoid } = require('nanoid')
 const delay = require('delay')
 const last = require('it-last')
-const { expect } = require('./utils/chai')
+const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 
 const dir = path.join(os.tmpdir(), nanoid())

@@ -3,7 +3,7 @@
 
 const randomBytes = require('iso-random-stream/src/random')
 const concat = require('it-concat')
-const { expect } = require('./utils/chai')
+const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 
 describe.skip('kad-dht', () => {
