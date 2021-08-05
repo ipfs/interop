@@ -122,7 +122,7 @@ const compareErrors = async (expectedMessage, ...ops) => {
 }
 
 describe('files', function () {
-  this.timeout(50 * 1000)
+  this.timeout(500 * 1000)
 
   let go
   let js
@@ -334,8 +334,8 @@ describe('files', function () {
       }
 
       return compare(
-        testHashesAreEqual(go, createDataStream(), options),
-        testHashesAreEqual(js, createDataStream(), options)
+        testHashesAreEqual(go, createDataStream(10000), options),
+        testHashesAreEqual(js, createDataStream(10000), options)
       )
     })
 
