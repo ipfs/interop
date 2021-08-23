@@ -6,7 +6,7 @@ const all = require('it-all')
 const utils = require('./utils/pin-utils')
 const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
-const uint8ArrayFromString = require('uint8arrays/from-string')
+const { fromString: uint8ArrayFromString } = require('uint8arrays/from-string')
 
 describe('pin', function () {
   this.timeout(60 * 1000)

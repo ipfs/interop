@@ -9,7 +9,7 @@ const pRetry = require('p-retry')
 const waitFor = require('./utils/wait-for')
 const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
-const uint8ArrayToString = require('uint8arrays/to-string')
+const { toString: uint8ArrayToString } = require('uint8arrays/to-string')
 
 const daemonsOptions = {
   args: ['--enable-namesys-pubsub'] // enable ipns over pubsub
