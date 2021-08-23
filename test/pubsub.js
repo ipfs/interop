@@ -5,8 +5,8 @@
 const pRetry = require('p-retry')
 const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
-const uint8ArrayFromString = require('uint8arrays/from-string')
-const uint8ArrayEquals = require('uint8arrays/equals')
+const { fromString: uint8ArrayFromString } = require('uint8arrays/from-string')
+const { equals: uint8ArrayEquals } = require('uint8arrays/equals')
 
 const retryOptions = {
   retries: 5
