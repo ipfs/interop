@@ -3,9 +3,9 @@
 
 const { nanoid } = require('nanoid')
 const concat = require('it-concat')
-const { expect } = require('./utils/chai')
+const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
-const uint8ArrayFromString = require('uint8arrays/from-string')
+const { fromString: uint8ArrayFromString } = require('uint8arrays/from-string')
 
 describe('CID version agnostic', function () {
   this.timeout(50 * 1000)

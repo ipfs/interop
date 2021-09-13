@@ -8,7 +8,7 @@ const bufferStream = require('readable-stream-buffer-stream')
 const concat = require('it-concat')
 const all = require('it-all')
 const last = require('it-last')
-const { expect } = require('./utils/chai')
+const { expect } = require('aegir/utils/chai')
 
 const SHARD_THRESHOLD = 1000
 
@@ -122,7 +122,7 @@ const compareErrors = async (expectedMessage, ...ops) => {
 }
 
 describe('files', function () {
-  this.timeout(50 * 1000)
+  this.timeout(500 * 1000)
 
   let go
   let js
@@ -334,8 +334,8 @@ describe('files', function () {
       }
 
       return compare(
-        testHashesAreEqual(go, createDataStream(), options),
-        testHashesAreEqual(js, createDataStream(), options)
+        testHashesAreEqual(go, createDataStream(10000), options),
+        testHashesAreEqual(js, createDataStream(10000), options)
       )
     })
 

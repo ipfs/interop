@@ -15,7 +15,7 @@ const os = require('os')
 const rmDir = promisify(rimraf)
 const concat = require('it-concat')
 const { globSource } = require(process.env.IPFS_JS_MODULE || 'ipfs')
-const { expect } = require('./utils/chai')
+const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 
 function tmpDir () {
@@ -154,16 +154,10 @@ describe('exchange files', function () {
               depth: d,
               number: num
             })
+
             const { cid } = await daemon1.api.add(globSource(dir, { recursive: true }))
 
-            let fileCount = 0
-            for await (const file of daemon2.api.get(cid)) {
-              if (file.content) {
-                fileCount++
-                await concat(file.content)
-              }
-            }
-            expect(fileCount).to.equal(num)
+            await expect(countFiles(cid, daemon2.api)).to.eventually.equal(num)
           } finally {
             await rmDir(dir)
           }
@@ -172,3 +166,17 @@ describe('exchange files', function () {
     })
   })
 })
+
+async function countFiles (cid, ipfs) {
+  let fileCount = 0
+
+  for await (const entry of ipfs.ls(cid)) {
+    if (entry.type === 'file') {
+      fileCount++
+    } else if (entry.type === 'dir') {
+      fileCount += await countFiles(entry.cid, ipfs)
+    }
+  }
+
+  return fileCount
+}

@@ -7,7 +7,7 @@ const path = require('path')
 const { nanoid } = require('nanoid')
 const delay = require('delay')
 const concat = require('it-concat')
-const { expect } = require('./utils/chai')
+const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./utils/daemon-factory')
 
 const isWindows = os.platform() === 'win32'

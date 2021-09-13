@@ -14,14 +14,13 @@ stages:
 
 node_js:
   - 'lts/*'
-  - 'node'
+  # - 'node' hapi is broken on node 16 at the moment: https://github.com/hapijs/hapi/issues/4262
 
 os:
   - linux
   - osx
   - windows
 
-before_install: npm install -g @mapbox/node-pre-gyp
 script: npm run test:node -- --cov
 after_success: npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov
 

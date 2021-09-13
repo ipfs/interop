@@ -7,7 +7,7 @@ const WS = require('libp2p-websockets')
 const filters = require('libp2p-websockets/src/filters')
 const transportKey = WS.prototype[Symbol.toStringTag]
 
-const { expect } = require('./chai')
+const { expect } = require('aegir/utils/chai')
 const daemonFactory = require('./daemon-factory')
 
 exports.createProc = addrs => daemonFactory.spawn({
