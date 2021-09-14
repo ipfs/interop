@@ -1,6 +1,9 @@
 language: node_js
-cache: npm
 dist: bionic
+
+cache:
+  # https://travis-ci.community/t/npm-cache-on-windows-supplies-incorrect-dependency-versions/11335
+  npm: false
 
 branches:
   only:
@@ -14,7 +17,7 @@ stages:
 
 node_js:
   - 'lts/*'
-  # - 'node' hapi is broken on node 16 at the moment: https://github.com/hapijs/hapi/issues/4262
+  - 'node'
 
 os:
   - linux
@@ -31,14 +34,14 @@ jobs:
 
     - stage: check
       script:
-        - npx aegir dep-check
+        - npm run dep-check
         - npm run lint
 
     - stage: test
       name: chrome
       addons:
         chrome: stable
-      script: npx aegir test -t browser -t webworker
+      script: npm run test:browser -- -t webworker
 
 notifications:
   email: false
