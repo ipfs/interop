@@ -34,6 +34,7 @@
     "go-ipfs": false
   },
   "dependencies": {
+    "@mapbox/node-pre-gyp": "^1.0.5",
     "aegir": "^35.0.2",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
