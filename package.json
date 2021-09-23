@@ -87,7 +87,7 @@
   ],
   "devDependencies": {
     "go-ipfs": "^0.9.1",
-    "ipfs": "^0.58.1",
-    "ipfs-http-client": "^52.0.1"
+    "ipfs": "next",
+    "ipfs-http-client": "next"
   }
 }

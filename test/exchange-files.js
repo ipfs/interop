@@ -155,7 +155,9 @@ describe('exchange files', function () {
               number: num
             })
 
-            const { cid } = await daemon1.api.add(globSource(dir, { recursive: true }))
+            const { cid } = await daemon1.api.add(globSource(dir, '**/*'), {
+              wrapWithDirectory: true
+            })
 
             await expect(countFiles(cid, daemon2.api)).to.eventually.equal(num)
           } finally {
