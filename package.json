@@ -28,7 +28,8 @@
     "pretest": "aegir build --esm-tests",
     "test": "cross-env IPFS_REUSEPORT=false aegir test",
     "test:node": "cross-env IPFS_REUSEPORT=false aegir test -t node -f test/node.js",
-    "test:browser": "cross-env IPFS_REUSEPORT=false aegir test -t browser -f test/browser.js"
+    "test:browser": "cross-env IPFS_REUSEPORT=false aegir test -t browser -f test/browser.js",
+    "dep-check": "aegir dep-check package.json"
   },
   "repository": {
     "type": "git",
