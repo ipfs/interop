@@ -1,12 +1,11 @@
 /* eslint max-nested-callbacks: ["error", 6] */
 /* eslint-env mocha */
-'use strict'
 
-const pRetry = require('p-retry')
-const { expect } = require('aegir/utils/chai')
-const daemonFactory = require('./utils/daemon-factory')
-const { fromString: uint8ArrayFromString } = require('uint8arrays/from-string')
-const { equals: uint8ArrayEquals } = require('uint8arrays/equals')
+import pRetry from 'p-retry'
+import { expect } from 'aegir/utils/chai.js'
+import { daemonFactory } from './utils/daemon-factory.js'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 
 const retryOptions = {
   retries: 5
@@ -32,10 +31,10 @@ describe('pubsub', function () {
   this.timeout(60 * 1000)
 
   const tests = {
-    'publish from Go, subscribe on Go': [() => daemonFactory.spawn({ ...daemonOptions, type: 'go' }), () => daemonFactory.spawn({ ...daemonOptions, type: 'go' })],
-    'publish from JS, subscribe on JS': [() => daemonFactory.spawn({ type: 'js' }), () => daemonFactory.spawn({ type: 'js' })],
-    'publish from JS, subscribe on Go': [() => daemonFactory.spawn({ type: 'js' }), () => daemonFactory.spawn({ ...daemonOptions, type: 'go' })],
-    'publish from Go, subscribe on JS': [() => daemonFactory.spawn({ ...daemonOptions, type: 'go' }), () => daemonFactory.spawn({ type: 'js' })]
+    'publish from Go, subscribe on Go': [(factory) => factory.spawn({ ...daemonOptions, type: 'go' }), (factory) => factory.spawn({ ...daemonOptions, type: 'go' })],
+    'publish from JS, subscribe on JS': [(factory) => factory.spawn({ type: 'js' }), (factory) => factory.spawn({ type: 'js' })],
+    'publish from JS, subscribe on Go': [(factory) => factory.spawn({ type: 'js' }), (factory) => factory.spawn({ ...daemonOptions, type: 'go' })],
+    'publish from Go, subscribe on JS': [(factory) => factory.spawn({ ...daemonOptions, type: 'go' }), (factory) => factory.spawn({ type: 'js' })]
   }
 
   Object.keys(tests).forEach((name) => {
@@ -43,9 +42,17 @@ describe('pubsub', function () {
       let daemon1
       let daemon2
 
+      let factory
+
+      before(async () => {
+        factory = await daemonFactory()
+      })
+
+      after(() => factory.clean())
+
       before('spawn nodes', async function () {
         this.timeout(timeout)
-        ;[daemon1, daemon2] = await Promise.all(tests[name].map(fn => fn()))
+        ;[daemon1, daemon2] = await Promise.all(tests[name].map(fn => fn(factory)))
       })
 
       before('connect', async function () {
@@ -63,7 +70,7 @@ describe('pubsub', function () {
         expect(peers[1].map((p) => p.peer.toString())).to.include(daemon1.api.peerId.id)
       })
 
-      after(() => daemonFactory.clean())
+      after(() => factory.clean())
 
       it('should exchange ascii data', function () {
         const data = uint8ArrayFromString('hello world')

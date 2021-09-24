@@ -1,13 +1,11 @@
 /* eslint-env mocha */
-'use strict'
 
-require('./ipns-pubsub')
-require('./cid-version-agnostic')
-require('./pubsub')
-require('./circuit')
-require('./repo')
-require('./exchange-files')
-require('./ipns')
-require('./kad-dht')
-require('./pin')
-require('./files')
+import './ipns-pubsub.js'
+import './cid-version-agnostic.js'
+import './pubsub.js'
+import './circuit.js'
+import './exchange-files.js'
+import './ipns.js'
+import './kad-dht.js'
+import './pin.js'
+import './files.js'

@@ -1,22 +1,24 @@
 /* eslint-env mocha */
-'use strict'
 
-const { nanoid } = require('nanoid')
-const concat = require('it-concat')
-const { expect } = require('aegir/utils/chai')
-const daemonFactory = require('./utils/daemon-factory')
-const { fromString: uint8ArrayFromString } = require('uint8arrays/from-string')
+import { nanoid } from 'nanoid'
+import concat from 'it-concat'
+import { expect } from 'aegir/utils/chai.js'
+import { daemonFactory } from './utils/daemon-factory.js'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 
 describe('CID version agnostic', function () {
   this.timeout(50 * 1000)
   const daemons = {}
+  let factory
 
   before(async function () {
+    factory = await daemonFactory()
+
     const [js0, js1, go0, go1] = await Promise.all([
-      daemonFactory.spawn({ type: 'js' }),
-      daemonFactory.spawn({ type: 'js' }),
-      daemonFactory.spawn({ type: 'go' }),
-      daemonFactory.spawn({ type: 'go' })
+      factory.spawn({ type: 'js' }),
+      factory.spawn({ type: 'js' }),
+      factory.spawn({ type: 'go' }),
+      factory.spawn({ type: 'go' })
     ])
     Object.assign(daemons, { js0, js1, go0, go1 })
 
@@ -30,7 +32,7 @@ describe('CID version agnostic', function () {
     ])
   })
 
-  after(() => daemonFactory)
+  after(() => factory.clean())
 
   it('should add v0 and cat v1 (go0 -> go0)', async () => {
     const input = uint8ArrayFromString(nanoid())

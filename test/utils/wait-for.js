@@ -1,11 +1,9 @@
-'use strict'
-
-const delay = require('delay')
+import delay from 'delay'
 
 /*
  * Wait for a condition to become true.
  */
-module.exports = async (predicate, ttl = 10e3, checkInterval = 50) => {
+export async function waitFor (predicate, ttl = 10e3, checkInterval = 50) {
   const timeout = Date.now() + ttl
 
   while (true) {

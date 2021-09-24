@@ -1,12 +1,10 @@
-'use strict'
+import os from 'os'
+import path from 'path'
+import { nanoid } from 'nanoid'
+import all from 'it-all'
+import drain from 'it-drain'
 
-const os = require('os')
-const path = require('path')
-const { nanoid } = require('nanoid')
-const all = require('it-all')
-const drain = require('it-drain')
-
-exports.removeAllPins = async function removeAllPins (daemon) {
+export async function removeAllPins (daemon) {
   const pins = await all(daemon.api.pin.ls())
   const rootPins = pins.filter(pin => pin.type === 'recursive' || pin.type === 'direct')
 
@@ -15,6 +13,6 @@ exports.removeAllPins = async function removeAllPins (daemon) {
   return daemon
 }
 
-exports.tmpPath = function tmpPath () {
+export function tmpPath () {
   return path.join(os.tmpdir(), nanoid())
 }

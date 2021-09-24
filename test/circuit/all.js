@@ -1,66 +1,65 @@
 /* eslint max-nested-callbacks: ["error", 8] */
 /* eslint-env mocha */
-'use strict'
 
-const { createJs, createGo } = require('../utils/circuit')
+import { createJs, createGo } from '../utils/circuit.js'
 
 const base = '/ip4/127.0.0.1/tcp/0'
 
-module.exports = {
+export default {
   'go-go-go': {
-    create: () => Promise.all([
-      createGo([`${base}/ws`]),
-      createGo([`${base}/ws`]),
-      createGo([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createGo([`${base}/ws`], factory),
+      createGo([`${base}/ws`], factory),
+      createGo([`${base}/ws`], factory)
     ])
   },
   'js-go-go': {
-    create: () => Promise.all([
-      createJs([`${base}/ws`]),
-      createGo([`${base}/ws`]),
-      createGo([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createJs([`${base}/ws`], factory),
+      createGo([`${base}/ws`], factory),
+      createGo([`${base}/ws`], factory)
     ])
   },
   'go-go-js': {
-    create: () => Promise.all([
-      createGo([`${base}/ws`]),
-      createGo([`${base}/ws`]),
-      createJs([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createGo([`${base}/ws`], factory),
+      createGo([`${base}/ws`], factory),
+      createJs([`${base}/ws`], factory)
     ])
   },
   'js-go-js': {
-    create: () => Promise.all([
-      createJs([`${base}/ws`]),
-      createGo([`${base}/ws`]),
-      createJs([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createJs([`${base}/ws`], factory),
+      createGo([`${base}/ws`], factory),
+      createJs([`${base}/ws`], factory)
     ])
   },
   'go-js-go': {
-    create: () => Promise.all([
-      createGo([`${base}/ws`]),
-      createJs([`${base}/ws`]),
-      createGo([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createGo([`${base}/ws`], factory),
+      createJs([`${base}/ws`], factory),
+      createGo([`${base}/ws`], factory)
     ])
   },
   'js-js-go': {
-    create: () => Promise.all([
-      createJs([`${base}/ws`]),
-      createJs([`${base}/ws`]),
-      createGo([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createJs([`${base}/ws`], factory),
+      createJs([`${base}/ws`], factory),
+      createGo([`${base}/ws`], factory)
     ])
   },
   'go-js-js': {
-    create: () => Promise.all([
-      createGo([`${base}/ws`]),
-      createJs([`${base}/ws`]),
-      createJs([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createGo([`${base}/ws`], factory),
+      createJs([`${base}/ws`], factory),
+      createJs([`${base}/ws`], factory)
     ])
   },
   'js-js-js': {
-    create: () => Promise.all([
-      createJs([`${base}/ws`]),
-      createJs([`${base}/ws`]),
-      createJs([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createJs([`${base}/ws`], factory),
+      createJs([`${base}/ws`], factory),
+      createJs([`${base}/ws`], factory)
     ])
   }
 }

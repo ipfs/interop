@@ -1,84 +1,90 @@
-'use strict'
+import delay from 'delay'
+import randomBytes from 'iso-random-stream/src/random.js'
+import concat from 'it-concat'
+import WS from 'libp2p-websockets'
+import filters from 'libp2p-websockets/src/filters.js'
+import { expect } from 'aegir/utils/chai.js'
 
-const delay = require('delay')
-const randomBytes = require('iso-random-stream/src/random')
-const concat = require('it-concat')
-const WS = require('libp2p-websockets')
-const filters = require('libp2p-websockets/src/filters')
 const transportKey = WS.prototype[Symbol.toStringTag]
 
-const { expect } = require('aegir/utils/chai')
-const daemonFactory = require('./daemon-factory')
-
-exports.createProc = addrs => daemonFactory.spawn({
-  type: 'proc',
-  ipfsOptions: {
-    config: {
-      Addresses: {
-        Swarm: addrs
-      },
-      relay: {
-        enabled: true,
-        hop: {
-          enabled: true
-        }
-      }
-    },
-    libp2p: {
+export function createProc (addrs, factory) {
+  return factory.spawn({
+    type: 'proc',
+    ipfsOptions: {
       config: {
-        transport: {
-          [transportKey]: {
-            filter: filters.all
+        Addresses: {
+          Swarm: addrs
+        },
+        relay: {
+          enabled: true,
+          hop: {
+            enabled: true
+          }
+        }
+      },
+      libp2p: {
+        config: {
+          transport: {
+            [transportKey]: {
+              filter: filters.all
+            }
           }
         }
       }
     }
-  }
-})
+  })
+}
 
-exports.createJs = addrs => daemonFactory.spawn({
-  type: 'js',
-  ipfsOptions: {
-    config: {
-      Addresses: {
-        Swarm: addrs
-      },
-      relay: {
-        enabled: true,
-        hop: {
-          enabled: true
+export function createJs (addrs, factory) {
+  return factory.spawn({
+    type: 'js',
+    ipfsOptions: {
+      config: {
+        Addresses: {
+          Swarm: addrs
+        },
+        relay: {
+          enabled: true,
+          hop: {
+            enabled: true
+          }
         }
       }
     }
-  }
-})
+  })
+}
 
-exports.createGo = addrs => daemonFactory.spawn({
-  type: 'go',
-  ipfsOptions: {
-    config: {
-      Addresses: {
-        Swarm: addrs
-      },
-      Swarm: {
-        DisableRelay: false,
-        EnableRelayHop: true
+export function createGo (addrs, factory) {
+  return factory.spawn({
+    type: 'go',
+    ipfsOptions: {
+      config: {
+        Addresses: {
+          Swarm: addrs
+        },
+        Swarm: {
+          DisableRelay: false,
+          EnableRelayHop: true
+        }
       }
     }
-  }
-})
+  })
+}
 
-exports.clean = () => daemonFactory.clean()
+export function clean (factory) {
+  return factory.clean()
+}
 
 const data = randomBytes(128)
-exports.send = async (nodeA, nodeB) => {
+
+export async function send (nodeA, nodeB) {
   const { cid } = await nodeA.api.add(data)
   const buffer = await concat(nodeB.api.cat(cid))
 
   expect(buffer.slice()).to.deep.equal(data)
 }
 
-const getWsAddr = (addrs) => {
+export function getWsAddr (addrs) {
   addrs = addrs.map((a) => a.toString())
   const result = addrs
     .find((a) => {
@@ -92,9 +98,7 @@ const getWsAddr = (addrs) => {
   return result
 }
 
-exports.getWsAddr = getWsAddr
-
-const getWsStarAddr = (addrs) => {
+export function getWsStarAddr (addrs) {
   addrs = addrs.map((a) => a.toString())
   const result = addrs
     .find((a) => a.includes('/p2p-websocket-star'))
@@ -106,9 +110,7 @@ const getWsStarAddr = (addrs) => {
   return result
 }
 
-exports.getWsStarAddr = getWsStarAddr
-
-const getWrtcStarAddr = (addrs) => {
+export function getWrtcStarAddr (addrs) {
   addrs = addrs.map((a) => a.toString())
   const result = addrs
     .find((a) => a.includes('/p2p-webrtc-star'))
@@ -120,9 +122,7 @@ const getWrtcStarAddr = (addrs) => {
   return result
 }
 
-exports.getWrtcStarAddr = getWrtcStarAddr
-
-const getTcpAddr = (addrs) => {
+export function getTcpAddr (addrs) {
   addrs = addrs.map((a) => a.toString())
   const result = addrs
     .find((a) => !a.includes('/ws') && !a.includes('/p2p-websocket-star'))
@@ -134,9 +134,7 @@ const getTcpAddr = (addrs) => {
   return result
 }
 
-exports.getTcpAddr = getTcpAddr
-
-const connect = async (nodeA, nodeB, relay, timeout = 1000) => {
+export async function connect (nodeA, nodeB, relay, timeout = 1000) {
   const relayWsAddr = getWsAddr(relay.api.peerId.addresses)
   await nodeA.api.swarm.connect(relayWsAddr)
   await nodeB.api.swarm.connect(relayWsAddr)
@@ -146,9 +144,7 @@ const connect = async (nodeA, nodeB, relay, timeout = 1000) => {
   await nodeA.api.swarm.connect(nodeBCircuitAddr)
 }
 
-exports.connect = connect
-
-exports.connWithTimeout = (timeout) => {
+export function connWithTimeout (timeout) {
   return (nodeA, nodeB, relay) => {
     connect(nodeA, nodeB, relay, timeout)
   }

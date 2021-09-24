@@ -1,13 +1,12 @@
 /* eslint-env mocha */
-'use strict'
 
-const os = require('os')
-const path = require('path')
-const { nanoid } = require('nanoid')
-const delay = require('delay')
-const last = require('it-last')
-const { expect } = require('aegir/utils/chai')
-const daemonFactory = require('./utils/daemon-factory')
+import os from 'os'
+import path from 'path'
+import { nanoid } from 'nanoid'
+import delay from 'delay'
+import last from 'it-last'
+import { expect } from 'aegir/utils/chai.js'
+import { daemonFactory } from './utils/daemon-factory.js'
 
 const dir = path.join(os.tmpdir(), nanoid())
 
@@ -59,10 +58,16 @@ const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
 describe('ipns locally using the same repo across implementations', function () {
   this.timeout(160 * 1000)
 
-  afterEach(() => daemonFactory.clean())
+  let factory
+
+  before(async () => {
+    factory = await daemonFactory()
+  })
+
+  afterEach(() => factory.clean())
 
   it('should publish an ipns record to a js daemon and resolve it using the same js daemon', async function () {
-    const jsDaemon = await daemonFactory.spawn({
+    const jsDaemon = await factory.spawn({
       ...daemonOptions,
       type: 'js'
     })
@@ -71,7 +76,7 @@ describe('ipns locally using the same repo across implementations', function () 
   })
 
   it('should publish an ipns record to a go daemon and resolve it using the same go daemon', async function () {
-    const goDaemon = await daemonFactory.spawn({
+    const goDaemon = await factory.spawn({
       ...daemonOptions,
       type: 'go'
     })
@@ -84,11 +89,11 @@ describe('ipns locally using the same repo across implementations', function () 
   // Repo versions are different.
   it.skip('should publish an ipns record to a js daemon and resolve it using a go daemon through the reuse of the same repo', async function () {
     const daemons = await Promise.all([
-      daemonFactory.spawn({
+      factory.spawn({
         ...daemonOptions,
         type: 'js'
       }),
-      daemonFactory.spawn({
+      factory.spawn({
         ...daemonOptions,
         type: 'go'
       })
@@ -102,11 +107,11 @@ describe('ipns locally using the same repo across implementations', function () 
   // Repo versions are different.
   it.skip('should publish an ipns record to a go daemon and resolve it using a js daemon through the reuse of the same repo', async function () {
     const daemons = await Promise.all([
-      daemonFactory.spawn({
+      factory.spawn({
         ...daemonOptions,
         type: 'go'
       }),
-      daemonFactory.spawn({
+      factory.spawn({
         ...daemonOptions,
         type: 'js'
       })

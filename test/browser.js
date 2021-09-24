@@ -1,9 +1,7 @@
 /* eslint-env mocha */
-'use strict'
 
-// require('./exchange-files')
-// require('./pubsub')
-require('./kad-dht')
-require('./circuit')
-// require('./repo')
-require('./files')
+// import './exchange-files.js'
+// import './pubsub.js'
+import './kad-dht.js'
+import './circuit.js'
+import './files.js'
