@@ -26,6 +26,9 @@ const esbuild = {
   ]
 }
 
+const ipfsHttpModule = require(process.env.IPFS_JS_HTTP_MODULE || 'ipfs-http-client')
+const ipfsModule = require(process.env.IPFS_JS_MODULE || 'ipfs')
+
 /** @type {import('aegir').PartialOptions} */
 module.exports = {
   test: {
@@ -42,10 +45,10 @@ module.exports = {
         }, {
           type: 'go',
           test: true,
-          ipfsHttpModule: require(process.env.IPFS_JS_HTTP_MODULE || 'ipfs-http-client')
+          ipfsHttpModule
         }, {
           go: {
-            ipfsBin: process.env.IPFS_GO_EXEC || require('go-ipfs').path()
+            ipfsBin: process.env.IPFS_GO_EXEC || require(process.env.IPFS_GO_IPFS_MODULE || 'go-ipfs').path()
           },
           js: {
             ipfsOptions: {
@@ -57,8 +60,8 @@ module.exports = {
                 }
               }
             },
-            ipfsModule: require(process.env.IPFS_JS_MODULE || 'ipfs'),
-            ipfsBin: process.env.IPFS_JS_EXEC || require.resolve(`${process.env.IPFS_JS_MODULE || 'ipfs'}/src/cli.js`)
+            ipfsModule,
+            ipfsBin: process.env.IPFS_JS_EXEC || ipfsModule.path()
           }
         }).start()
 

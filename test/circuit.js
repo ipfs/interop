@@ -1,12 +1,11 @@
 /* eslint max-nested-callbacks: ["error", 8] */
 /* eslint-env mocha */
-'use strict'
 
-const all = require('./circuit/all')
-const browser = require('./circuit/browser')
-
-const isNode = require('detect-node')
-const { connect, send, clean } = require('./utils/circuit')
+import all from './circuit/all.js'
+import browser from './circuit/browser.js'
+import isNode from 'detect-node'
+import { connect, send, clean } from './utils/circuit.js'
+import { daemonFactory } from './utils/daemon-factory.js'
 
 const timeout = 80 * 1000
 const baseTest = {
@@ -16,6 +15,12 @@ const baseTest = {
 }
 
 describe('circuit', () => {
+  let factory
+
+  before(async () => {
+    factory = await daemonFactory()
+  })
+
   const tests = isNode ? all : browser
 
   Object.keys(tests).forEach((test) => {
@@ -33,10 +38,10 @@ describe('circuit', () => {
       this.timeout(tests[test].timeout)
 
       before(async () => {
-        [nodeA, relay, nodeB] = await tests[test].create()
+        [nodeA, relay, nodeB] = await tests[test].create(factory)
       })
 
-      after(clean)
+      after(() => clean(factory))
 
       it('connect', () => {
         return tests[test].connect(nodeA, nodeB, relay)

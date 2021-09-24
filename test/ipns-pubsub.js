@@ -1,15 +1,14 @@
 /* eslint-env mocha */
-'use strict'
 
-const PeerID = require('peer-id')
-const { base58btc } = require('multiformats/bases/base58')
-const ipns = require('ipns')
-const last = require('it-last')
-const pRetry = require('p-retry')
-const waitFor = require('./utils/wait-for')
-const { expect } = require('aegir/utils/chai')
-const daemonFactory = require('./utils/daemon-factory')
-const { toString: uint8ArrayToString } = require('uint8arrays/to-string')
+import PeerID from 'peer-id'
+import { base58btc } from 'multiformats/bases/base58'
+import { getIdKeys } from 'ipns'
+import last from 'it-last'
+import pRetry from 'p-retry'
+import { waitFor } from './utils/wait-for.js'
+import { expect } from 'aegir/utils/chai.js'
+import { daemonFactory } from './utils/daemon-factory.js'
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 
 const daemonsOptions = {
   args: ['--enable-namesys-pubsub'] // enable ipns over pubsub
@@ -25,24 +24,29 @@ const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 
 describe('ipns-pubsub', function () {
   let nodes = []
+  let factory
+
+  before(async () => {
+    factory = await daemonFactory()
+  })
 
   // Spawn daemons
   before('create the nodes', async function () {
     this.timeout(20e3)
     nodes = await Promise.all([
-      daemonFactory.spawn({
+      factory.spawn({
         type: 'go',
         test: true,
         ...daemonsOptions
       }),
-      daemonFactory.spawn({
+      factory.spawn({
         type: 'js',
         test: true,
         ...daemonsOptions
       }),
       // TODO: go-ipfs needs two nodes in the DHT to be able to publish a record
       // Remove this when js-ipfs has a DHT
-      daemonFactory.spawn({
+      factory.spawn({
         type: 'go',
         test: true,
         ...daemonsOptions
@@ -61,7 +65,7 @@ describe('ipns-pubsub', function () {
     ])
   })
 
-  after(() => daemonFactory.clean())
+  after(() => factory.clean())
 
   it('should get enabled state of pubsub', async function () {
     for (const node of nodes) {
@@ -101,7 +105,7 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
     subscribed = true
   }
 
-  const keys = ipns.getIdKeys(base58btc.decode(`z${idA}`))
+  const keys = getIdKeys(base58btc.decode(`z${idA}`))
   const topic = `${namespace}${uint8ArrayToString(keys.routingKey.uint8Array(), 'base64url')}`
 
   await waitForPeerToSubscribe(nodeB.api, topic)

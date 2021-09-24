@@ -1,14 +1,13 @@
 /* eslint-env mocha */
-'use strict'
 
-const randomBytes = require('iso-random-stream/src/random')
-const { UnixFS } = require('ipfs-unixfs')
-const daemonFactory = require('./utils/daemon-factory')
-const bufferStream = require('readable-stream-buffer-stream')
-const concat = require('it-concat')
-const all = require('it-all')
-const last = require('it-last')
-const { expect } = require('aegir/utils/chai')
+import randomBytes from 'iso-random-stream/src/random.js'
+import { UnixFS } from 'ipfs-unixfs'
+import { daemonFactory } from './utils/daemon-factory.js'
+import bufferStream from 'readable-stream-buffer-stream'
+import concat from 'it-concat'
+import all from 'it-all'
+import last from 'it-last'
+import { expect } from 'aegir/utils/chai.js'
 
 const SHARD_THRESHOLD = 1000
 
@@ -127,20 +126,24 @@ describe('files', function () {
   let go
   let js
 
+  let factory
+
   before(async () => {
+    factory = await daemonFactory();
+
     [go, js] = await Promise.all([
-      daemonFactory.spawn({
+      factory.spawn({
         type: 'go',
         ...goOptions
       }),
-      daemonFactory.spawn({
+      factory.spawn({
         type: 'js',
         ...jsOptions
       })
     ])
   })
 
-  after(() => daemonFactory.clean())
+  after(() => factory.clean())
 
   it('returns an error when reading non-existent files', () => {
     const readNonExistentFile = (daemon) => {

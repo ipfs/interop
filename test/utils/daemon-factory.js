@@ -1,33 +1,43 @@
-'use strict'
 
-const { createFactory } = require('ipfsd-ctl')
-const isNode = require('detect-node')
+import { createFactory } from 'ipfsd-ctl'
+import isNode from 'detect-node'
 
-let ipfsHttpModule
-let ipfsModule
-try {
-  ipfsHttpModule = require(process.env.IPFS_JS_HTTP_MODULE)
-} catch {
-  ipfsHttpModule = require('ipfs-http-client')
-}
+export async function daemonFactory () {
+  let ipfsHttpModule
+  let ipfsModule
+  let goIpfsModule
 
-try {
-  ipfsModule = require(process.env.IPFS_JS_MODULE)
-} catch {
-  ipfsModule = require('ipfs')
-}
-module.exports = createFactory({
-  type: 'go',
-  test: true,
-  ipfsHttpModule
-}, {
-  proc: {
-    ipfsModule
-  },
-  js: {
-    ipfsBin: isNode ? process.env.IPFS_JS_EXEC || require.resolve(`${process.env.IPFS_JS_MODULE || 'ipfs'}/src/cli.js`) : undefined
-  },
-  go: {
-    ipfsBin: isNode ? process.env.IPFS_GO_EXEC || require('go-ipfs').path() : undefined
+  try {
+    ipfsHttpModule = await import(process.env.IPFS_JS_HTTP_MODULE)
+  } catch {
+    ipfsHttpModule = await import('ipfs-http-client')
   }
-})
+
+  try {
+    ipfsModule = await import(process.env.IPFS_JS_MODULE)
+  } catch {
+    ipfsModule = await import('ipfs')
+  }
+
+  try {
+    goIpfsModule = await import(process.env.IPFS_GO_IPFS_MODULE)
+  } catch {
+    goIpfsModule = await import('go-ipfs')
+  }
+
+  return createFactory({
+    type: 'go',
+    test: true,
+    ipfsHttpModule
+  }, {
+    proc: {
+      ipfsModule
+    },
+    js: {
+      ipfsBin: isNode ? process.env.IPFS_JS_EXEC || ipfsModule.path() : undefined
+    },
+    go: {
+      ipfsBin: isNode ? process.env.IPFS_GO_EXEC || goIpfsModule.path() : undefined
+    }
+  })
+}

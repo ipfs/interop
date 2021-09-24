@@ -2,7 +2,19 @@
   "name": "ipfs-interop",
   "version": "6.0.3",
   "description": "Interoperability Tests for IPFS",
-  "main": "",
+  "main": "src/index.js",
+  "types": "types/src/index.d.ts",
+  "type": "module",
+  "files": [
+    "*",
+    "!**/*.tsbuildinfo"
+  ],
+  "eslintConfig": {
+    "extends": "ipfs",
+    "parserOptions": {
+      "sourceType": "module"
+    }
+  },
   "bin": {
     "ipfs-interop": "bin/ipfs-interop.js"
   },
@@ -12,6 +24,8 @@
   },
   "scripts": {
     "lint": "aegir lint",
+    "build": "aegir build",
+    "pretest": "aegir build --esm-tests",
     "test": "cross-env IPFS_REUSEPORT=false aegir test",
     "test:node": "cross-env IPFS_REUSEPORT=false aegir test -t node -f test/node.js",
     "test:browser": "cross-env IPFS_REUSEPORT=false aegir test -t browser -f test/browser.js"
@@ -41,7 +55,8 @@
     "detect-node": "^2.0.4",
     "ipfs-unixfs": "^6.0.3",
     "ipfsd-ctl": "^10.0.3",
-    "ipns": "^0.14.1",
+    "ipfs-utils": "^9.0.1",
+    "ipns": "^0.15.0",
     "is-ci": "^3.0.0",
     "is-os": "^1.0.1",
     "iso-random-stream": "^2.0.0",
@@ -62,12 +77,6 @@
     "rimraf": "^3.0.0",
     "uint8arrays": "^3.0.0",
     "wherearewe": "^1.0.0"
-  },
-  "eslintConfig": {
-    "extends": "ipfs",
-    "ignorePatterns": [
-      "!.aegir.js"
-    ]
   },
   "contributors": [
     "achingbrain <alex@achingbrain.net>",

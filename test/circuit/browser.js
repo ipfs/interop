@@ -1,93 +1,89 @@
 /* eslint max-nested-callbacks: ["error", 8] */
 /* eslint-env mocha */
-'use strict'
 
-const delay = require('delay')
-const {
-  isWebWorker
-} = require('wherearewe')
-
-const {
+import delay from 'delay'
+import { isWebWorker } from 'wherearewe'
+import {
   createJs,
   createGo,
   createProc,
   connWithTimeout,
   getWsAddr,
   getWrtcStarAddr
-} = require('../utils/circuit')
+} from '../utils/circuit.js'
 
 const base = '/ip4/127.0.0.1/tcp/0'
 
-module.exports = {
+export default {
   'browser-go-js': {
-    create: () => Promise.all([
-      createProc([]),
-      createGo([`${base}/ws`]),
-      createJs([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createProc([], factory),
+      createGo([`${base}/ws`], factory),
+      createJs([`${base}/ws`], factory)
     ]),
     connect: connWithTimeout(1500)
   },
   'browser-go-go': {
-    create: () => Promise.all([
-      createProc([]),
-      createGo([`${base}/ws`]),
-      createGo([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createProc([], factory),
+      createGo([`${base}/ws`], factory),
+      createGo([`${base}/ws`], factory)
     ]),
     connect: connWithTimeout(1500)
   },
   'browser-js-js': {
-    create: () => Promise.all([
-      createProc([]),
-      createJs([`${base}/ws`]),
-      createJs([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createProc([], factory),
+      createJs([`${base}/ws`], factory),
+      createJs([`${base}/ws`], factory)
     ]),
     connect: connWithTimeout(1500)
   },
   'browser-js-go': {
-    create: () => Promise.all([
-      createProc([]),
-      createJs([`${base}/ws`]),
-      createGo([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createProc([], factory),
+      createJs([`${base}/ws`], factory),
+      createGo([`${base}/ws`], factory)
     ]),
     connect: connWithTimeout(1500)
   },
   'js-go-browser': {
-    create: () => Promise.all([
-      createJs([`${base}/ws`]),
-      createGo([`${base}/ws`]),
-      createProc([])
+    create: (factory) => Promise.all([
+      createJs([`${base}/ws`], factory),
+      createGo([`${base}/ws`], factory),
+      createProc([], factory)
     ]),
     connect: connWithTimeout(1500)
   },
   'go-go-browser': {
-    create: () => Promise.all([
-      createGo([`${base}/ws`]),
-      createGo([`${base}/ws`]),
-      createProc([])
+    create: (factory) => Promise.all([
+      createGo([`${base}/ws`], factory),
+      createGo([`${base}/ws`], factory),
+      createProc([], factory)
     ]),
     connect: connWithTimeout(1500)
   },
   'js-js-browser': {
-    create: () => Promise.all([
-      createJs([`${base}/ws`]),
-      createJs([`${base}/ws`]),
-      createProc([])
+    create: (factory) => Promise.all([
+      createJs([`${base}/ws`], factory),
+      createJs([`${base}/ws`], factory),
+      createProc([], factory)
     ]),
     connect: connWithTimeout(1500)
   },
   'go-js-browser': {
-    create: () => Promise.all([
-      createGo([`${base}/ws`]),
-      createJs([`${base}/ws`]),
-      createProc([])
+    create: (factory) => Promise.all([
+      createGo([`${base}/ws`], factory),
+      createJs([`${base}/ws`], factory),
+      createProc([], factory)
     ]),
     connect: connWithTimeout(1500)
   },
   'go-browser-browser': {
-    create: () => Promise.all([
-      createGo([`${base}/ws`]),
-      createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-webrtc-star']),
-      createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-webrtc-star'])
+    create: (factory) => Promise.all([
+      createGo([`${base}/ws`], factory),
+      createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-webrtc-star'], factory),
+      createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-webrtc-star'], factory)
     ]),
     connect: async (nodeA, nodeB, relay) => {
       await relay.api.swarm.connect(getWsAddr(nodeA.api.peerId.addresses))
@@ -100,10 +96,10 @@ module.exports = {
     skip: () => true // go-ipfs does not know what p2p-webrtc-star is
   },
   'js-browser-browser': {
-    create: () => Promise.all([
-      createJs([`${base}/ws`]),
-      createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-webrtc-star']),
-      createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-webrtc-star'])
+    create: (factory) => Promise.all([
+      createJs([`${base}/ws`], factory),
+      createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-webrtc-star'], factory),
+      createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-webrtc-star'], factory)
     ]),
     connect: async (nodeA, nodeB, relay) => {
       await relay.api.swarm.connect(getWsAddr(nodeA.api.peerId.addresses))
@@ -116,10 +112,10 @@ module.exports = {
     skip: () => isWebWorker // no webrtc support in webworkers
   },
   'browser-browser-go': {
-    create: () => Promise.all([
-      createProc(['/ip4/127.0.0.1/tcp/24642/wss/p2p-webrtc-star']),
-      createProc(['/ip4/127.0.0.1/tcp/24642/wss/p2p-webrtc-star']),
-      createGo([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createProc(['/ip4/127.0.0.1/tcp/24642/wss/p2p-webrtc-star'], factory),
+      createProc(['/ip4/127.0.0.1/tcp/24642/wss/p2p-webrtc-star'], factory),
+      createGo([`${base}/ws`], factory)
     ]),
     connect: async (nodeA, nodeB, relay) => {
       await relay.api.swarm.connect(getWrtcStarAddr(nodeA.api.peerId.addresses))
@@ -132,10 +128,10 @@ module.exports = {
     skip: () => isWebWorker // no webrtc support in webworkers
   },
   'browser-browser-js': {
-    create: () => Promise.all([
-      createProc(['/ip4/127.0.0.1/tcp/24642/wss/p2p-webrtc-star']),
-      createProc(['/ip4/127.0.0.1/tcp/24642/wss/p2p-webrtc-star']),
-      createJs([`${base}/ws`])
+    create: (factory) => Promise.all([
+      createProc(['/ip4/127.0.0.1/tcp/24642/wss/p2p-webrtc-star'], factory),
+      createProc(['/ip4/127.0.0.1/tcp/24642/wss/p2p-webrtc-star'], factory),
+      createJs([`${base}/ws`], factory)
     ]),
     connect: async (nodeA, nodeB, relay) => {
       await relay.api.swarm.connect(getWrtcStarAddr(nodeA.api.peerId.addresses))

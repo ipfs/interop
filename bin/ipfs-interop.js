@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
-'use strict'
-
-const { spawn } = require('child_process')
+import { spawn } from 'child_process'
 
 const proc = spawn('npm', ['test'].concat(process.argv.slice(2)), {
   cwd: __dirname

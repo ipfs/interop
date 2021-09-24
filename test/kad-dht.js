@@ -1,12 +1,19 @@
 /* eslint-env mocha */
-'use strict'
 
-const randomBytes = require('iso-random-stream/src/random')
-const concat = require('it-concat')
-const { expect } = require('aegir/utils/chai')
-const daemonFactory = require('./utils/daemon-factory')
+import randomBytes from 'iso-random-stream/src/random.js'
+import concat from 'it-concat'
+import { expect } from 'aegir/utils/chai.js'
+import { daemonFactory } from './utils/daemon-factory.js'
 
 describe.skip('kad-dht', () => {
+  let factory
+
+  before(async () => {
+    factory = await daemonFactory()
+  })
+
+  after(() => factory.clean())
+
   describe('a JS node in the land of Go', () => {
     let jsD
     let goD1
@@ -15,14 +22,14 @@ describe.skip('kad-dht', () => {
 
     before(async () => {
       [goD1, goD2, goD3, jsD] = await Promise.all([
-        daemonFactory.spawn({ type: 'go' }),
-        daemonFactory.spawn({ type: 'go' }),
-        daemonFactory.spawn({ type: 'go' }),
-        daemonFactory.spawn({ type: 'js' })
+        factory.spawn({ type: 'go' }),
+        factory.spawn({ type: 'go' }),
+        factory.spawn({ type: 'go' }),
+        factory.spawn({ type: 'js' })
       ])
     })
 
-    after(() => daemonFactory.clean())
+    after(() => factory.clean())
 
     it('make connections', async () => {
       await Promise.all([

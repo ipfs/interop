@@ -1,22 +1,22 @@
 /* eslint max-nested-callbacks: ["error", 7] */
 /* eslint-env mocha */
-'use strict'
 
-const randomBytes = require('iso-random-stream/src/random')
-const pretty = require('pretty-bytes')
-const randomFs = require('random-fs')
-const promisify = require('promisify-es6')
-const rimraf = require('rimraf')
-const join = require('path').join
-const { nanoid } = require('nanoid')
-const isCi = require('is-ci')
-const isWindows = require('is-os').isWindows
-const os = require('os')
+import randomBytes from 'iso-random-stream/src/random.js'
+import pretty from 'pretty-bytes'
+import randomFs from 'random-fs'
+import { promisify } from 'util'
+import rimraf from 'rimraf'
+import { join } from 'path'
+import { nanoid } from 'nanoid'
+import isCi from 'is-ci'
+import { isWindows } from 'is-os'
+import os from 'os'
+import concat from 'it-concat'
+import globSource from 'ipfs-utils/src/files/glob-source.js'
+import { expect } from 'aegir/utils/chai.js'
+import { daemonFactory } from './utils/daemon-factory.js'
+
 const rmDir = promisify(rimraf)
-const concat = require('it-concat')
-const { globSource } = require(process.env.IPFS_JS_MODULE || 'ipfs')
-const { expect } = require('aegir/utils/chai')
-const daemonFactory = require('./utils/daemon-factory')
 
 function tmpDir () {
   return join(os.tmpdir(), `ipfs_${nanoid()}`)
@@ -100,13 +100,19 @@ describe('exchange files', function () {
     'js -> js2': ['js', 'js']
   }
 
+  let factory
+
+  before(async () => {
+    factory = await daemonFactory()
+  })
+
   Object.keys(tests).forEach((name) => {
     describe(name, () => {
       let daemon1
       let daemon2
 
       before('spawn nodes', async function () {
-        [daemon1, daemon2] = await Promise.all(tests[name].map(type => daemonFactory.spawn({ type })))
+        [daemon1, daemon2] = await Promise.all(tests[name].map(type => factory.spawn({ type })))
       })
 
       before('connect', async function () {
@@ -124,7 +130,7 @@ describe('exchange files', function () {
         expect(peer2.map((p) => p.peer.toString())).to.include(daemon1.api.peerId.id)
       })
 
-      after(() => daemonFactory.clean())
+      after(() => factory.clean())
 
       describe('cat file', () => sizes.forEach((size) => {
         it(`${name}: ${pretty(size)}`, async function () {
