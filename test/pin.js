@@ -2,6 +2,8 @@
 
 import fs from 'fs'
 import all from 'it-all'
+import last from 'it-last'
+import drain from 'it-drain'
 import { tmpPath, removeAllPins } from './utils/pin-utils.js'
 import { expect } from 'aegir/utils/chai.js'
 import { daemonFactory } from './utils/daemon-factory.js'
@@ -68,7 +70,7 @@ describe('pin', function () {
     // Pinning a large file recursively results in the same pins
     it('pin recursively', async function () {
       async function pipeline (daemon) {
-        const { cid } = await daemon.api.add(jupiter, { pin: false })
+        const { cid } = await last(daemon.api.addAll(jupiter, { pin: false }))
         await daemon.api.pin.add(cid)
 
         return all(daemon.api.pin.ls())
@@ -84,7 +86,7 @@ describe('pin', function () {
     // Pinning a large file with recursive=false results in the same direct pin
     it('pin directly', async function () {
       async function pipeline (daemon) {
-        const { cid } = await daemon.api.add(jupiter, { pin: false })
+        const { cid } = await last(daemon.api.addAll(jupiter, { pin: false }))
         await daemon.api.pin.add(cid, { recursive: false })
 
         return all(daemon.api.pin.ls())
@@ -103,7 +105,7 @@ describe('pin', function () {
     // not part of another pin's dag
     it('pin recursively, remove the root pin', async function () {
       async function pipeline (daemon) {
-        const { cid } = await daemon.api.add(jupiter)
+        const { cid } = await last(daemon.api.addAll(jupiter))
         await daemon.api.pin.rm(cid)
 
         return all(daemon.api.pin.ls())
@@ -120,7 +122,7 @@ describe('pin', function () {
     it('remove a child shared by multiple pins', async function () {
       let jupiterDir
       async function pipeline (daemon) {
-        const { cid } = await daemon.api.add(jupiter, { pin: false, wrapWithDirectory: true })
+        const { cid } = await last(daemon.api.addAll(jupiter, { pin: false, wrapWithDirectory: true }))
         jupiterDir = jupiterDir || await daemon.api.files.stat(`/ipfs/${cid}/test/fixtures/planets`)
 
         // by separately pinning all the DAG nodes created when adding,
@@ -154,7 +156,7 @@ describe('pin', function () {
   describe('ls', function () {
     it('print same pins', async function () {
       async function pipeline (daemon) {
-        await daemon.api.add(jupiter)
+        await drain(daemon.api.addAll(jupiter))
 
         return all(daemon.api.pin.ls())
       }

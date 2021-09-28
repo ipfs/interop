@@ -234,6 +234,12 @@ describe('files', function () {
       return cid
     }
 
+    const testDirectoryHashesAreEqual = async (daemon, data, options = {}) => {
+      const { cid } = await last(daemon.api.addAll(data, options))
+
+      return cid
+    }
+
     const _writeData = async (daemon, initialData, newData, options) => {
       const fileName = `file-${Math.random()}.txt`
 
@@ -381,8 +387,8 @@ describe('files', function () {
       }
 
       return compare(
-        testHashesAreEqual(go, files),
-        testHashesAreEqual(js, files)
+        testDirectoryHashesAreEqual(go, files),
+        testDirectoryHashesAreEqual(js, files)
       )
     })
 
