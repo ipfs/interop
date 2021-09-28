@@ -1,8 +1,5 @@
-name: ci
+name: Test
 on:
-  push:
-    branches:
-      - master
   pull_request:
     branches:
       - master
