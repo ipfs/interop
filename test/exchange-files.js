@@ -15,6 +15,7 @@ import concat from 'it-concat'
 import globSource from 'ipfs-utils/src/files/glob-source.js'
 import { expect } from 'aegir/utils/chai.js'
 import { daemonFactory } from './utils/daemon-factory.js'
+import last from 'it-last'
 
 const rmDir = promisify(rimraf)
 
@@ -161,9 +162,9 @@ describe('exchange files', function () {
               number: num
             })
 
-            const { cid } = await daemon1.api.add(globSource(dir, '**/*'), {
+            const { cid } = await last(daemon1.api.addAll(globSource(dir, '**/*'), {
               wrapWithDirectory: true
-            })
+            }))
 
             await expect(countFiles(cid, daemon2.api)).to.eventually.equal(num)
           } finally {
