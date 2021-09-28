@@ -1,6 +1,6 @@
 {
   "name": "ipfs-interop",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "Interoperability Tests for IPFS",
   "main": "src/index.js",
   "types": "types/src/index.d.ts",
