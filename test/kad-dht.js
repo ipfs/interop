@@ -76,7 +76,6 @@ const addFileAndCat = async (addDaemon, catDaemons, options = {}) => {
 
 const createNetwork = function (name, createNodes, tests) {
   describe(name, function () {
-    this.timeout(100 * 1000)
     const nodes = defer()
     let factory
 
@@ -192,7 +191,9 @@ const createDisjointNetwork = function (name, createNodes) {
   })
 }
 
-describe('kad-dht', () => {
+describe('kad-dht', function () {
+  this.timeout(600 * 1000)
+
   if (!isNode) {
     it.skip('DHT tests are only run on node')
     return
