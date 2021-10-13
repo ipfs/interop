@@ -9,7 +9,10 @@ import all from 'it-all'
 import last from 'it-last'
 import { expect } from 'aegir/utils/chai.js'
 
-const SHARD_THRESHOLD = 1000
+const SHARD_THRESHOLD = 2000
+// Use this to help push the shard threshold over the go-ipfs defaults
+// without just adding lots of files
+const shardFilePadding = ''.padStart(100, '0')
 
 class ExpectedError extends Error {
 
@@ -381,7 +384,7 @@ describe('files', function () {
 
       for (let i = 0; i < SHARD_THRESHOLD + 1; i++) {
         files.push({
-          path: `${dir}/file-${i}.txt`,
+          path: `${dir}/file-${shardFilePadding}-${i}.txt`,
           content: data
         })
       }
@@ -419,7 +422,7 @@ describe('files', function () {
 
       for (let i = 0; i < SHARD_THRESHOLD; i++) {
         files.push({
-          path: `${dir}/file-${i}.txt`,
+          path: `${dir}/file-${shardFilePadding}-${i}.txt`,
           content: data
         })
       }
