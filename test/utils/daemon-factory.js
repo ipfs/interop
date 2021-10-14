@@ -5,7 +5,6 @@ import isNode from 'detect-node'
 export async function daemonFactory () {
   let ipfsHttpModule
   let ipfsModule
-  let goIpfsModule
 
   try {
     ipfsHttpModule = await import(process.env.IPFS_JS_HTTP_MODULE)
@@ -19,12 +18,6 @@ export async function daemonFactory () {
     ipfsModule = await import('ipfs')
   }
 
-  try {
-    goIpfsModule = await import(process.env.IPFS_GO_IPFS_MODULE)
-  } catch {
-    goIpfsModule = await import('go-ipfs')
-  }
-
   return createFactory({
     type: 'go',
     test: true,
@@ -34,10 +27,29 @@ export async function daemonFactory () {
       ipfsModule
     },
     js: {
-      ipfsBin: isNode ? process.env.IPFS_JS_EXEC || ipfsModule.path() : undefined
+      ipfsBin: await findBin('IPFS_JS_EXEC', 'ipfs', ipfsModule)
     },
     go: {
-      ipfsBin: isNode ? process.env.IPFS_GO_EXEC || goIpfsModule.path() : undefined
+      ipfsBin: await findBin('IPFS_GO_EXEC', 'go-ipfs')
     }
   })
+}
+
+/**
+ * @param {string} envVar
+ * @param {string} moduleName
+ * @param {{ path: () => string }} [module]
+ */
+async function findBin (envVar, moduleName, module) {
+  if (!isNode) {
+    return
+  }
+
+  if (process.env[envVar]) {
+    return process.env[envVar]
+  }
+
+  const mod = module || await import(moduleName)
+
+  return mod.path()
 }
