@@ -10,21 +10,18 @@ import { isNode } from 'wherearewe'
 import toBuffer from 'it-to-buffer'
 
 const getConfig = (bootstrap) => ({
-  Bootstrap: bootstrap
+  Bootstrap: bootstrap,
+  Routing: {
+    Type: 'dhtserver'
+  }
 })
 
 const spawnGoDaemon = (factory, bootstrap = []) => {
   return factory.spawn({
     type: 'go',
+    test: true,
     ipfsOptions: {
-      config: getConfig(bootstrap),
-      libp2p: {
-        config: {
-          dht: {
-            enabled: true
-          }
-        }
-      }
+      config: getConfig(bootstrap)
     }
   })
 }
@@ -32,15 +29,9 @@ const spawnGoDaemon = (factory, bootstrap = []) => {
 const spawnJsDaemon = (factory, bootstrap = []) => {
   return factory.spawn({
     type: 'js',
+    test: true,
     ipfsOptions: {
-      config: getConfig(bootstrap),
-      libp2p: {
-        config: {
-          dht: {
-            enabled: true
-          }
-        }
-      }
+      config: getConfig(bootstrap)
     }
   })
 }
@@ -62,12 +53,24 @@ const getNodeAddr = async (node) => {
 }
 
 const addFileAndCat = async (addDaemon, catDaemons, options = {}) => {
+  console.info('adding file')
+
   const data = uint8ArrayFromString(`some-data-${Math.random()}`)
   const { cid } = await addDaemon.api.add(data)
 
+  console.info('added file', cid.toString())
+
+  for await (const res of addDaemon.api.dht.provide(cid)) {
+    console.info(res)
+  }
+
+  console.info('provided file', cid.toString())
+
   await Promise.all(
-    catDaemons.map(async daemon => {
+    catDaemons.map(async (daemon, index) => {
+      console.info('catting file', index)
       const res = await toBuffer(daemon.api.cat(cid, options))
+      console.info('catted file', index)
 
       expect(res).to.equalBytes(data)
     })
@@ -93,6 +96,7 @@ const createNetwork = function (name, createNodes, tests) {
 }
 
 const createBootstrappedNetwork = function (name, createBootstrapper, createNodes) {
+  // all nodes are connected to the bootstrapper but not to each other
   createNetwork(name, async factory => {
     const bootstrapper = await createBootstrapper(factory)
     const bootstrapAddr = await getNodeAddr(bootstrapper)
@@ -121,35 +125,41 @@ const createLinearNetwork = function (name, createNodes) {
   createNetwork(name, async factory => {
     const [node0, node1, node2, node3] = await createNodes(factory)
 
+    console.info('node0', node0.id.id)
+    console.info('node1', node1.id.id)
+    console.info('node2', node2.id.id)
+    console.info('node3', node3.id.id)
+
     /*
      * Make connections between nodes
-     * +-+       +-+
-     * |0+-----> |1|
-     * +++       +++
-     *  ^         |
-     *  |         |
-     *  |         v
-     * +++       +++
-     * |3|       |2|
-     * +-+       +-+
+     * 3 -> 2 -> 1 -> 0
+     *
+     * 0 is under test, nodes 3-1
      */
-    await node3.api.swarm.connect(node0.id.addresses[0])
-    await node0.api.swarm.connect(node1.id.addresses[0])
-    await node1.api.swarm.connect(node2.id.addresses[0])
+    await node3.api.swarm.connect(node2.id.addresses[0])
+    await node2.api.swarm.connect(node1.id.addresses[0])
+    await node1.api.swarm.connect(node0.id.addresses[0])
+
+    console.info('nodes connected')
+
+    console.info('node0 peers', await node0.api.swarm.peers())
+    console.info('node1 peers', await node1.api.swarm.peers())
+    console.info('node2 peers', await node2.api.swarm.peers())
+    console.info('node3 peers', await node3.api.swarm.peers())
 
     return [node0, node1, node2, node3]
   }, (nodes) => {
     it('one hop', async () => {
-      const [node0, _node1, _node2, node3] = await nodes // eslint-disable-line no-unused-vars
-      await addFileAndCat(node0, [node3])
+      const [node0, node1, _node2, _node3] = await nodes // eslint-disable-line no-unused-vars
+      await addFileAndCat(node1, [node0])
     })
-    it('two hops', async () => {
-      const [_node0, node1, _node2, node3] = await nodes // eslint-disable-line no-unused-vars
-      await addFileAndCat(node1, [node3])
+    it.only('two hops', async () => {
+      const [node0, _node1, node2, _node3] = await nodes // eslint-disable-line no-unused-vars
+      await addFileAndCat(node2, [node0])
     })
     it('three hops', async () => {
-      const [_node0, _node1, node2, node3] = await nodes // eslint-disable-line no-unused-vars
-      await addFileAndCat(node2, [node3])
+      const [node0, _node1, _node2, node3] = await nodes // eslint-disable-line no-unused-vars
+      await addFileAndCat(node3, [node0])
     })
   })
 }
@@ -250,21 +260,39 @@ describe('kad-dht', function () {
   })
 
   describe('kad-dht with multiple hops', () => {
-    createLinearNetwork('a JS node in the land of Go', (factory) => {
+    createLinearNetwork('a JS node in the land of linear JS', (factory) => {
+      return Promise.all([
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnJsDaemon)
+      ])
+    })
+
+    createLinearNetwork('a JS node in the land of linear Go', (factory) => {
+      return Promise.all([
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnGoDaemon),
+        spawnDaemon(factory, spawnGoDaemon),
+        spawnDaemon(factory, spawnGoDaemon)
+      ])
+    })
+
+    createLinearNetwork('a Go node in the land of linear Go', (factory) => {
       return Promise.all([
         spawnDaemon(factory, spawnGoDaemon),
         spawnDaemon(factory, spawnGoDaemon),
         spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnJsDaemon)
+        spawnDaemon(factory, spawnGoDaemon)
       ])
     })
 
     createLinearNetwork('a Go node in the land of JS', (factory) => {
       return Promise.all([
+        spawnDaemon(factory, spawnGoDaemon),
         spawnDaemon(factory, spawnJsDaemon),
         spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnGoDaemon)
+        spawnDaemon(factory, spawnJsDaemon)
       ])
     })
 
