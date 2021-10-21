@@ -22,10 +22,10 @@ WORKDIR=$(pwd)
 if [ "$IPFS_GO_EXEC" == /tmp/go-ipfs/cmd/ipfs/ipfs ]; then
 if [ ! -d /tmp/go-ipfs ]; then
     cd /tmp
-        git clone https://github.com/ipfs/go-ipfs.git
+        git clone https://github.com/coryschwartz/go-ipfs.git
         cd go-ipfs
-            # set implementation to specific commit
-            git checkout CHANGEME_GO
+            # implementation from https://github.com/ipfs/go-ipfs/pull/8183
+            git checkout 153697d524f449ee9bec97245b0fcd7ebc2e8170
             make build
 fi
 fi
@@ -35,8 +35,8 @@ if [ ! -d /tmp/js-ipfs ]; then
     cd /tmp
         git clone https://github.com/ipfs/js-ipfs.git
         cd js-ipfs
-            # set implementation to specific commit
-            git checkout CHANGEME_JS
+            # implementation from https://github.com/ipfs/js-ipfs/pull/3922
+            git checkout 1dcac76f56972fc3519526e93567e39d685033dd
             npm install
             npm run build
             npm run link
