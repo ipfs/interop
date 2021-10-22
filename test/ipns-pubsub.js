@@ -22,8 +22,7 @@ const namespace = '/record/'
 
 const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 
-// TODO: unskip after https://github.com/ipfs/js-ipfs/pull/3922 and https://github.com/ipfs/go-ipfs/pull/8183 both ship
-describe.skip('ipns-pubsub', function () {
+describe('ipns-pubsub', function () {
   let nodes = []
   let factory
 
