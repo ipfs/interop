@@ -27,7 +27,8 @@ const daemonOptions = {
 
 const timeout = 20e3
 
-describe('pubsub', function () {
+// TODO: unskip after https://github.com/ipfs/js-ipfs/pull/3922 and https://github.com/ipfs/go-ipfs/pull/8183 both ship
+describe.skip('pubsub', function () {
   this.timeout(60 * 1000)
 
   const tests = {
