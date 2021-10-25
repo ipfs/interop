@@ -1,3 +1,12 @@
+## [7.0.4](https://github.com/ipfs/interop/compare/v7.0.3...v7.0.4) (2021-10-25)
+
+
+### Bug Fixes
+
+* disable pubsub due to wire format changes ([#388](https://github.com/ipfs/interop/issues/388)) ([344f692](https://github.com/ipfs/interop/commit/344f692d8cdc68fabe424814214dfb43c716edac))
+
+
+
 <a name="2.0.1"></a>
 ## [2.0.1](https://github.com/ipfs/interop/compare/v2.0.0...v2.0.1) (2020-07-30)
 
