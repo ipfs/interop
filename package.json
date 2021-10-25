@@ -1,6 +1,6 @@
 {
   "name": "ipfs-interop",
-  "version": "7.0.3",
+  "version": "7.0.4",
   "description": "Interoperability Tests for IPFS",
   "main": "src/index.js",
   "types": "types/src/index.d.ts",
@@ -85,13 +85,14 @@
     "Steven Allen <steven@stebalien.com>",
     "Vasco Santos <vasco.santos@moxy.studio>",
     "Alan Shaw <alan.shaw@protocol.ai>",
-    "Dmitriy Ryajov <dryajov@gmail.com>",
     "Jacob Heun <jacobheun@gmail.com>",
+    "Dmitriy Ryajov <dryajov@gmail.com>",
     "Hugo Dias <hugomrdias@gmail.com>",
     "Hector Sanjuan <code@hector.link>",
     "Pedro Santos <pedro.santos@moxy.studio>",
     "Bryan Stenson <bryan.stenson@gmail.com>",
     "Jonathan <jkrone@vt.edu>",
+    "Marcin Rataj <lidel@lidel.org>",
     "Petar Maymounkov <petarm@gmail.com>",
     "Richard Littauer <richard.littauer@gmail.com>"
   ],
