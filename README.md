@@ -67,6 +67,17 @@ $ npm install -g ipfs-interop
 $ IPFS_GO_EXEC=/path IPFS_JS_EXEC=/path IPFS_JS_MODULE=/path IPFS_JS_HTTP_MODULE=/path ipfs-interop
 ```
 
+## Releasing a new version
+
+This repo does not use aegir for releases.
+Use `npm` directly  and publish entire root (CI in go-ipfs requires it).
+
+```
+npm version [major|minor|patch]
+npm publish
+npm push origin && npm push origin v[N.N.N]
+```
+
 ## Contribute
 
 Feel free to join in. All welcome. Open an [issue](https://github.com/ipfs/ipfs-interop/issues)!
