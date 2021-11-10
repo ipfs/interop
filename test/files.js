@@ -18,9 +18,9 @@ class ExpectedError extends Error {
 const goOptions = {
   ipfsOptions: {
     config: {
-      // enabled sharding for go
-      Experimental: {
-        ShardingEnabled: true
+      // enabled sharding for go with automatic threshold dropped to the minimum
+      Internal: {
+        UnixFSShardingSizeThreshold: "1B"
       }
     }
   }
