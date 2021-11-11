@@ -53,24 +53,12 @@ const getNodeAddr = async (node) => {
 }
 
 const addFileAndCat = async (addDaemon, catDaemons, options = {}) => {
-  console.info('adding file')
-
   const data = uint8ArrayFromString(`some-data-${Math.random()}`)
   const { cid } = await addDaemon.api.add(data)
 
-  console.info('added file', cid.toString())
-
-  for await (const res of addDaemon.api.dht.provide(cid)) {
-    console.info(res)
-  }
-
-  console.info('provided file', cid.toString())
-
   await Promise.all(
-    catDaemons.map(async (daemon, index) => {
-      console.info('catting file', index)
+    catDaemons.map(async daemon => {
       const res = await toBuffer(daemon.api.cat(cid, options))
-      console.info('catted file', index)
 
       expect(res).to.equalBytes(data)
     })
@@ -96,7 +84,6 @@ const createNetwork = function (name, createNodes, tests) {
 }
 
 const createBootstrappedNetwork = function (name, createBootstrapper, createNodes) {
-  // all nodes are connected to the bootstrapper but not to each other
   createNetwork(name, async factory => {
     const bootstrapper = await createBootstrapper(factory)
     const bootstrapAddr = await getNodeAddr(bootstrapper)
@@ -125,41 +112,35 @@ const createLinearNetwork = function (name, createNodes) {
   createNetwork(name, async factory => {
     const [node0, node1, node2, node3] = await createNodes(factory)
 
-    console.info('node0', node0.id.id)
-    console.info('node1', node1.id.id)
-    console.info('node2', node2.id.id)
-    console.info('node3', node3.id.id)
-
     /*
      * Make connections between nodes
-     * 3 -> 2 -> 1 -> 0
-     *
-     * 0 is under test, nodes 3-1
+     * +-+       +-+
+     * |0+-----> |1|
+     * +++       +++
+     *  ^         |
+     *  |         |
+     *  |         v
+     * +++       +++
+     * |3|       |2|
+     * +-+       +-+
      */
-    await node3.api.swarm.connect(node2.id.addresses[0])
-    await node2.api.swarm.connect(node1.id.addresses[0])
-    await node1.api.swarm.connect(node0.id.addresses[0])
-
-    console.info('nodes connected')
-
-    console.info('node0 peers', await node0.api.swarm.peers())
-    console.info('node1 peers', await node1.api.swarm.peers())
-    console.info('node2 peers', await node2.api.swarm.peers())
-    console.info('node3 peers', await node3.api.swarm.peers())
+    await node3.api.swarm.connect(node0.id.addresses[0])
+    await node0.api.swarm.connect(node1.id.addresses[0])
+    await node1.api.swarm.connect(node2.id.addresses[0])
 
     return [node0, node1, node2, node3]
   }, (nodes) => {
     it('one hop', async () => {
-      const [node0, node1, _node2, _node3] = await nodes // eslint-disable-line no-unused-vars
-      await addFileAndCat(node1, [node0])
+      const [node0, _node1, _node2, node3] = await nodes // eslint-disable-line no-unused-vars
+      await addFileAndCat(node0, [node3])
     })
-    it.only('two hops', async () => {
-      const [node0, _node1, node2, _node3] = await nodes // eslint-disable-line no-unused-vars
-      await addFileAndCat(node2, [node0])
+    it('two hops', async () => {
+      const [_node0, node1, _node2, node3] = await nodes // eslint-disable-line no-unused-vars
+      await addFileAndCat(node1, [node3])
     })
     it('three hops', async () => {
-      const [node0, _node1, _node2, node3] = await nodes // eslint-disable-line no-unused-vars
-      await addFileAndCat(node3, [node0])
+      const [_node0, _node1, node2, node3] = await nodes // eslint-disable-line no-unused-vars
+      await addFileAndCat(node2, [node3])
     })
   })
 }
@@ -260,43 +241,34 @@ describe('kad-dht', function () {
   })
 
   describe('kad-dht with multiple hops', () => {
-    createLinearNetwork('a JS node in the land of linear JS', (factory) => {
+    createLinearNetwork('a JS node in the land of Go', (factory) => {
       return Promise.all([
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnGoDaemon),
+        spawnDaemon(factory, spawnGoDaemon),
+        spawnDaemon(factory, spawnGoDaemon),
         spawnDaemon(factory, spawnJsDaemon)
-      ])
-    })
-
-    createLinearNetwork('a JS node in the land of linear Go', (factory) => {
-      return Promise.all([
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnGoDaemon)
-      ])
-    })
-
-    createLinearNetwork('a Go node in the land of linear Go', (factory) => {
-      return Promise.all([
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnGoDaemon)
       ])
     })
 
     createLinearNetwork('a Go node in the land of JS', (factory) => {
       return Promise.all([
-        spawnDaemon(factory, spawnGoDaemon),
         spawnDaemon(factory, spawnJsDaemon),
         spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnJsDaemon)
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnGoDaemon)
       ])
     })
 
-    createLinearNetwork('hybrid', (factory) => {
+    createLinearNetwork('a hybrid network, cat from GO', (factory) => {
+      return Promise.all([
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnGoDaemon),
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnGoDaemon)
+      ])
+    })
+
+    createLinearNetwork('a hybrid network, cat from JS', (factory) => {
       return Promise.all([
         spawnDaemon(factory, spawnJsDaemon),
         spawnDaemon(factory, spawnGoDaemon),
@@ -306,7 +278,7 @@ describe('kad-dht', function () {
     })
   })
 
-  describe('kad-dht across multiple networks', () => {
+  describe('kad-dht across disjoint networks that become joint', () => {
     createDisjointNetwork('a GO network', (factory) => {
       return Promise.all([
         spawnDaemon(factory, spawnGoDaemon),
@@ -314,6 +286,39 @@ describe('kad-dht', function () {
         spawnDaemon(factory, spawnGoDaemon),
         spawnDaemon(factory, spawnGoDaemon),
         spawnDaemon(factory, spawnGoDaemon),
+        spawnDaemon(factory, spawnGoDaemon)
+      ])
+    })
+
+    createDisjointNetwork('a JS network', (factory) => {
+      return Promise.all([
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnJsDaemon)
+      ])
+    })
+
+    createDisjointNetwork('a hybrid network, cat from GO', (factory) => {
+      return Promise.all([
+        spawnDaemon(factory, spawnGoDaemon),
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnGoDaemon),
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnGoDaemon),
+        spawnDaemon(factory, spawnJsDaemon)
+      ])
+    })
+
+    createDisjointNetwork('a hybrid network, cat from JS', (factory) => {
+      return Promise.all([
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnGoDaemon),
+        spawnDaemon(factory, spawnJsDaemon),
+        spawnDaemon(factory, spawnGoDaemon),
+        spawnDaemon(factory, spawnJsDaemon),
         spawnDaemon(factory, spawnGoDaemon)
       ])
     })
