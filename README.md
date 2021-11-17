@@ -73,6 +73,27 @@ $ npm install -g ipfs-interop
 $ IPFS_GO_EXEC=/path IPFS_JS_EXEC=/path IPFS_JS_MODULE=/path IPFS_JS_HTTP_MODULE=/path ipfs-interop
 ```
 
+### As a custom runtime
+
+If you want to run interop on CI against specific repo and git revision of
+go-ipfs or js-ipfs* then set everything up in `./scripts/custom-runtime.sh`
+and enable it by uncommenting `env:` `IPFS_(..)` definitions in `.github/workflows/test.yml`
+
+If you want to test against unrelased things locally, make sure the same env
+variables are set on your machine.
+
+For example, to run pubsub tests against go-ipfs and js-ipfs revision defined
+in `./scripts/custom-runtime.sh`, one can:
+
+```
+export IPFS_GO_EXEC=/tmp/go-ipfs/cmd/ipfs/ipfs
+export IPFS_JS_EXEC=/tmp/js-ipfs/packages/ipfs/src/cli.js
+export IPFS_JS_MODULE=/tmp/js-ipfs/packages/ipfs/dist/cjs/src/index.js
+export IPFS_JS_HTTP_MODULE=/tmp/js-ipfs/packages/ipfs-http-client/dist/cjs/src/index.js
+./scripts/custom-runtime.sh
+node bin/ipfs-interop.js -- -t node --grep "pubsub"
+```
+
 ## Releasing a new version
 
 This repo does not use aegir for releases.
