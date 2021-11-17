@@ -24,12 +24,6 @@ $ npm install -g ipfs-interop
 $ ipfs-interop
 ```
 
-### Run a particular test locally
-
-```console
-$ node bin/ipfs-interop.js -- -t node --grep {substring-test-name}
-```
-
 ## Testing with different versions of go/js IPFS
 
 ### As a project
