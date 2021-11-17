@@ -55,8 +55,8 @@
     "delay": "^5.0.0",
     "detect-node": "^2.0.4",
     "ipfs-unixfs": "^6.0.3",
-    "ipfsd-ctl": "^10.0.3",
-    "ipfs-utils": "^9.0.1",
+    "ipfsd-ctl": "^10.0.4",
+    "ipfs-utils": "^9.0.2",
     "ipns": "^0.15.0",
     "is-ci": "^3.0.0",
     "is-os": "^1.0.1",
@@ -97,7 +97,7 @@
   ],
   "devDependencies": {
     "go-ipfs": "^0.9.1",
-    "ipfs": "^0.59.0",
-    "ipfs-http-client": "^53.0.0"
+    "ipfs": "^0.60.0",
+    "ipfs-http-client": "^54.0.0"
   }
 }
