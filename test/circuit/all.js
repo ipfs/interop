@@ -17,6 +17,7 @@ export default {
     }
   },
   'js-go-go': {
+    skip: () => true, // FIXME no circuit v2 support in js-ipfs
     create: async (factory) => {
       const goRelayV2 = await createGoRelay([`${base}/ws`], factory)
       return Promise.all([
@@ -27,6 +28,7 @@ export default {
     }
   },
   'go-go-js': {
+    skip: () => true, // FIXME no circuit v2 support in js-ipfs
     create: async (factory) => {
       const goRelayV2 = await createGoRelay([`${base}/ws`], factory)
       return Promise.all([
@@ -37,6 +39,7 @@ export default {
     }
   },
   'js-go-js': {
+    skip: () => true, // FIXME no circuit v2 support in js-ipfs
     create: async (factory) => {
       const goRelayV2 = await createGoRelay([`${base}/ws`], factory)
       return Promise.all([

@@ -18,6 +18,7 @@ const base = '/ip4/127.0.0.1/tcp/0'
 // note: the order nodeA-nodeB-relay means "node A connect to B over relay"
 export default {
   'browser-go-js': {
+    skip: () => true, // FIXME no circuit v2 support in js-ipfs
     create: async (factory) => {
       const goRelayV2 = await createGoRelay([`${base}/ws`], factory)
       return Promise.all([
@@ -29,6 +30,7 @@ export default {
     connect: connWithTimeout(1500)
   },
   'browser-go-go': {
+    skip: () => true, // FIXME no circuit v2 support in js-ipfs
     create: async (factory) => {
       const goRelayV2 = await createGoRelay([`${base}/ws`], factory)
       return Promise.all([
@@ -56,6 +58,7 @@ export default {
     connect: connWithTimeout(1500)
   },
   'js-go-browser': {
+    skip: () => true, // FIXME no circuit v2 support in js-ipfs
     create: async (factory) => {
       const goRelayV2 = await createGoRelay([`${base}/ws`], factory)
       return Promise.all([
@@ -67,6 +70,7 @@ export default {
     connect: connWithTimeout(1500)
   },
   'go-go-browser': {
+    skip: () => true, // FIXME no circuit v2 support in js-ipfs
     create: async (factory) => {
       const goRelayV2 = await createGoRelay([`${base}/ws`], factory)
       return Promise.all([
