@@ -7,7 +7,10 @@ import { expect } from 'aegir/utils/chai.js'
 
 const transportKey = WS.prototype[Symbol.toStringTag]
 
-export function createProc (addrs, factory) {
+export function createProc (addrs, factory, relay) {
+  if (relay) {
+    // FIXME throw new Error('createProc missing circuit relay v2 support')
+  }
   return factory.spawn({
     type: 'proc',
     ipfsOptions: {
@@ -15,7 +18,7 @@ export function createProc (addrs, factory) {
         Addresses: {
           Swarm: addrs
         },
-        relay: {
+        relay: { // FIXME: this is circuit v1, needs support of v2
           enabled: true,
           hop: {
             enabled: true
@@ -35,7 +38,10 @@ export function createProc (addrs, factory) {
   })
 }
 
-export function createJs (addrs, factory) {
+export function createJs (addrs, factory, relay) {
+  if (relay) {
+    // FIXME throw new Error('createJs missing circuit relay v2 support')
+  }
   return factory.spawn({
     type: 'js',
     ipfsOptions: {
@@ -43,7 +49,7 @@ export function createJs (addrs, factory) {
         Addresses: {
           Swarm: addrs
         },
-        relay: {
+        relay: { // FIXME: this is circuit v1, needs support of v2
           enabled: true,
           hop: {
             enabled: true
@@ -54,7 +60,12 @@ export function createJs (addrs, factory) {
   })
 }
 
-export function createGo (addrs, factory) {
+// creates "private" go-ipfs node which is uses static relay if specified
+export function createGo (addrs, factory, relay) {
+  let StaticRelays
+  if (relay) {
+    StaticRelays = [getWsAddr(relay.api.peerId.addresses)]
+  }
   return factory.spawn({
     type: 'go',
     ipfsOptions: {
@@ -63,8 +74,43 @@ export function createGo (addrs, factory) {
           Swarm: addrs
         },
         Swarm: {
-          DisableRelay: false,
-          EnableRelayHop: true
+          // go uses circuit v2
+          RelayClient: {
+            Enabled: true,
+            StaticRelays
+          },
+          RelayService: {
+            Enabled: false
+          }
+        },
+        Internal: {
+          Libp2pForceReachability: 'private'
+        }
+      }
+    }
+  })
+}
+
+// creates "publicly diallable" go-ipfs running a relay service
+export function createGoRelay (addrs, factory) {
+  return factory.spawn({
+    type: 'go',
+    ipfsOptions: {
+      config: {
+        Addresses: {
+          Swarm: addrs
+        },
+        Swarm: {
+          // go uses circuit v2
+          RelayClient: {
+            Enabled: false
+          },
+          RelayService: {
+            Enabled: true
+          }
+        },
+        Internal: {
+          Libp2pForceReachability: 'public'
         }
       }
     }

@@ -6,6 +6,7 @@ import { isWebWorker } from 'wherearewe'
 import {
   createJs,
   createGo,
+  createGoRelay,
   createProc,
   connWithTimeout,
   getWsAddr,
@@ -14,21 +15,28 @@ import {
 
 const base = '/ip4/127.0.0.1/tcp/0'
 
+// note: the order nodeA-nodeB-relay means "node A connect to B over relay"
 export default {
   'browser-go-js': {
-    create: (factory) => Promise.all([
-      createProc([], factory),
-      createGo([`${base}/ws`], factory),
-      createJs([`${base}/ws`], factory)
-    ]),
+    create: async (factory) => {
+      const goRelayV2 = await createGoRelay([`${base}/ws`], factory)
+      return Promise.all([
+        createProc([], factory),
+        goRelayV2,
+        createJs([`${base}/ws`], factory, goRelayV2)
+      ])
+    },
     connect: connWithTimeout(1500)
   },
   'browser-go-go': {
-    create: (factory) => Promise.all([
-      createProc([], factory),
-      createGo([`${base}/ws`], factory),
-      createGo([`${base}/ws`], factory)
-    ]),
+    create: async (factory) => {
+      const goRelayV2 = await createGoRelay([`${base}/ws`], factory)
+      return Promise.all([
+        createProc([], factory),
+        goRelayV2,
+        createGo([`${base}/ws`], factory, goRelayV2)
+      ])
+    },
     connect: connWithTimeout(1500)
   },
   'browser-js-js': {
@@ -48,19 +56,25 @@ export default {
     connect: connWithTimeout(1500)
   },
   'js-go-browser': {
-    create: (factory) => Promise.all([
-      createJs([`${base}/ws`], factory),
-      createGo([`${base}/ws`], factory),
-      createProc([], factory)
-    ]),
+    create: async (factory) => {
+      const goRelayV2 = await createGoRelay([`${base}/ws`], factory)
+      return Promise.all([
+        createJs([`${base}/ws`], factory),
+        goRelayV2,
+        createProc([], factory, goRelayV2)
+      ])
+    },
     connect: connWithTimeout(1500)
   },
   'go-go-browser': {
-    create: (factory) => Promise.all([
-      createGo([`${base}/ws`], factory),
-      createGo([`${base}/ws`], factory),
-      createProc([], factory)
-    ]),
+    create: async (factory) => {
+      const goRelayV2 = await createGoRelay([`${base}/ws`], factory)
+      return Promise.all([
+        createGo([`${base}/ws`], factory),
+        goRelayV2,
+        createProc([], factory, goRelayV2)
+      ])
+    },
     connect: connWithTimeout(1500)
   },
   'js-js-browser': {
