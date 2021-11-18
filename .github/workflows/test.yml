@@ -106,6 +106,7 @@ jobs:
         type:
           - browser
           - webworker
+      fail-fast: false
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -137,6 +138,7 @@ jobs:
         type:
           - electron-main
           - electron-renderer
+      fail-fast: false
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
