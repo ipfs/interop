@@ -1,3 +1,4 @@
+/* eslint no-console: ["error", { allow: ["log"] }] */
 import delay from 'delay'
 import randomBytes from 'iso-random-stream/src/random.js'
 import concat from 'it-concat'
@@ -7,9 +8,11 @@ import { expect } from 'aegir/utils/chai.js'
 
 const transportKey = WS.prototype[Symbol.toStringTag]
 
+export const randomWsAddr = '/ip4/127.0.0.1/tcp/0/ws'
+
 export function createProc (addrs, factory, relay) {
   if (relay) {
-    // FIXME throw new Error('createProc missing circuit relay v2 support')
+    throw new Error('createProc missing support for static relay v2')
   }
   return factory.spawn({
     type: 'proc',
@@ -40,7 +43,7 @@ export function createProc (addrs, factory, relay) {
 
 export function createJs (addrs, factory, relay) {
   if (relay) {
-    // FIXME throw new Error('createJs missing circuit relay v2 support')
+    throw new Error('createJs missing support for static relay v2')
   }
   return factory.spawn({
     type: 'js',
@@ -83,6 +86,15 @@ export function createGo (addrs, factory, relay) {
             Enabled: false
           }
         },
+        Bootstraps: [],
+        Discovery: {
+          MDNS: {
+            Enabled: false
+          }
+        },
+        Routing: {
+          Type: 'none'
+        },
         Internal: {
           Libp2pForceReachability: 'private'
         }
@@ -108,6 +120,15 @@ export function createGoRelay (addrs, factory) {
           RelayService: {
             Enabled: true
           }
+        },
+        Bootstraps: [],
+        Discovery: {
+          MDNS: {
+            Enabled: false
+          }
+        },
+        Routing: {
+          Type: 'none'
         },
         Internal: {
           Libp2pForceReachability: 'public'
@@ -182,12 +203,30 @@ export function getTcpAddr (addrs) {
 
 export async function connect (nodeA, nodeB, relay, timeout = 1000) {
   const relayWsAddr = getWsAddr(relay.api.peerId.addresses)
+  const nodeAId = nodeA.api.peerId.id
+  const nodeBId = nodeB.api.peerId.id
+
+  if (process.env.DEBUG) console.log(`connect A (${nodeAId}) to relay at`, relayWsAddr)
   await nodeA.api.swarm.connect(relayWsAddr)
+
+  if (process.env.DEBUG) console.log(`connect B (${nodeBId}) to relay at`, relayWsAddr)
   await nodeB.api.swarm.connect(relayWsAddr)
+
   // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
   await delay(timeout)
   const nodeBCircuitAddr = `${relayWsAddr}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+  if (process.env.DEBUG) console.log('connect A to B over circuit', nodeBCircuitAddr)
   await nodeA.api.swarm.connect(nodeBCircuitAddr)
+
+  if (process.env.DEBUG) {
+    console.log('done!')
+    const listConnections = async (name, node) => {
+      const peers = await node.api.swarm.peers()
+      console.log(`${name} has connections`, peers.map(p => `${p.addr.toString()}/p2p/${p.peer}`))
+    }
+    await listConnections('nodeA', nodeA)
+    await listConnections('nodeB', nodeB)
+  }
 }
 
 export function connWithTimeout (timeout) {
