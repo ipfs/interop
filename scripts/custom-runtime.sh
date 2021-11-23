@@ -25,7 +25,7 @@ if [ ! -d /tmp/go-ipfs ]; then
         git clone https://github.com/ipfs/go-ipfs.git
         cd go-ipfs
             # set implementation to specific commit
-            git checkout b526b280cd773755abce0628d2a2f4eea4199673
+            git checkout f13fa35a68723b5702312bed4575911f7f0f2185
             make build
 fi
 fi
