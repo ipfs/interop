@@ -1,4 +1,6 @@
 import isNode from 'detect-node'
+import fs from 'fs'
+import { command } from 'execa'
 
 // augumentWithRelayd is the glue code that makes running relayd-based relay
 // possible without changing too much in existing tests.  We keep one instance
@@ -10,9 +12,7 @@ export async function getRelayV (version, factory) {
   if (relays.has(version)) return relays.get(version)
   if (process.env.DEBUG) console.log(`Starting relayd_v${version}..`) // eslint-disable-line no-console
   if (version < 1 || version > 2) throw new Error('Unsupported circuit relay version')
-  const fs = await import('fs')
-  const { execaCommand } = await import('execa')
-  const relayd = execaCommand(`relayd -config scripts/relayd_v${version}.config.json -id scripts/relayd_v${version}.identity`)
+  const relayd = command(`relayd -config scripts/relayd_v${version}.config.json -id scripts/relayd_v${version}.identity`)
   let id
   for await (const line of relayd.stdout) {
     const text = line.toString()

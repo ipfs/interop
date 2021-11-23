@@ -101,7 +101,7 @@
     "Richard Littauer <richard.littauer@gmail.com>"
   ],
   "devDependencies": {
-    "execa": "^6.0.0",
+    "execa": "^5.1.1",
     "go-ipfs": "^0.9.1",
     "ipfs": "^0.59.0",
     "ipfs-http-client": "^53.0.0"
