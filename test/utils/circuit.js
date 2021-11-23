@@ -146,6 +146,6 @@ export async function connect (nodeA, nodeB, relay, timeout = 1000) {
 
 export function connWithTimeout (timeout) {
   return (nodeA, nodeB, relay) => {
-    connect(nodeA, nodeB, relay, timeout)
+    return connect(nodeA, nodeB, relay, timeout)
   }
 }
