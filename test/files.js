@@ -20,7 +20,7 @@ const goOptions = {
     config: {
       // enabled sharding for go with automatic threshold dropped to the minimum
       Internal: {
-        UnixFSShardingSizeThreshold: "1B"
+        UnixFSShardingSizeThreshold: '1B'
       }
     }
   }
