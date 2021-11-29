@@ -22,10 +22,10 @@ WORKDIR=$(pwd)
 if [ "$IPFS_GO_EXEC" == /tmp/go-ipfs/cmd/ipfs/ipfs ]; then
 if [ ! -d /tmp/go-ipfs ]; then
     cd /tmp
-        git clone https://github.com/coryschwartz/go-ipfs.git
+        git clone https://github.com/ipfs/go-ipfs.git
         cd go-ipfs
-            # implementation from https://github.com/ipfs/go-ipfs/pull/8183
-            git checkout 153697d524f449ee9bec97245b0fcd7ebc2e8170
+            # set implementation to specific commit
+            git switch master # , lets roll with master until go-ipfs 0.11.0-rc1
             make build
 fi
 fi

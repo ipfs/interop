@@ -31,6 +31,7 @@ jobs:
         with:
           path: |
             /tmp/*-ipfs/**
+            ./go-libp2p-relay-daemon
             ~/.npm
             ./node_modules
           key: ${{ runner.os }}-build-${{ env.CACHE_NAME }}-${{ github.event.pull_request.head.sha }}
@@ -56,6 +57,7 @@ jobs:
         with:
           path: |
             /tmp/*-ipfs/**
+            ./go-libp2p-relay-daemon
             ~/.npm
             ./node_modules
           key: ${{ runner.os }}-build-${{ env.CACHE_NAME }}-${{ github.event.pull_request.head.sha }}
@@ -84,6 +86,7 @@ jobs:
         with:
           path: |
             /tmp/*-ipfs/**
+            ./go-libp2p-relay-daemon
             ~/.npm
             ./node_modules
           key: ${{ runner.os }}-build-${{ env.CACHE_NAME }}-${{ github.event.pull_request.head.sha }}
@@ -106,6 +109,7 @@ jobs:
         type:
           - browser
           - webworker
+      fail-fast: false
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -118,6 +122,7 @@ jobs:
         with:
           path: |
             /tmp/*-ipfs/**
+            ./go-libp2p-relay-daemon
             ~/.npm
             ./node_modules
           key: ${{ runner.os }}-build-${{ env.CACHE_NAME }}-${{ github.event.pull_request.head.sha }}
@@ -137,6 +142,7 @@ jobs:
         type:
           - electron-main
           - electron-renderer
+      fail-fast: false
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -149,6 +155,7 @@ jobs:
         with:
           path: |
             /tmp/*-ipfs/**
+            ./go-libp2p-relay-daemon
             ~/.npm
             ./node_modules
           key: ${{ runner.os }}-build-${{ env.CACHE_NAME }}-${{ github.event.pull_request.head.sha }}
