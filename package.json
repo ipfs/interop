@@ -52,7 +52,7 @@
     "execa": false
   },
   "dependencies": {
-    "aegir": "^35.0.2",
+    "aegir": "^36.0.2",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "cross-env": "^7.0.2",
