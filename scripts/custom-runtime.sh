@@ -25,7 +25,7 @@ if [ ! -d /tmp/go-ipfs ]; then
         git clone https://github.com/ipfs/go-ipfs.git
         cd go-ipfs
             # set implementation to specific commit
-            git checkout 8c902b156b1c35d17ce45de2525c80bf71c77b5b # https://github.com/ipfs/go-ipfs/pull/8563
+            git switch master # https://github.com/ipfs/go-ipfs/pull/8563 got merged, lets roll with master until go-ipfs 0.11.0-rc1
             make build
 fi
 fi
