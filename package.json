@@ -23,6 +23,8 @@
     "npm": ">6.0.0"
   },
   "scripts": {
+    "postinstall": "./scripts/setup-relayd.sh",
+    "clean": "rimraf /tmp/js-ipfs /tmp/go-ipfs ./go-libp2p-relay-daemon",
     "lint": "aegir lint",
     "build": "aegir build",
     "pretest": "aegir build --esm-tests",
@@ -45,7 +47,9 @@
   },
   "homepage": "https://github.com/ipfs/interop#readme",
   "browser": {
-    "go-ipfs": false
+    "go-ipfs": false,
+    "fs": false,
+    "execa": false
   },
   "dependencies": {
     "aegir": "^35.0.2",
@@ -55,8 +59,8 @@
     "delay": "^5.0.0",
     "detect-node": "^2.0.4",
     "ipfs-unixfs": "^6.0.3",
-    "ipfsd-ctl": "^10.0.3",
     "ipfs-utils": "^9.0.1",
+    "ipfsd-ctl": "^10.0.3",
     "ipns": "^0.15.0",
     "is-ci": "^3.0.0",
     "is-os": "^1.0.1",
@@ -75,7 +79,7 @@
     "promisify-es6": "^1.0.3",
     "random-fs": "^1.0.3",
     "readable-stream-buffer-stream": "^1.0.0",
-    "rimraf": "^3.0.0",
+    "rimraf": "^3.0.2",
     "uint8arrays": "^3.0.0",
     "wherearewe": "^1.0.0"
   },
@@ -97,6 +101,7 @@
     "Richard Littauer <richard.littauer@gmail.com>"
   ],
   "devDependencies": {
+    "execa": "^5.1.1",
     "go-ipfs": "^0.9.1",
     "ipfs": "^0.59.0",
     "ipfs-http-client": "^53.0.0"

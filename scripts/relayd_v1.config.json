@@ -1,0 +1,15 @@
+{
+    "RelayV1": {
+        "Enabled": true
+    },
+    "RelayV2": {
+        "Enabled": false
+    },
+    "Network": {
+        "ListenAddrs": ["/ip4/127.0.0.1/tcp/14111/ws"],
+        "AnnounceAddrs": ["/ip4/127.0.0.1/tcp/14111/ws"]
+    },
+    "Daemon": {
+        "PprofPort": -1
+    }
+}
