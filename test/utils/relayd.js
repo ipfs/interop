@@ -12,7 +12,7 @@ export async function getRelayV (version, factory) {
   if (relays.has(version)) return relays.get(version)
   if (process.env.DEBUG) console.log(`Starting relayd_v${version}..`) // eslint-disable-line no-console
   if (version < 1 || version > 2) throw new Error('Unsupported circuit relay version')
-  const relayd = command(`go-libp2p-relay-daemon/relayd -config scripts/relayd_v${version}.config.json -id scripts/relayd_v${version}.identity`)
+  const relayd = command(`scripts/libp2p-relay-daemon -config scripts/relayd_v${version}.config.json -id scripts/relayd_v${version}.identity`)
   let id
   for await (const line of relayd.stdout) {
     const text = line.toString()
