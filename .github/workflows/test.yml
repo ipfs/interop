@@ -8,7 +8,7 @@ on:
 # uncomment env below and define git revisions in ./scripts/custom-runtime.sh
 
 env:
-  IPFS_GO_EXEC: /tmp/go-ipfs/cmd/ipfs/ipfs
+  #IPFS_GO_EXEC: /tmp/go-ipfs/cmd/ipfs/ipfs
   IPFS_JS_EXEC: /tmp/js-ipfs/packages/ipfs/src/cli.js
   IPFS_JS_MODULE: /tmp/js-ipfs/packages/ipfs/dist/cjs/src/index.js
   IPFS_JS_HTTP_MODULE: /tmp/js-ipfs/packages/ipfs-http-client/dist/cjs/src/index.js
@@ -31,7 +31,7 @@ jobs:
         with:
           path: |
             /tmp/*-ipfs/**
-            ./go-libp2p-relay-daemon
+            ./scripts/libp2p-relay-daemon
             ~/.npm
             ./node_modules
           key: ${{ runner.os }}-build-${{ env.CACHE_NAME }}-${{ github.event.pull_request.head.sha }}
@@ -57,7 +57,7 @@ jobs:
         with:
           path: |
             /tmp/*-ipfs/**
-            ./go-libp2p-relay-daemon
+            ./scripts/libp2p-relay-daemon
             ~/.npm
             ./node_modules
           key: ${{ runner.os }}-build-${{ env.CACHE_NAME }}-${{ github.event.pull_request.head.sha }}
@@ -86,7 +86,7 @@ jobs:
         with:
           path: |
             /tmp/*-ipfs/**
-            ./go-libp2p-relay-daemon
+            ./scripts/libp2p-relay-daemon
             ~/.npm
             ./node_modules
           key: ${{ runner.os }}-build-${{ env.CACHE_NAME }}-${{ github.event.pull_request.head.sha }}
@@ -122,7 +122,7 @@ jobs:
         with:
           path: |
             /tmp/*-ipfs/**
-            ./go-libp2p-relay-daemon
+            ./scripts/libp2p-relay-daemon
             ~/.npm
             ./node_modules
           key: ${{ runner.os }}-build-${{ env.CACHE_NAME }}-${{ github.event.pull_request.head.sha }}
@@ -155,7 +155,7 @@ jobs:
         with:
           path: |
             /tmp/*-ipfs/**
-            ./go-libp2p-relay-daemon
+            ./scripts/libp2p-relay-daemon
             ~/.npm
             ./node_modules
           key: ${{ runner.os }}-build-${{ env.CACHE_NAME }}-${{ github.event.pull_request.head.sha }}
