@@ -36,7 +36,7 @@ if [ ! -d /tmp/js-ipfs ]; then
         git clone https://github.com/ipfs/js-ipfs.git
         cd js-ipfs
             # implementation from https://github.com/ipfs/js-ipfs/pull/3922
-            git checkout 1dcac76f56972fc3519526e93567e39d685033dd
+            git checkout a536257a6b912edc16d12d34eac4c9ef49d4cf22
             npm install
             npm run build
             npm run link
