@@ -25,7 +25,7 @@ if [ ! -d /tmp/go-ipfs ]; then
         git clone https://github.com/ipfs/go-ipfs.git
         cd go-ipfs
             # set implementation to specific commit
-            git switch master # , lets roll with master until go-ipfs 0.11.0-rc1
+            git checkout CHANGEME_GO
             make build
 fi
 fi
@@ -35,8 +35,8 @@ if [ ! -d /tmp/js-ipfs ]; then
     cd /tmp
         git clone https://github.com/ipfs/js-ipfs.git
         cd js-ipfs
-            # implementation from https://github.com/ipfs/js-ipfs/pull/3922
-            git checkout a536257a6b912edc16d12d34eac4c9ef49d4cf22
+            # set implementation to specific commit
+            git checkout CHANGEME_JS
             npm install
             npm run build
             npm run link
