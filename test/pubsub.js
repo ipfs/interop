@@ -27,8 +27,7 @@ const daemonOptions = {
 
 const timeout = 20e3
 
-// TODO: unskip after https://github.com/ipfs/js-ipfs/pull/3922 and https://github.com/ipfs/go-ipfs/pull/8183 both ship
-describe.skip('pubsub', function () {
+describe('pubsub', function () {
   this.timeout(60 * 1000)
 
   const tests = {
@@ -100,7 +99,7 @@ describe.skip('pubsub', function () {
       })
 
       it('should exchange non ascii data', function () {
-        const data = uint8ArrayFromString('你好世界')
+        const data = uint8ArrayFromString('你好世界 zażółć gęślą jaźń')
         const topic = 'pubsub-non-ascii'
 
         const subscriber = () => new Promise((resolve) => {
@@ -128,6 +127,32 @@ describe.skip('pubsub', function () {
       it('should exchange binary data', function () {
         const data = uint8ArrayFromString('a36161636179656162830103056164a16466666666f400010203040506070809', 'base16')
         const topic = 'pubsub-binary'
+
+        const subscriber = () => new Promise((resolve) => {
+          daemon2.api.pubsub.subscribe(topic, (msg) => {
+            expect(uint8ArrayEquals(data, msg.data)).to.be.true()
+            expect(msg).to.have.property('seqno')
+            expect(msg.seqno).to.be.an.instanceof(Uint8Array)
+            expect(msg).to.have.property('topicIDs').and.to.include(topic)
+            expect(msg).to.have.property('from', daemon1.api.peerId.id)
+            resolve()
+          })
+        })
+
+        const publisher = async () => {
+          await waitForTopicPeer(topic, daemon2.api.peerId, daemon1)
+          await daemon1.api.pubsub.publish(topic, data)
+        }
+
+        return Promise.all([
+          subscriber(),
+          publisher()
+        ])
+      })
+
+      it('should exchange data over a topic with unicode and newlines', function () {
+        const data = uint8ArrayFromString('你好世界\nzażółć\r\ngęślą\njaźń')
+        const topic = 'pubsub\n你好世界\r\njaźń'
 
         const subscriber = () => new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {

@@ -23,7 +23,7 @@
     "npm": ">6.0.0"
   },
   "scripts": {
-    "postinstall": "./scripts/setup-relayd.sh",
+    "postinstall": "cross-env node ./scripts/setup-libp2p-relay-daemon.js",
     "clean": "rimraf /tmp/js-ipfs /tmp/go-ipfs ./go-libp2p-relay-daemon",
     "lint": "aegir lint",
     "build": "aegir build",
@@ -52,16 +52,22 @@
     "execa": false
   },
   "dependencies": {
-    "aegir": "^35.0.2",
+    "aegir": "^36.0.2",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
+    "cachedir": "^2.3.0",
     "cross-env": "^7.0.2",
     "delay": "^5.0.0",
     "detect-node": "^2.0.4",
+    "execa": "^5.1.1",
+    "go-platform": "^1.0.0",
+    "got": "^12.0.0",
+    "gunzip-maybe": "^1.4.2",
+    "hasha": "^5.2.2",
     "ipfs-unixfs": "^6.0.3",
     "ipfs-utils": "^9.0.1",
     "ipfsd-ctl": "^10.0.3",
-    "ipns": "^0.15.0",
+    "ipns": "^0.16.0",
     "is-ci": "^3.0.0",
     "is-os": "^1.0.1",
     "iso-random-stream": "^2.0.0",
@@ -69,18 +75,22 @@
     "it-concat": "^2.0.0",
     "it-drain": "^1.0.0",
     "it-last": "^1.0.1",
+    "it-to-buffer": "^2.0.1",
     "libp2p-webrtc-star-signalling-server": "^0.1.0",
     "libp2p-websockets": "^0.16.1",
     "multiformats": "^9.3.0",
     "nanoid": "^3.1.10",
+    "p-defer": "^3.0.0",
     "p-retry": "^4.1.0",
-    "peer-id": "^0.15.1",
+    "peer-id": "^0.16.0",
     "pretty-bytes": "^5.1.0",
     "promisify-es6": "^1.0.3",
     "random-fs": "^1.0.3",
     "readable-stream-buffer-stream": "^1.0.0",
     "rimraf": "^3.0.2",
+    "tar-fs": "^2.1.1",
     "uint8arrays": "^3.0.0",
+    "unzip-stream": "^0.3.1",
     "wherearewe": "^1.0.0"
   },
   "contributors": [
@@ -101,9 +111,8 @@
     "Richard Littauer <richard.littauer@gmail.com>"
   ],
   "devDependencies": {
-    "execa": "^5.1.1",
-    "go-ipfs": "^0.9.1",
-    "ipfs": "^0.59.0",
-    "ipfs-http-client": "^53.0.0"
+    "go-ipfs": "^0.11.0",
+    "ipfs": "^0.61.0",
+    "ipfs-http-client": "^55.0.0"
   }
 }

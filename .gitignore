@@ -39,4 +39,5 @@ test/test-data/go-ipfs-repo/LOG
 test/test-data/go-ipfs-repo/LOG.old
 types
 go-libp2p-relay-daemon
+scripts/libp2p-relay-daemon
 *.identity
