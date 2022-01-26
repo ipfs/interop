@@ -182,7 +182,7 @@
     "libp2p-websockets": "^0.16.1",
     "multiformats": "^9.3.0",
     "nanoid": "^3.1.10",
-    "p-defer": "^3.0.0",
+    "p-defer": "^4.0.0",
     "p-retry": "^4.1.0",
     "peer-id": "^0.16.0",
     "pretty-bytes": "^5.1.0",
