@@ -3,7 +3,6 @@ import fs from 'fs'
 import path from 'path'
 import { command } from 'execa'
 import goenv from 'go-platform'
-import { MultiAddr } from 'multiaddr'
 const platform = process.env.TARGET_OS || goenv.GOOS
 
 // augumentWithRelayd is the glue code that makes running relayd-based relay
