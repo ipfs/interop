@@ -3,7 +3,6 @@
 import randomBytes from 'iso-random-stream/src/random.js'
 import { UnixFS } from 'ipfs-unixfs'
 import { daemonFactory } from './utils/daemon-factory.js'
-import bufferStream from 'readable-stream-buffer-stream'
 import concat from 'it-concat'
 import all from 'it-all'
 import last from 'it-last'
@@ -63,14 +62,14 @@ async function addFile (daemon, data) {
 }
 
 function createDataStream (size = 262144) {
-  const chunkSize = size
+  const chunkSize = 4096
   const buffer = new Uint8Array(chunkSize)
 
-  return bufferStream(chunkSize, {
-    generator: (size, callback) => {
-      callback(null, buffer.subarray(0, size))
+  return (async function * () {
+    for (let i = 0; i < size; i += chunkSize) {
+      yield buffer.subarray(0, size)
     }
-  })
+  }())
 }
 
 const compare = async (...ops) => {
