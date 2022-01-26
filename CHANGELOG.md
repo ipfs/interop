@@ -1,3 +1,10 @@
+### [8.0.5](https://github.com/ipfs/interop/compare/v8.0.4...v8.0.5) (2022-01-26)
+
+
+### Trivial Changes
+
+* another esm module ([8558775](https://github.com/ipfs/interop/commit/8558775a8166e8ff4efda406c99deb865334f223))
+
 ### [8.0.4](https://github.com/ipfs/interop/compare/v8.0.3...v8.0.4) (2022-01-26)
 
 
