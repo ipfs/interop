@@ -235,7 +235,7 @@ export async function getTcpAddr (api) {
 }
 
 export async function connect (nodeA, nodeB, relay, timeout = 1000) {
-  const relayWsAddr = await getWsAddr(relay.api.peerId.addresses)
+  const relayWsAddr = await getWsAddr(relay.api)
   const nodeAId = nodeA.api.peerId.id
   const nodeBId = nodeB.api.peerId.id
 
