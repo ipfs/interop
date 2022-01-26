@@ -1,3 +1,10 @@
+### [8.0.8](https://github.com/ipfs/interop/compare/v8.0.7...v8.0.8) (2022-01-26)
+
+
+### Bug Fixes
+
+* add missing files ([e0736b4](https://github.com/ipfs/interop/commit/e0736b4299f9e814018cdb0fd8af00765afb1aac))
+
 ### [8.0.7](https://github.com/ipfs/interop/compare/v8.0.6...v8.0.7) (2022-01-26)
 
 
