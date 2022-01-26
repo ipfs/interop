@@ -1,3 +1,10 @@
+### [8.0.4](https://github.com/ipfs/interop/compare/v8.0.3...v8.0.4) (2022-01-26)
+
+
+### Bug Fixes
+
+* copy bin dir during build ([e5b7d82](https://github.com/ipfs/interop/commit/e5b7d82e6fd257afb8751a613ce633df5d86cdac))
+
 ### [8.0.3](https://github.com/ipfs/interop/compare/v8.0.2...v8.0.3) (2022-01-26)
 
 
