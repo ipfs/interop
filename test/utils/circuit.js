@@ -21,6 +21,9 @@ export function createProc (addrs, factory, relay) {
         Addresses: {
           Swarm: addrs
         },
+        Routing: {
+          Type: 'none'
+        },
         relay: { // FIXME: this is circuit v1, needs support of v2
           enabled: true,
           hop: {
@@ -34,6 +37,9 @@ export function createProc (addrs, factory, relay) {
             [transportKey]: {
               filter: filters.all
             }
+          },
+          dht: {
+            enabled: false
           }
         }
       }
@@ -52,10 +58,20 @@ export function createJs (addrs, factory, relay) {
         Addresses: {
           Swarm: addrs
         },
+        Routing: {
+          Type: 'none'
+        },
         relay: { // FIXME: this is circuit v1, needs support of v2
           enabled: true,
           hop: {
             enabled: true
+          }
+        },
+        libp2p: {
+          config: {
+            dht: {
+              enabled: false
+            }
           }
         }
       }
