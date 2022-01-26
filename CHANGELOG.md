@@ -9,6 +9,21 @@
 ### Trivial Changes
 
 * add auto-release ([b7fff84](https://github.com/ipfs/interop/commit/b7fff8485171db0785a2584bf7e65a69424a55ff))
+* restore ci tests on default branch ([#424](https://github.com/ipfs/interop/issues/424)) ([037f902](https://github.com/ipfs/interop/commit/037f902d815421ca3e03aadcfa6586846bb5d399)), closes [#409](https://github.com/ipfs/interop/issues/409)
+* update build config ([bd8767c](https://github.com/ipfs/interop/commit/bd8767c16e6489bff6e08a6c05b8fe7a45ab718d))
+* update lockfile ([0b6289a](https://github.com/ipfs/interop/commit/0b6289ab94a79c44738b9a225e8f0c7a0bbf7a1c))
+
+### [8.0.1](https://github.com/ipfs/interop/compare/v8.0.0...v8.0.1) (2022-01-26)
+
+
+### Bug Fixes
+
+* disable js dht during circuit tests ([#430](https://github.com/ipfs/interop/issues/430)) ([8a1bbd5](https://github.com/ipfs/interop/commit/8a1bbd5d26dcf568eed7c67c519e2a874c571906))
+
+
+### Trivial Changes
+
+* add auto-release ([b7fff84](https://github.com/ipfs/interop/commit/b7fff8485171db0785a2584bf7e65a69424a55ff))
 * do not use readable streams for input ([4ea14c5](https://github.com/ipfs/interop/commit/4ea14c513b270275e4d0b189be829e7b630bf12d))
 * restore ci tests on default branch ([#424](https://github.com/ipfs/interop/issues/424)) ([037f902](https://github.com/ipfs/interop/commit/037f902d815421ca3e03aadcfa6586846bb5d399)), closes [#409](https://github.com/ipfs/interop/issues/409)
 * update lockfile ([4d627a3](https://github.com/ipfs/interop/commit/4d627a3485ca8a046e6f5021bd42d2d1a48b0dac))
