@@ -1,3 +1,16 @@
+### [8.0.2](https://github.com/ipfs/interop/compare/v8.0.1...v8.0.2) (2022-01-26)
+
+
+### Bug Fixes
+
+* include scripts in dist ([fcc706e](https://github.com/ipfs/interop/commit/fcc706ed1f5112fa26de4618b244ab499db9a9d3))
+
+
+### Trivial Changes
+
+* run release after build ([b2e7630](https://github.com/ipfs/interop/commit/b2e7630c5ca0681db1f661240bb8b1dbb0363e35))
+* update build ([f4c783a](https://github.com/ipfs/interop/commit/f4c783a383ac353ae64253e7684a4cf15a880c65))
+
 ### [8.0.1](https://github.com/ipfs/interop/compare/v8.0.0...v8.0.1) (2022-01-26)
 
 
