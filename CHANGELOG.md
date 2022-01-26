@@ -1,3 +1,11 @@
+### [8.0.7](https://github.com/ipfs/interop/compare/v8.0.6...v8.0.7) (2022-01-26)
+
+
+### Trivial Changes
+
+* fix linting ([d6abdfd](https://github.com/ipfs/interop/commit/d6abdfdc7addc85551c2eff559d2281aab41b22b))
+* release after build ([e434af2](https://github.com/ipfs/interop/commit/e434af2a5e031a621d64d5e75d076bb11f486639))
+
 ### [8.0.6](https://github.com/ipfs/interop/compare/v8.0.5...v8.0.6) (2022-01-26)
 
 
