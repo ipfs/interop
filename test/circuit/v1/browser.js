@@ -151,7 +151,7 @@ export default {
     ]),
     connect: async (nodeA, nodeB, relay) => {
       await relay.api.swarm.connect(await getWrtcStarAddr(nodeA.api))
-      await relay.api.swarm.connect(getWsAddr(nodeB.api))
+      await relay.api.swarm.connect(await getWsAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(3000)
       const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
