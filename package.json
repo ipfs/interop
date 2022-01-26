@@ -183,7 +183,7 @@
     "multiformats": "^9.3.0",
     "nanoid": "^3.1.10",
     "p-defer": "^3.0.0",
-    "p-retry": "^4.1.0",
+    "p-retry": "^5.0.0",
     "peer-id": "^0.16.0",
     "pretty-bytes": "^5.1.0",
     "promisify-es6": "^1.0.3",
