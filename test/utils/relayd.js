@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { command } from 'execa'
 import goenv from 'go-platform'
+import { MultiAddr } from 'multiaddr'
 const platform = process.env.TARGET_OS || goenv.GOOS
 
 // augumentWithRelayd is the glue code that makes running relayd-based relay
@@ -38,7 +39,13 @@ export async function getRelayV (version, factory) {
         addresses: [
           `${config.Network.ListenAddrs[0]}/p2p/${id}`
         ]
-      }
+      },
+      id: () => Promise.resolve({
+        id,
+        addresses: [
+          `${config.Network.ListenAddrs[0]}/p2p/${id}`
+        ]
+      })
     }
   }
   relays.set(version, result)
