@@ -22,16 +22,86 @@
     "node": ">=16.0.0",
     "npm": ">6.0.0"
   },
+  "release": {
+    "branches": [
+      "master"
+    ],
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer", {
+          "preset": "conventionalcommits",
+          "releaseRules": [{
+            "breaking": true,
+            "release": "major"
+          }, {
+            "revert": true,
+            "release": "patch"
+          }, {
+            "type": "feat",
+            "release": "minor"
+          }, {
+            "type": "fix",
+            "release": "patch"
+          }, {
+            "type": "chore",
+            "release": "patch"
+          }, {
+            "type": "docs",
+            "release": "patch"
+          }, {
+            "type": "test",
+            "release": "patch"
+          }, {
+            "scope": "no-release",
+            "release": false
+          }]
+        }
+      ],
+      [
+        "@semantic-release/release-notes-generator", {
+          "preset": "conventionalcommits",
+          "presetConfig": {
+            "types": [{
+              "type": "feat",
+              "section": "Features"
+            }, {
+              "type": "fix",
+              "section": "Bug Fixes"
+            }, {
+              "type": "chore",
+              "section": "Trivial Changes"
+            }, {
+              "type": "docs",
+              "section": "Trivial Changes"
+            }, {
+              "type": "test",
+              "section": "Tests"
+            }]
+          }
+        }
+      ],
+      "@semantic-release/changelog",
+      [
+        "@semantic-release/npm", {
+          "pkgRoot": "dist"
+        }
+      ],
+      "@semantic-release/github",
+      "@semantic-release/git"
+    ]
+  },
   "scripts": {
     "postinstall": "cross-env node ./scripts/setup-libp2p-relay-daemon.js",
     "clean": "rimraf /tmp/js-ipfs /tmp/go-ipfs ./go-libp2p-relay-daemon",
     "lint": "aegir lint",
+    "prepare": "npm run build",
     "build": "aegir build",
     "pretest": "aegir build --esm-tests",
     "test": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test",
     "test:node": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t node -f test/node.js",
     "test:browser": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t browser -f test/browser.js",
-    "dep-check": "aegir dep-check package.json"
+    "dep-check": "aegir dep-check package.json",
+    "release": "semantic-release"
   },
   "repository": {
     "type": "git",
@@ -52,7 +122,7 @@
     "execa": false
   },
   "dependencies": {
-    "aegir": "^36.0.2",
+    "aegir": "^36.1.3",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "cachedir": "^2.3.0",

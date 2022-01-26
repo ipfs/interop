@@ -167,3 +167,20 @@ jobs:
       - uses: GabrielBB/xvfb-action@v1
         with:
           run: npm run test -- -t ${{ matrix.type }} --bail -f dist/cjs/node-test/*js
+
+  release:
+    needs: [test-node, test-browser, test-electron]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v2.4.0
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: lts/*
+      - uses: ipfs/aegir/actions/cache-node-modules@master
+      - run: npm run --if-present release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
