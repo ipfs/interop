@@ -133,8 +133,7 @@ jobs:
           run: npm run test -- -t ${{ matrix.type }} --bail -f dist/cjs/node-test/*js
 
   release:
-    needs: build
-    # needs: [test-node, test-browser, test-electron]
+    needs: [test-node, test-browser, test-electron]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
