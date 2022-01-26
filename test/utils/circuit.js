@@ -175,7 +175,7 @@ export function getWsAddr (addrs) {
     })
 
   if (!result) {
-    throw new Error('No ws address found in ' + addrs)
+    throw new Error(`No ws address found in ${addrs}`)
   }
 
   return result
@@ -187,7 +187,7 @@ export function getWsStarAddr (addrs) {
     .find((a) => a.includes('/p2p-websocket-star'))
 
   if (!result) {
-    throw new Error('No wsstar address found in ' + addrs)
+    throw new Error(`No wsstar address found in ${addrs}`)
   }
 
   return result
@@ -199,7 +199,7 @@ export function getWrtcStarAddr (addrs) {
     .find((a) => a.includes('/p2p-webrtc-star'))
 
   if (!result) {
-    throw new Error('No webrtcstar address found in ' + addrs)
+    throw new Error(`No webrtcstar address found in ${addrs}`)
   }
 
   return result
@@ -211,7 +211,7 @@ export function getTcpAddr (addrs) {
     .find((a) => !a.includes('/ws') && !a.includes('/p2p-websocket-star'))
 
   if (!result) {
-    throw new Error('No TCP address found in ' + addrs)
+    throw new Error(`No TCP address found in ${addrs}`)
   }
 
   return result
