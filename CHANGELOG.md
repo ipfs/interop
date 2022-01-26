@@ -1,3 +1,10 @@
+### [8.0.6](https://github.com/ipfs/interop/compare/v8.0.5...v8.0.6) (2022-01-26)
+
+
+### Trivial Changes
+
+* fix paths and packages ([8844f86](https://github.com/ipfs/interop/commit/8844f86f7dcca28597f96f6281324c26516237ea))
+
 ### [8.0.5](https://github.com/ipfs/interop/compare/v8.0.4...v8.0.5) (2022-01-26)
 
 
