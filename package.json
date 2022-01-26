@@ -143,7 +143,7 @@
   "scripts": {
     "clean": "rimraf /tmp/js-ipfs /tmp/go-ipfs ./go-libp2p-relay-daemon dist types",
     "lint": "aegir lint",
-    "build": "aegir build --esm-tests && cp -R types dist && cp -R scripts dist && cp -R bin dist",
+    "build": "aegir build --esm-tests && cp -R types scripts bin test src dist && cp bin/package.json dist/src && cp bin/package.json dist/test",
     "release": "semantic-release",
     "postinstall": "cross-env node ./scripts/setup-libp2p-relay-daemon.js",
     "pretest": "aegir build --esm-tests",

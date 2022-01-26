@@ -4,7 +4,7 @@ import { spawn } from 'child_process'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+const __dirname = dirname(dirname(fileURLToPath(import.meta.url)))
 
 const proc = spawn('npm', ['test'].concat(process.argv.slice(2)), {
   cwd: __dirname
