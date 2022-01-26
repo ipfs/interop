@@ -215,7 +215,7 @@ export async function getWrtcStarAddr (api) {
     }
 
     return result
-  }
+  })
 }
 
 export async function getTcpAddr (api) {
