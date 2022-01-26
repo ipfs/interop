@@ -128,7 +128,7 @@ jobs:
           run: npm run test -- -t ${{ matrix.type }} --bail -f dist/cjs/node-test/*js
 
   release:
-    # needs: [test-node, test-browser, test-electron]
+    needs: [test-node, test-browser, test-electron]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
@@ -145,7 +145,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: lts/*
-
       - run: npm run --if-present release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
