@@ -33,6 +33,7 @@ jobs:
           directories: |
             /tmp/*-ipfs/**
             ./scripts/libp2p-relay-daemon
+            ./types
           build: |
             ./scripts/custom-runtime.sh
 
@@ -50,6 +51,7 @@ jobs:
           directories: |
             /tmp/*-ipfs/**
             ./scripts/libp2p-relay-daemon
+            ./types
           build: |
             ./scripts/custom-runtime.sh
       - run: |
@@ -70,6 +72,7 @@ jobs:
           directories: |
             /tmp/*-ipfs/**
             ./scripts/libp2p-relay-daemon
+            ./types
           build: |
             ./scripts/custom-runtime.sh
       - run: npm run test -- -t node
@@ -97,6 +100,7 @@ jobs:
           directories: |
             /tmp/*-ipfs/**
             ./scripts/libp2p-relay-daemon
+            ./types
           build: |
             ./scripts/custom-runtime.sh
       - run: npm run test -- -t ${{ matrix.type }} -- --browser ${{ matrix.browser }}
@@ -121,6 +125,7 @@ jobs:
           directories: |
             /tmp/*-ipfs/**
             ./scripts/libp2p-relay-daemon
+            ./types
           build: |
             ./scripts/custom-runtime.sh
       - uses: GabrielBB/xvfb-action@v1
@@ -128,6 +133,7 @@ jobs:
           run: npm run test -- -t ${{ matrix.type }} --bail -f dist/cjs/node-test/*js
 
   release:
+    needs: build
     # needs: [test-node, test-browser, test-electron]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -140,12 +146,14 @@ jobs:
           directories: |
             /tmp/*-ipfs/**
             ./scripts/libp2p-relay-daemon
+            ./types
           build: |
             ./scripts/custom-runtime.sh
       - uses: actions/setup-node@v2
         with:
           node-version: lts/*
-      - run: npm run --if-present release
+      - run: |
+          npm run --if-present release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
