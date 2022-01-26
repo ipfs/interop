@@ -102,11 +102,11 @@ export default {
       createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-webrtc-star'], factory)
     ]),
     connect: async (nodeA, nodeB, relay) => {
-      await relay.api.swarm.connect(getWsAddr(nodeA.api.peerId.addresses))
-      await relay.api.swarm.connect(getWrtcStarAddr(nodeB.api.peerId.addresses))
+      await relay.api.swarm.connect(await getWsAddr(nodeA.api))
+      await relay.api.swarm.connect(await getWrtcStarAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(5000)
-      const nodeBCircuitAddr = `${getWrtcStarAddr(relay.api.peerId.addresses)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+      const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
       await nodeA.api.swarm.connect(nodeBCircuitAddr)
     },
     skip: () => true // go-ipfs does not know what p2p-webrtc-star is
@@ -118,11 +118,11 @@ export default {
       createProc(['/ip4/127.0.0.1/tcp/24642/ws/p2p-webrtc-star'], factory)
     ]),
     connect: async (nodeA, nodeB, relay) => {
-      await relay.api.swarm.connect(getWsAddr(nodeA.api.peerId.addresses))
-      await relay.api.swarm.connect(getWrtcStarAddr(nodeB.api.peerId.addresses))
+      await relay.api.swarm.connect(await getWsAddr(nodeA.api))
+      await relay.api.swarm.connect(await getWrtcStarAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(3000)
-      const nodeBCircuitAddr = `${getWrtcStarAddr(relay.api.peerId.addresses)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+      const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
       await nodeA.api.swarm.connect(nodeBCircuitAddr)
     },
     skip: () => isWebWorker // no webrtc support in webworkers
@@ -134,11 +134,11 @@ export default {
       createGo([randomWsAddr], factory)
     ]),
     connect: async (nodeA, nodeB, relay) => {
-      await relay.api.swarm.connect(getWrtcStarAddr(nodeA.api.peerId.addresses))
-      await relay.api.swarm.connect(getWsAddr(nodeB.api.peerId.addresses))
+      await relay.api.swarm.connect(await getWrtcStarAddr(nodeA.api))
+      await relay.api.swarm.connect(await getWsAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(5000)
-      const nodeBCircuitAddr = `${getWrtcStarAddr(relay.api.peerId.addresses)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+      const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
       await nodeA.api.swarm.connect(nodeBCircuitAddr)
     },
     skip: () => isWebWorker // no webrtc support in webworkers
@@ -150,11 +150,11 @@ export default {
       createJs([randomWsAddr], factory)
     ]),
     connect: async (nodeA, nodeB, relay) => {
-      await relay.api.swarm.connect(getWrtcStarAddr(nodeA.api.peerId.addresses))
-      await relay.api.swarm.connect(getWsAddr(nodeB.api.peerId.addresses))
+      await relay.api.swarm.connect(await getWrtcStarAddr(nodeA.api))
+      await relay.api.swarm.connect(getWsAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(3000)
-      const nodeBCircuitAddr = `${getWrtcStarAddr(relay.api.peerId.addresses)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+      const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
       await nodeA.api.swarm.connect(nodeBCircuitAddr)
     },
     skip: () => isWebWorker // no webrtc support in webworkers
