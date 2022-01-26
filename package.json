@@ -51,8 +51,12 @@
   "eslintConfig": {
     "extends": "ipfs",
     "parserOptions": {
-      "sourceType": "module"
-    }
+      "sourceType": "module",
+      "ecmaVersion": "2020"
+    },
+    "ignorePatterns": [
+      "package.json"
+    ]
   },
   "release": {
     "branches": [
