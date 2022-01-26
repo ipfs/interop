@@ -168,8 +168,8 @@ export async function send (nodeA, nodeB) {
 }
 
 export function getWsAddr (addrs) {
-  addrs = addrs.map((a) => a.toString())
   const result = addrs
+    .map((a) => a.toString())
     .find((a) => {
       return a.includes('/ws') && !a.includes('/p2p-websocket-star')
     })
@@ -182,8 +182,8 @@ export function getWsAddr (addrs) {
 }
 
 export function getWsStarAddr (addrs) {
-  addrs = addrs.map((a) => a.toString())
   const result = addrs
+    .map((a) => a.toString())
     .find((a) => a.includes('/p2p-websocket-star'))
 
   if (!result) {
@@ -194,8 +194,8 @@ export function getWsStarAddr (addrs) {
 }
 
 export function getWrtcStarAddr (addrs) {
-  addrs = addrs.map((a) => a.toString())
   const result = addrs
+    .map((a) => a.toString())
     .find((a) => a.includes('/p2p-webrtc-star'))
 
   if (!result) {
@@ -206,8 +206,8 @@ export function getWrtcStarAddr (addrs) {
 }
 
 export function getTcpAddr (addrs) {
-  addrs = addrs.map((a) => a.toString())
   const result = addrs
+    .map((a) => a.toString())
     .find((a) => !a.includes('/ws') && !a.includes('/p2p-websocket-star'))
 
   if (!result) {
