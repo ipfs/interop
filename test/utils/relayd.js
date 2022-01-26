@@ -38,7 +38,13 @@ export async function getRelayV (version, factory) {
         addresses: [
           `${config.Network.ListenAddrs[0]}/p2p/${id}`
         ]
-      }
+      },
+      id: () => Promise.resolve({
+        id,
+        addresses: [
+          `${config.Network.ListenAddrs[0]}/p2p/${id}`
+        ]
+      })
     }
   }
   relays.set(version, result)

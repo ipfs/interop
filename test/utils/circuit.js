@@ -3,6 +3,7 @@ import delay from 'delay'
 import randomBytes from 'iso-random-stream/src/random.js'
 import concat from 'it-concat'
 import WS from 'libp2p-websockets'
+import pRetry from 'p-retry'
 import filters from 'libp2p-websockets/src/filters.js'
 import { expect } from 'aegir/utils/chai.js'
 
@@ -21,6 +22,9 @@ export function createProc (addrs, factory, relay) {
         Addresses: {
           Swarm: addrs
         },
+        Routing: {
+          Type: 'none'
+        },
         relay: { // FIXME: this is circuit v1, needs support of v2
           enabled: true,
           hop: {
@@ -34,6 +38,9 @@ export function createProc (addrs, factory, relay) {
             [transportKey]: {
               filter: filters.all
             }
+          },
+          dht: {
+            enabled: false
           }
         }
       }
@@ -52,10 +59,20 @@ export function createJs (addrs, factory, relay) {
         Addresses: {
           Swarm: addrs
         },
+        Routing: {
+          Type: 'none'
+        },
         relay: { // FIXME: this is circuit v1, needs support of v2
           enabled: true,
           hop: {
             enabled: true
+          }
+        },
+        libp2p: {
+          config: {
+            dht: {
+              enabled: false
+            }
           }
         }
       }
@@ -64,10 +81,10 @@ export function createJs (addrs, factory, relay) {
 }
 
 // creates "private" go-ipfs node which is uses static relay if specified
-export function createGo (addrs, factory, relay) {
+export async function createGo (addrs, factory, relay) {
   let StaticRelays
   if (relay) {
-    StaticRelays = [getWsAddr(relay.api.peerId.addresses)]
+    StaticRelays = [await getWsAddr(relay.api)]
   }
   return factory.spawn({
     type: 'go',
@@ -151,58 +168,74 @@ export async function send (nodeA, nodeB) {
   expect(buffer.slice()).to.deep.equal(data)
 }
 
-export function getWsAddr (addrs) {
-  addrs = addrs.map((a) => a.toString())
-  const result = addrs
-    .find((a) => {
-      return a.includes('/ws') && !a.includes('/p2p-websocket-star')
-    })
+export async function getWsAddr (api) {
+  return await pRetry(async () => {
+    const id = await api.id()
 
-  if (!result) {
-    throw new Error('No ws address found in ' + addrs)
-  }
+    const result = id.addresses
+      .map((a) => a.toString())
+      .find((a) => {
+        return a.includes('/ws') && !a.includes('/p2p-websocket-star')
+      })
 
-  return result
+    if (!result) {
+      throw new Error(`No ws address found in ${id.addresses}`)
+    }
+
+    return result
+  })
 }
 
-export function getWsStarAddr (addrs) {
-  addrs = addrs.map((a) => a.toString())
-  const result = addrs
-    .find((a) => a.includes('/p2p-websocket-star'))
+export async function getWsStarAddr (api) {
+  return await pRetry(async () => {
+    const id = await api.id()
 
-  if (!result) {
-    throw new Error('No wsstar address found in ' + addrs)
-  }
+    const result = id.addresses
+      .map((a) => a.toString())
+      .find((a) => a.includes('/p2p-websocket-star'))
 
-  return result
+    if (!result) {
+      throw new Error(`No wsstar address found in ${id.addresses}`)
+    }
+
+    return result
+  })
 }
 
-export function getWrtcStarAddr (addrs) {
-  addrs = addrs.map((a) => a.toString())
-  const result = addrs
-    .find((a) => a.includes('/p2p-webrtc-star'))
+export async function getWrtcStarAddr (api) {
+  return await pRetry(async () => {
+    const id = await api.id()
 
-  if (!result) {
-    throw new Error('No webrtcstar address found in ' + addrs)
-  }
+    const result = id.addresses
+      .map((a) => a.toString())
+      .find((a) => a.includes('/p2p-webrtc-star'))
 
-  return result
+    if (!result) {
+      throw new Error(`No webrtcstar address found in ${id.addresses}`)
+    }
+
+    return result
+  })
 }
 
-export function getTcpAddr (addrs) {
-  addrs = addrs.map((a) => a.toString())
-  const result = addrs
-    .find((a) => !a.includes('/ws') && !a.includes('/p2p-websocket-star'))
+export async function getTcpAddr (api) {
+  return await pRetry(async () => {
+    const id = await api.id()
 
-  if (!result) {
-    throw new Error('No TCP address found in ' + addrs)
-  }
+    const result = id.addresses
+      .map((a) => a.toString())
+      .find((a) => !a.includes('/ws') && !a.includes('/p2p-websocket-star'))
 
-  return result
+    if (!result) {
+      throw new Error(`No TCP address found in ${id.addresses}`)
+    }
+
+    return result
+  })
 }
 
 export async function connect (nodeA, nodeB, relay, timeout = 1000) {
-  const relayWsAddr = getWsAddr(relay.api.peerId.addresses)
+  const relayWsAddr = await getWsAddr(relay.api)
   const nodeAId = nodeA.api.peerId.id
   const nodeBId = nodeB.api.peerId.id
 
