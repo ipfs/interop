@@ -1,3 +1,10 @@
+### [8.0.3](https://github.com/ipfs/interop/compare/v8.0.2...v8.0.3) (2022-01-26)
+
+
+### Bug Fixes
+
+* need type module to load js as module ([ceb5d5e](https://github.com/ipfs/interop/commit/ceb5d5e663b2b282d89fa41191bb6b05edd011df))
+
 ### [8.0.2](https://github.com/ipfs/interop/compare/v8.0.1...v8.0.2) (2022-01-26)
 
 
