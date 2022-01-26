@@ -3,6 +3,7 @@ import delay from 'delay'
 import randomBytes from 'iso-random-stream/src/random.js'
 import concat from 'it-concat'
 import WS from 'libp2p-websockets'
+import pRetry from 'p-retry'
 import filters from 'libp2p-websockets/src/filters.js'
 import { expect } from 'aegir/utils/chai.js'
 
@@ -168,61 +169,69 @@ export async function send (nodeA, nodeB) {
 }
 
 export async function getWsAddr (api) {
-  const id = await api.id()
+  return await pRetry(async () => {
+    const id = await api.id()
 
-  const result = id.addresses
-    .map((a) => a.toString())
-    .find((a) => {
-      return a.includes('/ws') && !a.includes('/p2p-websocket-star')
-    })
+    const result = id.addresses
+      .map((a) => a.toString())
+      .find((a) => {
+        return a.includes('/ws') && !a.includes('/p2p-websocket-star')
+      })
 
-  if (!result) {
-    throw new Error(`No ws address found in ${id.addresses}`)
-  }
+    if (!result) {
+      throw new Error(`No ws address found in ${id.addresses}`)
+    }
 
-  return result
+    return result
+  })
 }
 
 export async function getWsStarAddr (api) {
-  const id = await api.id()
+  return await pRetry(async () => {
+    const id = await api.id()
 
-  const result = id.addresses
-    .map((a) => a.toString())
-    .find((a) => a.includes('/p2p-websocket-star'))
+    const result = id.addresses
+      .map((a) => a.toString())
+      .find((a) => a.includes('/p2p-websocket-star'))
 
-  if (!result) {
-    throw new Error(`No wsstar address found in ${id.addresses}`)
-  }
+    if (!result) {
+      throw new Error(`No wsstar address found in ${id.addresses}`)
+    }
 
-  return result
+    return result
+  })
 }
 
 export async function getWrtcStarAddr (api) {
-  const id = await api.id()
+  return await pRetry(async () => {
+    const id = await api.id()
 
-  const result = id.addresses
-    .map((a) => a.toString())
-    .find((a) => a.includes('/p2p-webrtc-star'))
+    const result = id.addresses
+      .map((a) => a.toString())
+      .find((a) => a.includes('/p2p-webrtc-star'))
 
-  if (!result) {
-    throw new Error(`No webrtcstar address found in ${id.addresses}`)
+    if (!result) {
+      throw new Error(`No webrtcstar address found in ${id.addresses}`)
+    }
+
+    return result
   }
-
-  return result
 }
 
 export async function getTcpAddr (api) {
-  const id = await api.id()
+  return await pRetry(async () => {
+    const id = await api.id()
 
-  const result = id.addresses
-    .map((a) => a.toString())
-    .find((a) => !a.includes('/ws') && !a.includes('/p2p-websocket-star'))
+    const result = id.addresses
+      .map((a) => a.toString())
+      .find((a) => !a.includes('/ws') && !a.includes('/p2p-websocket-star'))
 
-  if (!result) {
-    throw new Error(`No TCP address found in ${id.addresses}`)
-  }
+    if (!result) {
+      throw new Error(`No TCP address found in ${id.addresses}`)
+    }
 
-  return result
+    return result
+  })
 }
 
 export async function connect (nodeA, nodeB, relay, timeout = 1000) {
