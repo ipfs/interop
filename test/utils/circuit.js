@@ -94,6 +94,7 @@ export async function createGo (addrs, factory, relay) {
           Swarm: addrs
         },
         Swarm: {
+          EnableHolePunching: false,
           // go uses circuit v2
           RelayClient: {
             Enabled: true,
@@ -130,6 +131,7 @@ export function createGoRelay (addrs, factory) {
           Swarm: addrs
         },
         Swarm: {
+          EnableHolePunching: false,
           // go uses circuit v2
           RelayClient: {
             Enabled: false

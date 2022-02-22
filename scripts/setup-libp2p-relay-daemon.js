@@ -81,7 +81,7 @@ async function getDownloadURL (version, platform, arch, distUrl) {
   }
 
   if (!data.platforms[platform].archs[arch]) {
-    throw new Error(`No binary available for arch '${arch}'`)
+    throw new Error(`No binary available for platform '${platform}' and arch '${arch}'`)
   }
 
   const link = data.platforms[platform].archs[arch].link
