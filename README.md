@@ -105,6 +105,15 @@ npm publish
 npm push origin && npm push origin v[N.N.N]
 ```
 
+## Interop release process for when breaking changes are introduced
+
+1. Get branches of go-ipfs and js-ipfs working together in interop locally using environment variables to point at the local versions
+2. In this repo make a branch containing the interop changes as well as setting the go/js-ipfs commit hashes to be used by CI. Merge to master.
+3. Update go-ipfs and js-ipfs branches to use interop/master instead of whatever is released
+4. Release go and js-ipfs (not necessarily together) and after each is released (or RC'd) bump interop to use the release instead of the commit hash
+5. Release interop
+6. Bump go and js-ipfs to use released interop instead of master
+
 ## Contribute
 
 Feel free to join in. All welcome. Open an [issue](https://github.com/ipfs/ipfs-interop/issues)!
