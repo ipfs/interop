@@ -1,3 +1,16 @@
+### [8.0.9](https://github.com/ipfs/interop/compare/v8.0.8...v8.0.9) (2022-04-04)
+
+
+### Bug Fixes
+
+* add fs and go-ipfs to browser ignores ([#451](https://github.com/ipfs/interop/issues/451)) ([3ade340](https://github.com/ipfs/interop/commit/3ade340b27db42e861a5f5c9bec1d0b64a6bf909))
+
+
+### Trivial Changes
+
+* add breaking change interop release process ([#395](https://github.com/ipfs/interop/issues/395)) ([119aa62](https://github.com/ipfs/interop/commit/119aa62172e107ebedcf9251c61a3fb360c6aed4))
+* **deps:** bump aegir from 36.1.3 to 36.2.3 ([#445](https://github.com/ipfs/interop/issues/445)) ([18649a6](https://github.com/ipfs/interop/commit/18649a6b3168669258b6d0d2e493aa0400afa436))
+
 ### [8.0.8](https://github.com/ipfs/interop/compare/v8.0.7...v8.0.8) (2022-01-26)
 
 
