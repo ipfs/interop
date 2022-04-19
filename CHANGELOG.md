@@ -1,3 +1,10 @@
+### [8.0.10](https://github.com/ipfs/interop/compare/v8.0.9...v8.0.10) (2022-04-19)
+
+
+### Bug Fixes
+
+* when hole punching is enabled by default ([#443](https://github.com/ipfs/interop/issues/443)) ([bda96fc](https://github.com/ipfs/interop/commit/bda96fc0080b692cda841305214fbf60f43070d2))
+
 ### [8.0.9](https://github.com/ipfs/interop/compare/v8.0.8...v8.0.9) (2022-04-04)
 
 
