@@ -160,6 +160,7 @@
   "dependencies": {
     "@libp2p/webrtc-star-signalling-server": "^1.0.4",
     "@libp2p/websockets": "^1.0.8",
+    "@types/is-ci": "^3.0.0",
     "aegir": "^37.0.15",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
@@ -197,7 +198,6 @@
     "wherearewe": "^1.0.0"
   },
   "devDependencies": {
-    "@types/is-ci": "^3.0.0",
     "go-ipfs": "^0.12.2",
     "ipfs": "^0.62.3",
     "ipfs-http-client": "^56.0.3"
