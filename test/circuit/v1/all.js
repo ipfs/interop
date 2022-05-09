@@ -4,12 +4,19 @@
 import { createJs, createGo, randomWsAddr } from '../../utils/circuit.js'
 import { getRelayV } from '../../utils/relayd.js'
 
+/**
+ * @typedef {import('ipfsd-ctl').Factory} Factory
+ */
+
 export default {
 
   // rv1 is a standalone, reference implementation of circuit relay v1
   // (https://github.com/libp2p/go-libp2p-relay-daemon)
 
   'go-rv1-go': {
+    /**
+     * @param {Factory} factory
+     */
     create: async (factory) => {
       const relay = await getRelayV(1)
       return Promise.all([
@@ -21,6 +28,9 @@ export default {
   },
 
   'js-rv1-js': {
+    /**
+     * @param {Factory} factory
+     */
     create: async (factory) => {
       const relay = await getRelayV(1)
       return Promise.all([
@@ -32,6 +42,9 @@ export default {
   },
 
   'js-rv1-go': {
+    /**
+     * @param {Factory} factory
+     */
     create: async (factory) => {
       const relay = await getRelayV(1)
       return Promise.all([
@@ -43,6 +56,9 @@ export default {
   },
 
   'go-rv1-js': {
+    /**
+     * @param {Factory} factory
+     */
     create: async (factory) => {
       const relay = await getRelayV(1)
       return Promise.all([
@@ -58,6 +74,9 @@ export default {
   // FIXME: remove after js-ipfs migrates to v2
 
   'go-js-go': {
+    /**
+     * @param {Factory} factory
+     */
     create: async (factory) => {
       return Promise.all([
         createGo([randomWsAddr], factory),
@@ -67,6 +86,9 @@ export default {
     }
   },
   'js-js-go': {
+    /**
+     * @param {Factory} factory
+     */
     create: async (factory) => {
       return Promise.all([
         createJs([randomWsAddr], factory),
@@ -76,6 +98,9 @@ export default {
     }
   },
   'go-js-js': {
+    /**
+     * @param {Factory} factory
+     */
     create: (factory) => Promise.all([
       createGo([randomWsAddr], factory),
       createJs([randomWsAddr], factory),
@@ -83,6 +108,9 @@ export default {
     ])
   },
   'js-js-js': {
+    /**
+     * @param {Factory} factory
+     */
     create: (factory) => Promise.all([
       createJs([randomWsAddr], factory),
       createJs([randomWsAddr], factory),

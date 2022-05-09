@@ -5,8 +5,13 @@ import path from 'path'
 import { nanoid } from 'nanoid'
 import delay from 'delay'
 import last from 'it-last'
-import { expect } from 'aegir/utils/chai.js'
+import { expect } from 'aegir/chai'
 import { daemonFactory } from './utils/daemon-factory.js'
+
+/**
+ * @typedef {import('ipfsd-ctl').Controller} Controller
+ * @typedef {import('ipfsd-ctl').Factory} Factory
+ */
 
 const dir = path.join(os.tmpdir(), nanoid())
 
@@ -20,6 +25,10 @@ const daemonOptions = {
 
 const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 
+/**
+ * @param {Controller} publisherDaemon
+ * @param {Controller} [resolverDaemon]
+ */
 const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
   let sameDaemon = false
 
@@ -31,13 +40,16 @@ const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
   const stopPublisherAndStartResolverDaemon = async () => {
     await publisherDaemon.stop()
     await delay(2000)
-    await resolverDaemon.start()
+
+    if (resolverDaemon != null) {
+      await resolverDaemon.start()
+    }
   }
 
   await publisherDaemon.init()
   await publisherDaemon.start()
 
-  const nodeId = publisherDaemon.api.peerId.id
+  const nodeId = publisherDaemon.peer.id
 
   await publisherDaemon.api.name.publish(ipfsRef, {
     resolve: false,
@@ -46,7 +58,7 @@ const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
 
   !sameDaemon && await stopPublisherAndStartResolverDaemon()
 
-  const res = await last(resolverDaemon.api.name.resolve(nodeId, { local: true }))
+  const res = await last(resolverDaemon.api.name.resolve(nodeId))
   expect(res).to.equal(ipfsRef)
 
   await resolverDaemon.stop()
@@ -58,6 +70,7 @@ const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
 describe('ipns locally using the same repo across implementations', function () {
   this.timeout(160 * 1000)
 
+  /** @type {Factory} */
   let factory
 
   before(async () => {

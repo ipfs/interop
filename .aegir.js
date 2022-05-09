@@ -1,8 +1,11 @@
-'use strict'
+import path from 'path'
+import { createServer } from 'ipfsd-ctl'
+import { sigServer } from '@libp2p/webrtc-star-signalling-server'
+import { createRequire } from 'module'
+import { fileURLToPath } from 'url'
 
-const path = require('path')
-const createServer = require('ipfsd-ctl').createServer
-const signaller = require('libp2p-webrtc-star-signalling-server')
+const require = createRequire(import.meta.url)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 /** @type {import('aegir').Options["build"]["config"]} */
 const esbuild = {
@@ -11,10 +14,6 @@ const esbuild = {
     {
       name: 'node built ins',
       setup (build) {
-        build.onResolve({ filter: /^stream$/ }, () => {
-          return { path: require.resolve('readable-stream') }
-        })
-
         build.onResolve({ filter: /^ipfs$/ }, () => {
           return { path: require.resolve(process.env.IPFS_JS_MODULE || 'ipfs') }
         })
@@ -26,11 +25,8 @@ const esbuild = {
   ]
 }
 
-const ipfsHttpModule = require(process.env.IPFS_JS_HTTP_MODULE || 'ipfs-http-client')
-const ipfsModule = require(process.env.IPFS_JS_MODULE || 'ipfs')
-
 /** @type {import('aegir').PartialOptions} */
-module.exports = {
+export default {
   test: {
     browser: {
       config: {
@@ -38,6 +34,9 @@ module.exports = {
       }
     },
     async before (options) {
+      const ipfsHttpModule = await import(process.env.IPFS_JS_HTTP_MODULE || 'ipfs-http-client')
+      const ipfsModule = await import(process.env.IPFS_JS_MODULE || 'ipfs')
+
       if (options.runner !== 'node') {
         const ipfsdServer = await createServer({
           host: '127.0.0.1',
@@ -65,11 +64,12 @@ module.exports = {
           }
         }).start()
 
-        const signallingServer = await signaller.start({
+        const signallingServer = await sigServer({
           port: 24642,
           host: '0.0.0.0',
           metrics: false
         })
+
         return {
           ipfsdServer,
           signallingServer

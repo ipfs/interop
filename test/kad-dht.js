@@ -1,7 +1,7 @@
 /* eslint max-nested-callbacks: ["error", 6] */
 /* eslint-env mocha */
 
-import { expect } from 'aegir/utils/chai.js'
+import { expect } from 'aegir/chai'
 import { daemonFactory } from './utils/daemon-factory.js'
 import delay from 'delay'
 import defer from 'p-defer'
@@ -9,13 +9,26 @@ import { fromString as uint8ArrayFromString } from 'uint8arrays'
 import { isNode } from 'wherearewe'
 import toBuffer from 'it-to-buffer'
 
-const getConfig = (bootstrap) => ({
-  Bootstrap: bootstrap,
+/**
+ * @typedef {import('ipfsd-ctl').Controller} Controller
+ * @typedef {import('ipfsd-ctl').Factory} Factory
+ * @typedef {import('@multiformats/multiaddr').Multiaddr} Multiaddr
+ */
+
+/**
+ * @param {Multiaddr[]} [bootstrap]
+ */
+const getConfig = (bootstrap = []) => ({
+  Bootstrap: bootstrap.map(ma => ma.toString()),
   Routing: {
     Type: 'dhtserver'
   }
 })
 
+/**
+ * @param {Factory} factory
+ * @param {Multiaddr[]} [bootstrap]
+ */
 const spawnGoDaemon = (factory, bootstrap = []) => {
   return factory.spawn({
     type: 'go',
@@ -26,6 +39,10 @@ const spawnGoDaemon = (factory, bootstrap = []) => {
   })
 }
 
+/**
+ * @param {Factory} factory
+ * @param {Multiaddr[]} [bootstrap]
+ */
 const spawnJsDaemon = (factory, bootstrap = []) => {
   return factory.spawn({
     type: 'js',
@@ -36,15 +53,9 @@ const spawnJsDaemon = (factory, bootstrap = []) => {
   })
 }
 
-const spawnDaemon = async function (factory, fn) {
-  const daemon = await fn(factory)
-  const id = await daemon.api.id()
-
-  return {
-    api: daemon.api, id
-  }
-}
-
+/**
+ * @param {Controller} node
+ */
 const getNodeAddr = async (node) => {
   const res = await node.api.id()
   expect(res.id).to.exist()
@@ -52,6 +63,11 @@ const getNodeAddr = async (node) => {
   return res.addresses[0]
 }
 
+/**
+ * @param {Controller} addDaemon
+ * @param {Controller[]} catDaemons
+ * @param {*} options
+ */
 const addFileAndCat = async (addDaemon, catDaemons, options = {}) => {
   const data = uint8ArrayFromString(`some-data-${Math.random()}`)
   const { cid } = await addDaemon.api.add(data)
@@ -65,9 +81,15 @@ const addFileAndCat = async (addDaemon, catDaemons, options = {}) => {
   )
 }
 
+/**
+ * @param {string} name
+ * @param {(fac: Factory) => Promise<Controller[]>} createNodes
+ * @param {(nodes: Promise<Controller[]>) => void} tests
+ */
 const createNetwork = function (name, createNodes, tests) {
   describe(name, function () {
     const nodes = defer()
+    /** @type {Factory} */
     let factory
 
     before(async function () {
@@ -83,6 +105,11 @@ const createNetwork = function (name, createNodes, tests) {
   })
 }
 
+/**
+ * @param {string} name
+ * @param {(fac: Factory) => Promise<Controller>} createBootstrapper
+ * @param {(fac: Factory, bootstrapAddr: Multiaddr) => Promise<Controller[]>} createNodes
+ */
 const createBootstrappedNetwork = function (name, createBootstrapper, createNodes) {
   createNetwork(name, async factory => {
     const bootstrapper = await createBootstrapper(factory)
@@ -108,6 +135,10 @@ const createBootstrappedNetwork = function (name, createBootstrapper, createNode
   })
 }
 
+/**
+ * @param {string} name
+ * @param {(fac: Factory) => Promise<Controller[]>} createNodes
+ */
 const createLinearNetwork = function (name, createNodes) {
   createNetwork(name, async factory => {
     const [node0, node1, node2, node3] = await createNodes(factory)
@@ -124,9 +155,9 @@ const createLinearNetwork = function (name, createNodes) {
      * |3|       |2|
      * +-+       +-+
      */
-    await node3.api.swarm.connect(node0.id.addresses[0])
-    await node0.api.swarm.connect(node1.id.addresses[0])
-    await node1.api.swarm.connect(node2.id.addresses[0])
+    await node3.api.swarm.connect(node0.peer.addresses[0])
+    await node0.api.swarm.connect(node1.peer.addresses[0])
+    await node1.api.swarm.connect(node2.peer.addresses[0])
 
     return [node0, node1, node2, node3]
   }, (nodes) => {
@@ -144,7 +175,10 @@ const createLinearNetwork = function (name, createNodes) {
     })
   })
 }
-
+/**
+ * @param {string} name
+ * @param {(fac: Factory) => Promise<Controller[]>} createNodes
+ */
 const createDisjointNetwork = function (name, createNodes) {
   createNetwork(name, async factory => {
     const [node0, node1, node2, node3, node4, node5] = await createNodes(factory)
@@ -152,12 +186,12 @@ const createDisjointNetwork = function (name, createNodes) {
     // Make connections between nodes
 
     // 0 -> 1 -> 2
-    await node0.api.swarm.connect(node1.id.addresses[0])
-    await node1.api.swarm.connect(node2.id.addresses[0])
+    await node0.api.swarm.connect(node1.peer.addresses[0])
+    await node1.api.swarm.connect(node2.peer.addresses[0])
 
     // 3 -> 4 -> 5
-    await node3.api.swarm.connect(node4.id.addresses[0])
-    await node4.api.swarm.connect(node5.id.addresses[0])
+    await node3.api.swarm.connect(node4.peer.addresses[0])
+    await node4.api.swarm.connect(node5.peer.addresses[0])
 
     return [node0, node1, node2, node3, node4, node5]
   }, (nodes) => {
@@ -174,7 +208,7 @@ const createDisjointNetwork = function (name, createNodes) {
       * 0 -> 1 -> 2 -> 5 -> 4 -> 3
       */
 
-      await node2.api.swarm.connect(node5.id.addresses[0])
+      await node2.api.swarm.connect(node5.peer.addresses[0])
 
       // should now succeed
       await addFileAndCat(node0, [node3])
@@ -243,37 +277,37 @@ describe('kad-dht', function () {
   describe('kad-dht with multiple hops', () => {
     createLinearNetwork('a JS node in the land of Go', (factory) => {
       return Promise.all([
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnJsDaemon)
+        spawnGoDaemon(factory),
+        spawnGoDaemon(factory),
+        spawnGoDaemon(factory),
+        spawnJsDaemon(factory)
       ])
     })
 
     createLinearNetwork('a Go node in the land of JS', (factory) => {
       return Promise.all([
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnGoDaemon)
+        spawnJsDaemon(factory),
+        spawnJsDaemon(factory),
+        spawnJsDaemon(factory),
+        spawnGoDaemon(factory)
       ])
     })
 
     createLinearNetwork('a hybrid network, cat from GO', (factory) => {
       return Promise.all([
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnGoDaemon)
+        spawnJsDaemon(factory),
+        spawnGoDaemon(factory),
+        spawnJsDaemon(factory),
+        spawnGoDaemon(factory)
       ])
     })
 
     createLinearNetwork('a hybrid network, cat from JS', (factory) => {
       return Promise.all([
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnGoDaemon)
+        spawnJsDaemon(factory),
+        spawnGoDaemon(factory),
+        spawnJsDaemon(factory),
+        spawnGoDaemon(factory)
       ])
     })
   })
@@ -281,45 +315,45 @@ describe('kad-dht', function () {
   describe('kad-dht across disjoint networks that become joint', () => {
     createDisjointNetwork('a GO network', (factory) => {
       return Promise.all([
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnGoDaemon)
+        spawnGoDaemon(factory),
+        spawnGoDaemon(factory),
+        spawnGoDaemon(factory),
+        spawnGoDaemon(factory),
+        spawnGoDaemon(factory),
+        spawnGoDaemon(factory)
       ])
     })
 
     createDisjointNetwork('a JS network', (factory) => {
       return Promise.all([
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnJsDaemon)
+        spawnJsDaemon(factory),
+        spawnJsDaemon(factory),
+        spawnJsDaemon(factory),
+        spawnJsDaemon(factory),
+        spawnJsDaemon(factory),
+        spawnJsDaemon(factory)
       ])
     })
 
     createDisjointNetwork('a hybrid network, cat from GO', (factory) => {
       return Promise.all([
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnJsDaemon)
+        spawnGoDaemon(factory),
+        spawnJsDaemon(factory),
+        spawnGoDaemon(factory),
+        spawnJsDaemon(factory),
+        spawnGoDaemon(factory),
+        spawnJsDaemon(factory)
       ])
     })
 
     createDisjointNetwork('a hybrid network, cat from JS', (factory) => {
       return Promise.all([
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnGoDaemon),
-        spawnDaemon(factory, spawnJsDaemon),
-        spawnDaemon(factory, spawnGoDaemon)
+        spawnJsDaemon(factory),
+        spawnGoDaemon(factory),
+        spawnJsDaemon(factory),
+        spawnGoDaemon(factory),
+        spawnJsDaemon(factory),
+        spawnGoDaemon(factory)
       ])
     })
   })

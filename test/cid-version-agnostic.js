@@ -2,13 +2,22 @@
 
 import { nanoid } from 'nanoid'
 import concat from 'it-concat'
-import { expect } from 'aegir/utils/chai.js'
+import { expect } from 'aegir/chai'
 import { daemonFactory } from './utils/daemon-factory.js'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 
+/**
+ * @typedef {import('ipfsd-ctl').Controller} Controller
+ * @typedef {import('ipfsd-ctl').Factory} Factory
+ */
+
 describe('CID version agnostic', function () {
   this.timeout(50 * 1000)
+  /** @type {Record<string, Controller>} */
   const daemons = {}
+  /**
+   * @type {Factory}
+   */
   let factory
 
   before(async function () {
@@ -23,12 +32,12 @@ describe('CID version agnostic', function () {
     Object.assign(daemons, { js0, js1, go0, go1 })
 
     await Promise.all([
-      js0.api.swarm.connect(js1.api.peerId.addresses[0]),
-      js1.api.swarm.connect(js0.api.peerId.addresses[0]),
-      go0.api.swarm.connect(go1.api.peerId.addresses[0]),
-      go1.api.swarm.connect(go0.api.peerId.addresses[0]),
-      js0.api.swarm.connect(go0.api.peerId.addresses[0]),
-      go0.api.swarm.connect(js0.api.peerId.addresses[0])
+      js0.api.swarm.connect(js1.peer.addresses[0]),
+      js1.api.swarm.connect(js0.peer.addresses[0]),
+      go0.api.swarm.connect(go1.peer.addresses[0]),
+      go1.api.swarm.connect(go0.peer.addresses[0]),
+      js0.api.swarm.connect(go0.peer.addresses[0]),
+      go0.api.swarm.connect(js0.peer.addresses[0])
     ])
   })
 

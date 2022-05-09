@@ -3,19 +3,26 @@
 
 import randomBytes from 'iso-random-stream/src/random.js'
 import pretty from 'pretty-bytes'
+// @ts-expect-error no types
 import randomFs from 'random-fs'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
 import { join } from 'path'
 import { nanoid } from 'nanoid'
 import isCi from 'is-ci'
-import { isWindows } from 'is-os'
 import os from 'os'
 import concat from 'it-concat'
 import globSource from 'ipfs-utils/src/files/glob-source.js'
-import { expect } from 'aegir/utils/chai.js'
+import { expect } from 'aegir/chai'
 import { daemonFactory } from './utils/daemon-factory.js'
 import last from 'it-last'
+
+const isWindows = os.platform() === 'win32'
+
+/**
+ * @typedef {import('ipfsd-ctl').Controller} Controller
+ * @typedef {import('ipfsd-ctl').Factory} Factory
+ */
 
 const rmDir = promisify(rimraf)
 
@@ -94,6 +101,7 @@ const timeout = isCi ? 15 * min : 10 * min
 describe('exchange files', function () {
   this.timeout(timeout)
 
+  /** @type {Record<string, ('go' | 'js')[]>} */
   const tests = {
     'go -> js': ['go', 'js'],
     'go -> go2': ['go', 'go'],
@@ -101,6 +109,7 @@ describe('exchange files', function () {
     'js -> js2': ['js', 'js']
   }
 
+  /** @type {Factory} */
   let factory
 
   before(async () => {
@@ -109,7 +118,9 @@ describe('exchange files', function () {
 
   Object.keys(tests).forEach((name) => {
     describe(name, () => {
+      /** @type {Controller} */
       let daemon1
+      /** @type {Controller} */
       let daemon2
 
       before('spawn nodes', async function () {
@@ -119,16 +130,16 @@ describe('exchange files', function () {
       before('connect', async function () {
         this.timeout(timeout); // eslint-disable-line
 
-        await daemon1.api.swarm.connect(daemon2.api.peerId.addresses[0])
-        await daemon2.api.swarm.connect(daemon1.api.peerId.addresses[0])
+        await daemon1.api.swarm.connect(daemon2.peer.addresses[0])
+        await daemon2.api.swarm.connect(daemon1.peer.addresses[0])
 
         const [peer1, peer2] = await Promise.all([
           daemon1.api.swarm.peers(),
           daemon2.api.swarm.peers()
         ])
 
-        expect(peer1.map((p) => p.peer.toString())).to.include(daemon2.api.peerId.id)
-        expect(peer2.map((p) => p.peer.toString())).to.include(daemon1.api.peerId.id)
+        expect(peer1.map((p) => p.peer.toString())).to.include(daemon2.peer.id)
+        expect(peer2.map((p) => p.peer.toString())).to.include(daemon1.peer.id)
       })
 
       after(() => factory.clean())
@@ -146,7 +157,7 @@ describe('exchange files', function () {
         })
       }))
 
-      if (isWindows()) { return }
+      if (isWindows) { return }
       // TODO fix dir tests on Windows
 
       describe('get directory', () => depth.forEach((d) => dirs.forEach((num) => {
@@ -162,9 +173,15 @@ describe('exchange files', function () {
               number: num
             })
 
-            const { cid } = await last(daemon1.api.addAll(globSource(dir, '**/*'), {
+            const res = await last(daemon1.api.addAll(globSource(dir, '**/*'), {
               wrapWithDirectory: true
             }))
+
+            if (res == null) {
+              throw new Error('Nothing added')
+            }
+
+            const { cid } = res
 
             await expect(countFiles(cid, daemon2.api)).to.eventually.equal(num)
           } finally {
@@ -176,6 +193,10 @@ describe('exchange files', function () {
   })
 })
 
+/**
+ * @param {import('multiformats/cid').CID} cid
+ * @param {Controller["api"]} ipfs
+ */
 async function countFiles (cid, ipfs) {
   let fileCount = 0
 

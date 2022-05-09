@@ -1,14 +1,18 @@
 /* eslint-env mocha */
 
 import PeerID from 'peer-id'
-import { base58btc } from 'multiformats/bases/base58'
-import { getIdKeys } from 'ipns'
+import { peerIdToRoutingKey } from 'ipns'
 import last from 'it-last'
 import pRetry from 'p-retry'
 import { waitFor } from './utils/wait-for.js'
-import { expect } from 'aegir/utils/chai.js'
+import { expect } from 'aegir/chai'
 import { daemonFactory } from './utils/daemon-factory.js'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+
+/**
+ * @typedef {import('ipfsd-ctl').Controller} Controller
+ * @typedef {import('ipfsd-ctl').Factory} Factory
+ */
 
 const daemonsOptions = {
   args: ['--enable-namesys-pubsub'] // enable ipns over pubsub
@@ -23,7 +27,9 @@ const namespace = '/record/'
 const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 
 describe('ipns-pubsub', function () {
+  /** @type {Controller[]} */
   let nodes = []
+  /** @type {Factory} */
   let factory
 
   before(async () => {
@@ -60,8 +66,8 @@ describe('ipns-pubsub', function () {
     // TODO: go-ipfs needs two nodes in the DHT to be able to publish a record
     // Remove the second connect when js-ipfs runs a DHT server
     await Promise.all([
-      nodes[0].api.swarm.connect(nodes[1].api.peerId.addresses[0]),
-      nodes[0].api.swarm.connect(nodes[2].api.peerId.addresses[0])
+      nodes[0].api.swarm.connect(nodes[1].peer.addresses[0]),
+      nodes[0].api.swarm.connect(nodes[2].peer.addresses[0])
     ])
   })
 
@@ -78,15 +84,15 @@ describe('ipns-pubsub', function () {
   it('should publish the received record to a go node and a js subscriber should receive it', async function () {
     // TODO find out why JS doesn't resolve, might be just missing a DHT
     await Promise.all([
-      subscribeToReceiveByPubsub(nodes[0], nodes[1], nodes[0].api.peerId.id, nodes[1].api.peerId.id),
-      expect(last(nodes[1].api.name.resolve(nodes[0].api.peerId.id, { stream: false }))).to.eventually.be.rejected.with(/was not found in the network/)
+      subscribeToReceiveByPubsub(nodes[0], nodes[1], nodes[0].peer.id, nodes[1].peer.id),
+      expect(last(nodes[1].api.name.resolve(nodes[0].peer.id))).to.eventually.be.rejected.with.property('message', /was not found in the network/)
     ])
   })
 
   it('should publish the received record to a js node and a go subscriber should receive it', async function () {
     await Promise.all([
-      subscribeToReceiveByPubsub(nodes[1], nodes[0], nodes[1].api.peerId.id, nodes[0].api.peerId.id),
-      last(nodes[0].api.name.resolve(nodes[1].api.peerId.id, { stream: false }))
+      subscribeToReceiveByPubsub(nodes[1], nodes[0], nodes[1].peer.id, nodes[0].peer.id),
+      last(nodes[0].api.name.resolve(nodes[1].peer.id))
     ])
   })
 })
@@ -99,14 +105,20 @@ describe('ipns-pubsub', function () {
 //  * 5) publish new ipns record
 //  * 6) wait until the record is received in the test scope subscribe
 //  * 7) resolve ipns record
+/**
+ * @param {Controller} nodeA
+ * @param {Controller} nodeB
+ * @param {*} idA
+ * @param {*} idB
+ */
 const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   let subscribed = false
-  function checkMessage (msg) {
+  function checkMessage () {
     subscribed = true
   }
 
-  const keys = getIdKeys(base58btc.decode(`z${idA}`))
-  const topic = `${namespace}${uint8ArrayToString(keys.routingKey.uint8Array(), 'base64url')}`
+  const routingKey = peerIdToRoutingKey(idA)
+  const topic = `${namespace}${uint8ArrayToString(routingKey, 'base64url')}`
 
   await waitForPeerToSubscribe(nodeB.api, topic)
   await nodeB.api.pubsub.subscribe(topic, checkMessage)
@@ -119,16 +131,27 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   expect(res2).to.equal(ipfsRef)
 }
 
-// wait until a peer know about other peer to subscribe a topic
+/**
+ * Wait until a peer know about other peer to subscribe a topic
+ *
+ * @param {Controller["api"]} daemon
+ * @param {string} topic
+ * @param {Controller["peer"]["id"]} peerId
+ */
 const waitForNotificationOfSubscription = (daemon, topic, peerId) => pRetry(async () => {
   const res = await daemon.pubsub.peers(topic)
 
-  if (!res || !res.length || !res.includes(peerId)) {
+  if (!res || !res.length || !res.map(p => p.toString()).includes(peerId.toString())) {
     throw new Error('Could not find peer subscribing')
   }
 }, retryOptions)
 
-// Wait until a peer subscribes a topic
+/**
+ * Wait until a peer subscribes a topic
+ *
+ * @param {Controller["api"]} daemon
+ * @param {string} topic
+ */
 const waitForPeerToSubscribe = async (daemon, topic) => {
   await pRetry(async () => {
     const res = await daemon.pubsub.ls()

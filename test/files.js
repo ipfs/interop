@@ -6,7 +6,12 @@ import { daemonFactory } from './utils/daemon-factory.js'
 import concat from 'it-concat'
 import all from 'it-all'
 import last from 'it-last'
-import { expect } from 'aegir/utils/chai.js'
+import { expect } from 'aegir/chai'
+
+/**
+ * @typedef {import('ipfsd-ctl').Controller} Controller
+ * @typedef {import('ipfsd-ctl').Factory} Factory
+ */
 
 const SHARD_THRESHOLD = 1000
 
@@ -30,12 +35,29 @@ const jsOptions = {
   args: ['--enable-sharding-experiment']
 }
 
+/**
+ * @param {Controller} daemon
+ * @param {string} path
+ * @param {Parameters<Controller["api"]["files"]["mkdir"]>[1]} [options]
+ */
 const createDirectory = (daemon, path, options) => {
   return daemon.api.files.mkdir(path, options)
 }
 
+/**
+ * @param {Controller} daemon
+ * @param {Awaited<ReturnType<Controller["api"]["add"]>>} [file]
+ */
 async function checkNodeTypes (daemon, file) {
+  if (file == null) {
+    throw new Error('No file specified')
+  }
+
   const node = await daemon.api.object.get(file.cid)
+
+  if (node.Data == null) {
+    throw new Error('No data found on pb node')
+  }
 
   const meta = UnixFS.unmarshal(node.Data)
 
@@ -45,6 +67,11 @@ async function checkNodeTypes (daemon, file) {
   return Promise.all(
     node.Links.map(async (link) => {
       const child = await daemon.api.object.get(link.Hash)
+
+      if (child.Data == null) {
+        throw new Error('No data found on pb node')
+      }
+
       const childMeta = UnixFS.unmarshal(child.Data)
 
       expect(childMeta.type).to.equal('raw')
@@ -52,6 +79,10 @@ async function checkNodeTypes (daemon, file) {
   )
 }
 
+/**
+ * @param {Controller} daemon
+ * @param {Uint8Array} data
+ */
 async function addFile (daemon, data) {
   const fileName = 'test-file'
 
@@ -72,6 +103,9 @@ function createDataStream (size = 262144) {
   }())
 }
 
+/**
+ * @param {...any} ops
+ */
 const compare = async (...ops) => {
   expect(ops).to.have.property('length').that.is.above(1)
 
@@ -84,6 +118,10 @@ const compare = async (...ops) => {
   results.forEach(res => expect(res).to.deep.equal(result))
 }
 
+/**
+ * @param {string} expectedMessage
+ * @param {...any} ops
+ */
 const compareErrors = async (expectedMessage, ...ops) => {
   expect(ops).to.have.property('length').that.is.above(1)
 
@@ -92,7 +130,7 @@ const compareErrors = async (expectedMessage, ...ops) => {
       try {
         await op
         throw new ExpectedError('Expected operation to fail')
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         if (error instanceof ExpectedError) {
           throw error
         }
@@ -113,6 +151,10 @@ const compareErrors = async (expectedMessage, ...ops) => {
 
   const result = results.pop()
 
+  if (result == null) {
+    throw new Error('No result found')
+  }
+
   // all implementations should have the same error code
   results.forEach(res => {
     expect(res).to.have.property('code', result.code)
@@ -122,9 +164,11 @@ const compareErrors = async (expectedMessage, ...ops) => {
 describe('files', function () {
   this.timeout(500 * 1000)
 
+  /** @type {Controller} */
   let go
+  /** @type {Controller} */
   let js
-
+  /** @type {Factory} */
   let factory
 
   before(async () => {
@@ -145,6 +189,9 @@ describe('files', function () {
   after(() => factory.clean())
 
   it('returns an error when reading non-existent files', () => {
+    /**
+     * @param {Controller} daemon
+     */
     const readNonExistentFile = (daemon) => {
       return concat(daemon.api.files.read(`/i-do-not-exist-${Math.random()}`))
     }
@@ -157,6 +204,9 @@ describe('files', function () {
   })
 
   it('returns an error when writing deeply nested files and the parents do not exist', () => {
+    /**
+     * @param {Controller} daemon
+     */
     const writeNonExistentFile = (daemon) => {
       return daemon.api.files.write(`/foo-${Math.random()}/bar-${Math.random()}/baz-${Math.random()}/i-do-not-exist-${Math.random()}`, Uint8Array.from([0, 1, 2, 3]))
     }
@@ -174,8 +224,12 @@ describe('files', function () {
   // https://github.com/ipfs/js-ipfs-http-client/blob/d7eb0e8ffb15e207a8a6062e292a3b5babf35a9e/src/lib/error-handler.js#L12-L23
   it.skip('uses raw nodes for leaf data', () => {
     const data = randomBytes(1024 * 300)
+    /**
+     * @param {Controller} daemon
+     */
     const testLeavesAreRaw = async (daemon) => {
       const file = await addFile(daemon, data)
+      // @ts-expect-error types do not have sufficient overlap
       await checkNodeTypes(daemon, file)
     }
 
@@ -187,6 +241,9 @@ describe('files', function () {
 
   it('errors when creating the same directory twice', () => {
     const path = `/test-dir-${Math.random()}`
+    /**
+     * @param {Controller} daemon
+     */
     const createSameDirectory = async (daemon) => {
       await createDirectory(daemon, path)
       await createDirectory(daemon, path)
@@ -201,6 +258,9 @@ describe('files', function () {
 
   it('does not error when creating the same directory twice and parents option is passed', () => {
     const path = `/test-dir-${Math.random()}`
+    /**
+     * @param {Controller} daemon
+     */
     const createSameDirectory = async (daemon) => {
       await createDirectory(daemon, path)
       await createDirectory(daemon, path, { parents: true })
@@ -214,6 +274,9 @@ describe('files', function () {
 
   it('errors when creating the root directory', () => {
     const path = '/'
+    /**
+     * @param {Controller} daemon
+     */
     const createSameDirectory = async (daemon) => {
       await createDirectory(daemon, path)
       await createDirectory(daemon, path)
@@ -227,33 +290,70 @@ describe('files', function () {
   })
 
   describe('has the same hashes for', () => {
+    /**
+     * @param {Controller} daemon
+     * @param {Parameters<Controller["api"]["add"]>[0]} data
+     * @param {Parameters<Controller["api"]["add"]>[1]} options
+     */
     const testHashesAreEqual = async (daemon, data, options = {}) => {
       const { cid } = await daemon.api.add(data, options)
 
       return cid
     }
 
+    /**
+     * @param {Controller} daemon
+     * @param {Parameters<Controller["api"]["addAll"]>[0]} data
+     * @param {Parameters<Controller["api"]["addAll"]>[1]} options
+     */
     const testDirectoryHashesAreEqual = async (daemon, data, options = {}) => {
-      const { cid } = await last(daemon.api.addAll(data, options))
+      const res = await last(daemon.api.addAll(data, options))
+
+      if (res == null) {
+        throw new Error('Nothing added')
+      }
+
+      const { cid } = res
 
       return cid
     }
 
-    const _writeData = async (daemon, initialData, newData, options) => {
+    /**
+     * @param {Controller} daemon
+     * @param {Parameters<Controller["api"]["files"]["write"]>[1]} initialData
+     * @param {Parameters<Controller["api"]["files"]["write"]>[1]} newData
+     * @param {Parameters<Controller["api"]["files"]["write"]>[2]} options
+     */
+    const _writeData = async (daemon, initialData, newData, options = {}) => {
       const fileName = `file-${Math.random()}.txt`
 
-      await daemon.api.files.write(`/${fileName}`, initialData, { create: true })
+      await daemon.api.files.write(`/${fileName}`, initialData, { create: true, ...options })
       const files = await all(daemon.api.files.ls('/'))
+      const needle = files.filter(file => file.name === fileName).pop()
 
-      return files.filter(file => file.name === fileName).pop().cid
+      if (needle == null) {
+        throw new Error('Nothing written')
+      }
+
+      return needle.cid
     }
 
+    /**
+     * @param {Controller} daemon
+     * @param {Uint8Array} initialData
+     * @param {Parameters<Controller["api"]["files"]["write"]>[1]} appendedData
+     */
     const appendData = (daemon, initialData, appendedData) => {
       return _writeData(daemon, initialData, appendedData, {
         offset: initialData.length
       })
     }
 
+    /**
+     * @param {Controller} daemon
+     * @param {Parameters<Controller["api"]["files"]["write"]>[1]} initialData
+     * @param {Parameters<Controller["api"]["files"]["write"]>[1]} newData
+     */
     const overwriteData = (daemon, initialData, newData) => {
       return _writeData(daemon, initialData, newData, {
         offset: 0
@@ -310,6 +410,7 @@ describe('files', function () {
 
     it('small files with CIDv1', () => {
       const data = Uint8Array.from([0x00, 0x01, 0x02])
+      /** @type {Parameters<Controller["api"]["add"]>[1]} */
       const options = {
         cidVersion: 1
       }
@@ -322,6 +423,7 @@ describe('files', function () {
 
     it('big files with CIDv1', () => {
       const data = randomBytes(1024 * 3000)
+      /** @type {Parameters<Controller["api"]["add"]>[1]} */
       const options = {
         cidVersion: 1
       }
@@ -333,6 +435,7 @@ describe('files', function () {
     })
 
     it('trickle DAGs', () => {
+      /** @type {Parameters<Controller["api"]["add"]>[1]} */
       const options = {
         cidVersion: 0,
         trickle: true,
@@ -423,13 +526,29 @@ describe('files', function () {
         })
       }
 
-      // will operate on sub-shard three levels deep
+      /**
+       * will operate on sub-shard three levels deep
+       *
+       * @param {Controller} daemon
+       * @param {Parameters<Controller["api"]["addAll"]>[0]} data
+       */
       const testHamtShardHashesAreEqual = async (daemon, data) => {
-        const { cid } = await last(daemon.api.addAll(data))
+        const res = await last(daemon.api.addAll(data))
+
+        if (res == null) {
+          throw new Error('Nothing added')
+        }
+
+        const { cid } = res
 
         await daemon.api.files.cp(`/ipfs/${cid}`, dir)
 
         const node = await daemon.api.object.get(cid)
+
+        if (node.Data == null) {
+          throw new Error('No data found on pb node')
+        }
+
         const meta = UnixFS.unmarshal(node.Data)
 
         expect(meta.type).to.equal('hamt-sharded-directory')
@@ -452,6 +571,11 @@ describe('files', function () {
 
         const stats = await daemon.api.files.stat(dir)
         const nodeAfterUpdates = await daemon.api.object.get(stats.cid)
+
+        if (nodeAfterUpdates.Data == null) {
+          throw new Error('No data found on pb node')
+        }
+
         const metaAfterUpdates = UnixFS.unmarshal(nodeAfterUpdates.Data)
 
         expect(metaAfterUpdates.type).to.equal('hamt-sharded-directory')

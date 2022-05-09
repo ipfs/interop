@@ -24,24 +24,27 @@
   },
   "main": "src/index.js",
   "type": "module",
-  "types": "types/src/index.d.ts",
+  "types": "dist/src/index.d.ts",
   "typesVersions": {
     "*": {
       "*": [
-        "types/*",
-        "types/src/*"
+        "*",
+        "dist/*",
+        "dist/src/*",
+        "dist/src/*/index"
       ],
-      "types/*": [
-        "types/*",
-        "types/src/*"
+      "src/*": [
+        "*",
+        "dist/*",
+        "dist/src/*",
+        "dist/src/*/index"
       ]
     }
   },
   "files": [
-    "*",
-    "!**/*.tsbuildinfo",
-    "!**/browser-test",
-    "!**/node-test"
+    "dist",
+    "src",
+    "!**/*.tsbuildinfo"
   ],
   "exports": {
     ".": {
@@ -51,8 +54,7 @@
   "eslintConfig": {
     "extends": "ipfs",
     "parserOptions": {
-      "sourceType": "module",
-      "ecmaVersion": "2020"
+      "sourceType": "module"
     },
     "ignorePatterns": [
       "package.json"
@@ -145,26 +147,27 @@
     ]
   },
   "scripts": {
-    "clean": "rimraf /tmp/js-ipfs /tmp/go-ipfs ./go-libp2p-relay-daemon dist types",
+    "clean": "rimraf /tmp/js-ipfs /tmp/go-ipfs ./go-libp2p-relay-daemon dist",
     "lint": "aegir lint",
-    "build": "aegir build --esm-tests && cp -R types scripts bin test src .aegir.cjs dist && cp bin/package.json dist/src && cp bin/package.json dist/test && npx json -I -f dist/package.json -e 'this.browser.execa=false; this.browser.fs=false; this.browser[\"go-ipfs\"]=false'",
-    "release": "semantic-release",
+    "build": "aegir build",
+    "release": "aegir release",
     "postinstall": "cross-env node ./scripts/setup-libp2p-relay-daemon.js",
-    "pretest": "aegir build --esm-tests",
+    "pretest": "aegir build",
     "test": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test",
     "test:node": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t node -f test/node.js",
     "test:browser": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t browser -f test/browser.js",
     "dep-check": "aegir dep-check package.json"
   },
   "dependencies": {
-    "aegir": "^36.2.3",
+    "@libp2p/webrtc-star-signalling-server": "^1.0.4",
+    "@libp2p/websockets": "^1.0.8",
+    "aegir": "^37.0.15",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "cachedir": "^2.3.0",
     "cross-env": "^7.0.2",
     "delay": "^5.0.0",
-    "detect-node": "^2.0.4",
-    "execa": "^5.1.1",
+    "execa": "^6.1.0",
     "go-platform": "^1.0.0",
     "got": "^12.0.0",
     "gunzip-maybe": "^1.4.2",
@@ -172,23 +175,20 @@
     "ipfs-unixfs": "^6.0.3",
     "ipfs-utils": "^9.0.1",
     "ipfsd-ctl": "^10.0.3",
-    "ipns": "^0.16.0",
+    "ipns": "^1.0.0",
     "is-ci": "^3.0.0",
-    "is-os": "^1.0.1",
     "iso-random-stream": "^2.0.0",
     "it-all": "^1.0.1",
     "it-concat": "^2.0.0",
     "it-drain": "^1.0.0",
     "it-last": "^1.0.1",
     "it-to-buffer": "^2.0.1",
-    "libp2p-webrtc-star-signalling-server": "^0.1.0",
-    "libp2p-websockets": "^0.16.1",
     "multiformats": "^9.3.0",
     "nanoid": "^3.1.10",
-    "p-defer": "^3.0.0",
-    "p-retry": "^4.1.0",
+    "p-defer": "^4.0.0",
+    "p-retry": "^5.1.1",
     "peer-id": "^0.16.0",
-    "pretty-bytes": "^5.1.0",
+    "pretty-bytes": "^6.0.0",
     "promisify-es6": "^1.0.3",
     "random-fs": "^1.0.3",
     "rimraf": "^3.0.2",
@@ -198,9 +198,10 @@
     "wherearewe": "^1.0.0"
   },
   "devDependencies": {
+    "@types/is-ci": "^3.0.0",
     "go-ipfs": "^0.12.2",
-    "ipfs": "^0.61.0",
-    "ipfs-http-client": "^55.0.0"
+    "ipfs": "^0.62.3",
+    "ipfs-http-client": "^56.0.3"
   },
   "browser": {
     "go-ipfs": false,
