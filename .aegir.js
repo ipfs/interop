@@ -1,11 +1,23 @@
 import path from 'path'
 import { createServer } from 'ipfsd-ctl'
 import { sigServer } from '@libp2p/webrtc-star-signalling-server'
-import { createRequire } from 'module'
 import { fileURLToPath } from 'url'
+import { resolve } from 'import-meta-resolve'
 
-const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const ipfsModule = await resolve(process.env.IPFS_JS_HTTP_MODULE || 'ipfs', import.meta.url)
+const ipfsHttpModule = await resolve(process.env.IPFS_JS_HTTP_MODULE || 'ipfs-http-client', import.meta.url)
+
+async function findGoIpfsBin () {
+  if (process.env.IPFS_GO_EXEC != null) {
+    return process.env.IPFS_GO_EXEC
+  }
+
+  const modulePath = await resolve(process.env.IPFS_GO_IPFS_MODULE || 'go-ipfs', import.meta.url)
+  const module = await import(modulePath.replace('file://', ''))
+
+  return module.path()
+}
 
 /** @type {import('aegir').Options["build"]["config"]} */
 const esbuild = {
@@ -15,10 +27,10 @@ const esbuild = {
       name: 'node built ins',
       setup (build) {
         build.onResolve({ filter: /^ipfs$/ }, () => {
-          return { path: require.resolve(process.env.IPFS_JS_MODULE || 'ipfs') }
+          return { path: ipfsModule.replace('file://', '') }
         })
         build.onResolve({ filter: /^ipfs-http-client$/ }, () => {
-          return { path: require.resolve(process.env.IPFS_JS_HTTP_MODULE || 'ipfs-http-client') }
+          return { path: ipfsHttpModule.replace('file://', '') }
         })
       }
     }
@@ -47,7 +59,7 @@ export default {
           ipfsHttpModule
         }, {
           go: {
-            ipfsBin: process.env.IPFS_GO_EXEC || require(process.env.IPFS_GO_IPFS_MODULE || 'go-ipfs').path()
+            ipfsBin: await findGoIpfsBin()
           },
           js: {
             ipfsOptions: {
