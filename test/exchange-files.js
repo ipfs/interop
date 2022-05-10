@@ -138,8 +138,8 @@ describe('exchange files', function () {
           daemon2.api.swarm.peers()
         ])
 
-        expect(peer1.map((p) => p.peer.toString())).to.include(daemon2.peer.id)
-        expect(peer2.map((p) => p.peer.toString())).to.include(daemon1.peer.id)
+        expect(peer1.map((p) => p.peer.toString())).to.include(daemon2.peer.id.toString())
+        expect(peer2.map((p) => p.peer.toString())).to.include(daemon1.peer.id.toString())
       })
 
       after(() => factory.clean())

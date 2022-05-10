@@ -79,8 +79,8 @@ describe('pubsub', function () {
           daemon2.api.swarm.peers()
         ])
 
-        expect(peers[0].map((p) => p.peer.toString())).to.include(daemon2.peer.id)
-        expect(peers[1].map((p) => p.peer.toString())).to.include(daemon1.peer.id)
+        expect(peers[0].map((p) => p.peer.toString())).to.include(daemon2.peer.id.toString())
+        expect(peers[1].map((p) => p.peer.toString())).to.include(daemon1.peer.id.toString())
       })
 
       after(() => factory.clean())
@@ -93,10 +93,10 @@ describe('pubsub', function () {
         const subscriber = () => new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
             expect(uint8ArrayEquals(data, msg.data)).to.be.true()
-            expect(msg).to.have.property('seqno')
+            expect(msg).to.have.property('sequenceNumber')
             expect(msg.sequenceNumber).to.be.a('bigint')
-            expect(msg).to.have.property('topicIDs').and.to.include(topic)
-            expect(msg).to.have.property('from', daemon1.peer.id)
+            expect(msg).to.have.property('topic', topic)
+            expect(msg).to.have.property('from', daemon1.peer.id.toString())
             resolve()
           })
         })
@@ -120,10 +120,10 @@ describe('pubsub', function () {
         const subscriber = () => new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
             expect(uint8ArrayEquals(data, msg.data)).to.be.true()
-            expect(msg).to.have.property('seqno')
+            expect(msg).to.have.property('sequenceNumber')
             expect(msg.sequenceNumber).to.be.a('bigint')
-            expect(msg).to.have.property('topicIDs').and.to.include(topic)
-            expect(msg).to.have.property('from', daemon1.peer.id)
+            expect(msg).to.have.property('topic', topic)
+            expect(msg).to.have.property('from', daemon1.peer.id.toString())
             resolve()
           })
         })
@@ -147,10 +147,10 @@ describe('pubsub', function () {
         const subscriber = () => new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
             expect(uint8ArrayEquals(data, msg.data)).to.be.true()
-            expect(msg).to.have.property('seqno')
+            expect(msg).to.have.property('sequenceNumber')
             expect(msg.sequenceNumber).to.be.a('bigint')
-            expect(msg).to.have.property('topicIDs').and.to.include(topic)
-            expect(msg).to.have.property('from', daemon1.peer.id)
+            expect(msg).to.have.property('topic', topic)
+            expect(msg).to.have.property('from', daemon1.peer.id.toString())
             resolve()
           })
         })
@@ -174,10 +174,10 @@ describe('pubsub', function () {
         const subscriber = () => new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
             expect(uint8ArrayEquals(data, msg.data)).to.be.true()
-            expect(msg).to.have.property('seqno')
+            expect(msg).to.have.property('sequenceNumber')
             expect(msg.sequenceNumber).to.be.a('bigint')
-            expect(msg).to.have.property('topicIDs').and.to.include(topic)
-            expect(msg).to.have.property('from', daemon1.peer.id)
+            expect(msg).to.have.property('topic', topic)
+            expect(msg).to.have.property('from', daemon1.peer.id.toString())
             resolve()
           })
         })

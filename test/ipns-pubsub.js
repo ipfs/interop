@@ -1,6 +1,5 @@
 /* eslint-env mocha */
 
-import PeerID from 'peer-id'
 import { peerIdToRoutingKey } from 'ipns'
 import last from 'it-last'
 import pRetry from 'p-retry'
@@ -8,6 +7,7 @@ import { waitFor } from './utils/wait-for.js'
 import { expect } from 'aegir/chai'
 import { daemonFactory } from './utils/daemon-factory.js'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+import { peerIdFromString } from '@libp2p/peer-id'
 
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
@@ -85,7 +85,7 @@ describe('ipns-pubsub', function () {
     // TODO find out why JS doesn't resolve, might be just missing a DHT
     await Promise.all([
       subscribeToReceiveByPubsub(nodes[0], nodes[1], nodes[0].peer.id, nodes[1].peer.id),
-      expect(last(nodes[1].api.name.resolve(nodes[0].peer.id))).to.eventually.be.rejected.with.property('message', /was not found in the network/)
+      expect(last(nodes[1].api.name.resolve(nodes[0].peer.id))).to.eventually.be.rejected.with.property('message').that.matches(/was not found in the network/)
     ])
   })
 
@@ -108,8 +108,8 @@ describe('ipns-pubsub', function () {
 /**
  * @param {Controller} nodeA
  * @param {Controller} nodeB
- * @param {*} idA
- * @param {*} idB
+ * @param {Controller["peer"]["id"]} idA
+ * @param {Controller["peer"]["id"]} idB
  */
 const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   let subscribed = false
@@ -127,7 +127,7 @@ const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
   await waitFor(() => subscribed === true, (50 * 1000))
   const res2 = await last(nodeB.api.name.resolve(idA))
 
-  expect(PeerID.parse(res1.name).toString()).to.equal(PeerID.parse(idA).toString()) // Published to Node A ID
+  expect(peerIdFromString(res1.name).toString()).to.equal(idA.toString()) // Published to Node A ID
   expect(res2).to.equal(ipfsRef)
 }
 

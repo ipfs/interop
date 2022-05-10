@@ -158,6 +158,7 @@
     "dep-check": "aegir dep-check package.json"
   },
   "dependencies": {
+    "@libp2p/peer-id": "^1.1.10",
     "@libp2p/webrtc-star-signalling-server": "^1.0.4",
     "@libp2p/websockets": "^1.0.8",
     "@types/is-ci": "^3.0.0",
@@ -187,7 +188,6 @@
     "nanoid": "^3.1.10",
     "p-defer": "^4.0.0",
     "p-retry": "^5.1.1",
-    "peer-id": "^0.16.0",
     "pretty-bytes": "^6.0.0",
     "promisify-es6": "^1.0.3",
     "random-fs": "^1.0.3",
