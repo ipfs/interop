@@ -327,21 +327,17 @@ describe('files', function () {
     const _writeData = async (daemon, initialData, newData, options = {}) => {
       const fileName = `file-${Math.random()}.txt`
 
-      await daemon.api.files.write(`/${fileName}`, initialData, { create: true, ...options })
-      const files = await all(daemon.api.files.ls('/'))
-      const needle = files.filter(file => file.name === fileName).pop()
+      await daemon.api.files.write(`/${fileName}`, initialData, { create: true })
+      await daemon.api.files.write(`/${fileName}`, newData, options)
+      const { cid } = await daemon.api.files.stat(`/${fileName}`)
 
-      if (needle == null) {
-        throw new Error('Nothing written')
-      }
-
-      return needle.cid
+      return cid.toString()
     }
 
     /**
      * @param {Controller} daemon
      * @param {Uint8Array} initialData
-     * @param {Parameters<Controller["api"]["files"]["write"]>[1]} appendedData
+     * @param {Uint8Array} appendedData
      */
     const appendData = (daemon, initialData, appendedData) => {
       return _writeData(daemon, initialData, appendedData, {
@@ -351,8 +347,8 @@ describe('files', function () {
 
     /**
      * @param {Controller} daemon
-     * @param {Parameters<Controller["api"]["files"]["write"]>[1]} initialData
-     * @param {Parameters<Controller["api"]["files"]["write"]>[1]} newData
+     * @param {Uint8Array} initialData
+     * @param {Uint8Array} newData
      */
     const overwriteData = (daemon, initialData, newData) => {
       return _writeData(daemon, initialData, newData, {
@@ -387,7 +383,7 @@ describe('files', function () {
       )
     })
 
-    it('files that have had data appended', () => {
+    it.skip('files that have had data appended', () => {
       const initialData = randomBytes(1024 * 300)
       const appendedData = randomBytes(1024 * 300)
 
