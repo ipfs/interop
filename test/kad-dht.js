@@ -248,7 +248,7 @@ describe('kad-dht', function () {
         spawnGoDaemon(factory, [bootstrapAddr])
       ])
     })
-
+/*
     createBootstrappedNetwork('a Go bootstrap node in the land of JS', factory => spawnGoDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnJsDaemon(factory, [bootstrapAddr]),
@@ -272,6 +272,7 @@ describe('kad-dht', function () {
         spawnJsDaemon(factory, [bootstrapAddr])
       ])
     })
+    */
   })
 /*
   describe('kad-dht with multiple hops', () => {
