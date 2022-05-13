@@ -123,8 +123,10 @@ const createBootstrappedNetwork = function (name, createBootstrapper, createNode
         break
       }
 
-      await delay(1000)
+      await delay(500)
     }
+
+    await delay(5000)
 
     return nodes
   }, (nodes) => {
