@@ -304,7 +304,8 @@ describe('kad-dht', function () {
         spawnGoDaemon(factory, [bootstrapAddr])
       ])
     })
-
+/*
+TODO: this is flaky
     createBootstrappedNetwork('a Go bootstrap node in the land of JS', factory => spawnGoDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnJsDaemon(factory, [bootstrapAddr]),
@@ -312,7 +313,7 @@ describe('kad-dht', function () {
         spawnJsDaemon(factory, [bootstrapAddr])
       ])
     })
-
+*/
     createBootstrappedNetwork('a JS bootstrap node in a hybrid land', factory => spawnJsDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnGoDaemon(factory, [bootstrapAddr]),
