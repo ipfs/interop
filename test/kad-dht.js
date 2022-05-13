@@ -28,7 +28,7 @@ const getConfig = (bootstrap = []) => ({
 /**
  * @param {Factory} factory
  * @param {Multiaddr[]} [bootstrap]
- */
+
 const spawnGoDaemon = (factory, bootstrap = []) => {
   return factory.spawn({
     type: 'go',
@@ -38,7 +38,7 @@ const spawnGoDaemon = (factory, bootstrap = []) => {
     }
   })
 }
-
+ */
 /**
  * @param {Factory} factory
  * @param {Multiaddr[]} [bootstrap]
@@ -138,7 +138,7 @@ const createBootstrappedNetwork = function (name, createBootstrapper, createNode
 /**
  * @param {string} name
  * @param {(fac: Factory) => Promise<Controller[]>} createNodes
- */
+
 const createLinearNetwork = function (name, createNodes) {
   createNetwork(name, async factory => {
     const [node0, node1, node2, node3] = await createNodes(factory)
@@ -154,7 +154,7 @@ const createLinearNetwork = function (name, createNodes) {
      * +++       +++
      * |3|       |2|
      * +-+       +-+
-     */
+
     await node3.api.swarm.connect(node0.peer.addresses[0])
     await node0.api.swarm.connect(node1.peer.addresses[0])
     await node1.api.swarm.connect(node2.peer.addresses[0])
@@ -175,10 +175,11 @@ const createLinearNetwork = function (name, createNodes) {
     })
   })
 }
+*/
 /**
  * @param {string} name
  * @param {(fac: Factory) => Promise<Controller[]>} createNodes
- */
+
 const createDisjointNetwork = function (name, createNodes) {
   createNetwork(name, async factory => {
     const [node0, node1, node2, node3, node4, node5] = await createNodes(factory)
@@ -206,7 +207,6 @@ const createDisjointNetwork = function (name, createNodes) {
       /*
       * Make connections between nodes
       * 0 -> 1 -> 2 -> 5 -> 4 -> 3
-      */
 
       await node2.api.swarm.connect(node5.peer.addresses[0])
 
@@ -215,7 +215,7 @@ const createDisjointNetwork = function (name, createNodes) {
     })
   })
 }
-
+*/
 describe('kad-dht', function () {
   this.timeout(600 * 1000)
 
@@ -232,7 +232,7 @@ describe('kad-dht', function () {
         spawnJsDaemon(factory, [bootstrapAddr])
       ])
     })
-
+/*
     createBootstrappedNetwork('a GO network', factory => spawnGoDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnGoDaemon(factory, [bootstrapAddr]),
@@ -356,5 +356,6 @@ describe('kad-dht', function () {
         spawnGoDaemon(factory)
       ])
     })
+    */
   })
 })
