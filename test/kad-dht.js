@@ -28,7 +28,7 @@ const getConfig = (bootstrap = []) => ({
 /**
  * @param {Factory} factory
  * @param {Multiaddr[]} [bootstrap]
-
+ */
 const spawnGoDaemon = (factory, bootstrap = []) => {
   return factory.spawn({
     type: 'go',
@@ -38,7 +38,7 @@ const spawnGoDaemon = (factory, bootstrap = []) => {
     }
   })
 }
- */
+
 /**
  * @param {Factory} factory
  * @param {Multiaddr[]} [bootstrap]
@@ -232,7 +232,7 @@ describe('kad-dht', function () {
         spawnJsDaemon(factory, [bootstrapAddr])
       ])
     })
-/*
+
     createBootstrappedNetwork('a GO network', factory => spawnGoDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnGoDaemon(factory, [bootstrapAddr]),
@@ -240,7 +240,7 @@ describe('kad-dht', function () {
         spawnGoDaemon(factory, [bootstrapAddr])
       ])
     })
-
+/*
     createBootstrappedNetwork('a JS bootstrap node in the land of Go', factory => spawnJsDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnGoDaemon(factory, [bootstrapAddr]),
