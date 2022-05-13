@@ -8,6 +8,7 @@ import defer from 'p-defer'
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
 import { isNode } from 'wherearewe'
 import toBuffer from 'it-to-buffer'
+import pWaitFor from 'p-wait-for'
 
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
@@ -124,6 +125,32 @@ const createBootstrappedNetwork = function (name, createBootstrapper, createNode
       }
 
       await delay(500)
+    }
+
+    // make sure the bootstrapper has each node in it's routing table
+    for (let i = 0; i < nodes.length; i++) {
+      await pWaitFor(async () => {
+        for await (const event of bootstrapper.api.dht.findPeer(nodes[i].peer.id)) {
+          if (event.name === 'FINAL_PEER') {
+            return true
+          }
+        }
+
+        return false
+      })
+    }
+
+    // make sure each node has the bootstrapper in it's routing table
+    for (let i = 0; i < nodes.length; i++) {
+      await pWaitFor(async () => {
+        for await (const event of nodes[i].api.dht.findPeer(bootstrapper.peer.id)) {
+          if (event.name === 'FINAL_PEER') {
+            return true
+          }
+        }
+
+        return false
+      })
     }
 
     return nodes
