@@ -83,6 +83,33 @@ const addFileAndCat = async (addDaemon, catDaemons, options = {}) => {
 }
 
 /**
+ * @param {Controller} nodeA
+ * @param {Controller} nodeB
+ */
+const inRoutingTable = async (nodeA, nodeB) => {
+  /**
+   * @param {Controller} nodeA
+   * @param {Controller} nodeB
+   */
+  const canFind = async (nodeA, nodeB) => {
+    pWaitFor(async () => {
+      for await (const event of nodeB.api.dht.findPeer(nodeB.peer.id)) {
+        if (event.name === 'FINAL_PEER') {
+          return true
+        }
+      }
+
+      return false
+    })
+  }
+
+  await Promise.all([
+    canFind(nodeA, nodeB),
+    canFind(nodeB, nodeA)
+  ])
+}
+
+/**
  * @param {string} name
  * @param {(fac: Factory) => Promise<Controller[]>} createNodes
  * @param {(nodes: Promise<Controller[]>) => void} tests
@@ -127,30 +154,9 @@ const createBootstrappedNetwork = function (name, createBootstrapper, createNode
       await delay(500)
     }
 
-    // make sure the bootstrapper has each node in it's routing table
+    // make sure the bootstrapper and other peers are in each other's routing tables
     for (let i = 0; i < nodes.length; i++) {
-      await pWaitFor(async () => {
-        for await (const event of bootstrapper.api.dht.findPeer(nodes[i].peer.id)) {
-          if (event.name === 'FINAL_PEER') {
-            return true
-          }
-        }
-
-        return false
-      })
-    }
-
-    // make sure each node has the bootstrapper in it's routing table
-    for (let i = 0; i < nodes.length; i++) {
-      await pWaitFor(async () => {
-        for await (const event of nodes[i].api.dht.findPeer(bootstrapper.peer.id)) {
-          if (event.name === 'FINAL_PEER') {
-            return true
-          }
-        }
-
-        return false
-      })
+      await inRoutingTable(bootstrapper, nodes[i])
     }
 
     return nodes
@@ -165,7 +171,7 @@ const createBootstrappedNetwork = function (name, createBootstrapper, createNode
 /**
  * @param {string} name
  * @param {(fac: Factory) => Promise<Controller[]>} createNodes
-
+ */
 const createLinearNetwork = function (name, createNodes) {
   createNetwork(name, async factory => {
     const [node0, node1, node2, node3] = await createNodes(factory)
@@ -181,10 +187,16 @@ const createLinearNetwork = function (name, createNodes) {
      * +++       +++
      * |3|       |2|
      * +-+       +-+
+     */
 
     await node3.api.swarm.connect(node0.peer.addresses[0])
     await node0.api.swarm.connect(node1.peer.addresses[0])
     await node1.api.swarm.connect(node2.peer.addresses[0])
+
+    // ensure nodes have their peers in their routing tables
+    await inRoutingTable(node3, node0)
+    await inRoutingTable(node0, node1)
+    await inRoutingTable(node1, node2)
 
     return [node0, node1, node2, node3]
   }, (nodes) => {
@@ -202,11 +214,11 @@ const createLinearNetwork = function (name, createNodes) {
     })
   })
 }
-*/
+
 /**
  * @param {string} name
  * @param {(fac: Factory) => Promise<Controller[]>} createNodes
-
+ */
 const createDisjointNetwork = function (name, createNodes) {
   createNetwork(name, async factory => {
     const [node0, node1, node2, node3, node4, node5] = await createNodes(factory)
@@ -217,9 +229,17 @@ const createDisjointNetwork = function (name, createNodes) {
     await node0.api.swarm.connect(node1.peer.addresses[0])
     await node1.api.swarm.connect(node2.peer.addresses[0])
 
+    // ensure nodes have their peers in their routing tables
+    await inRoutingTable(node0, node1)
+    await inRoutingTable(node1, node2)
+
     // 3 -> 4 -> 5
     await node3.api.swarm.connect(node4.peer.addresses[0])
     await node4.api.swarm.connect(node5.peer.addresses[0])
+
+    // ensure nodes have their peers in their routing tables
+    await inRoutingTable(node3, node4)
+    await inRoutingTable(node4, node5)
 
     return [node0, node1, node2, node3, node4, node5]
   }, (nodes) => {
@@ -234,15 +254,16 @@ const createDisjointNetwork = function (name, createNodes) {
       /*
       * Make connections between nodes
       * 0 -> 1 -> 2 -> 5 -> 4 -> 3
-
+      */
       await node2.api.swarm.connect(node5.peer.addresses[0])
+      await inRoutingTable(node2, node5)
 
       // should now succeed
       await addFileAndCat(node0, [node3])
     })
   })
 }
-*/
+
 describe('kad-dht', function () {
   this.timeout(600 * 1000)
 
@@ -300,7 +321,7 @@ describe('kad-dht', function () {
       ])
     })
   })
-/*
+
   describe('kad-dht with multiple hops', () => {
     createLinearNetwork('a JS node in the land of Go', (factory) => {
       return Promise.all([
@@ -384,5 +405,4 @@ describe('kad-dht', function () {
       ])
     })
   })
-  */
 })
