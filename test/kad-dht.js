@@ -157,6 +157,14 @@ const createBootstrappedNetwork = function (name, createBootstrapper, createNode
     // make sure the bootstrapper and other peers are in each other's routing tables
     for (let i = 0; i < nodes.length; i++) {
       await inRoutingTable(bootstrapper, nodes[i])
+
+      for (let j = 0; j < nodes.length; j++) {
+        if (j === i) {
+          continue
+        }
+
+        await inRoutingTable(nodes[i], nodes[j])
+      }
     }
 
     return nodes
