@@ -126,8 +126,6 @@ const createBootstrappedNetwork = function (name, createBootstrapper, createNode
       await delay(500)
     }
 
-    await delay(5000)
-
     return nodes
   }, (nodes) => {
     it('should get from the network after being added', async function () {
