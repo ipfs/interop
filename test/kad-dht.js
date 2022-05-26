@@ -322,6 +322,8 @@ TODO: this is flaky
       ])
     })
 
+/*
+TODO: this is flaky
     createBootstrappedNetwork('a Go bootstrap node in a hybrid land', factory => spawnGoDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnJsDaemon(factory, [bootstrapAddr]),
@@ -329,6 +331,7 @@ TODO: this is flaky
         spawnJsDaemon(factory, [bootstrapAddr])
       ])
     })
+*/
   })
 
   describe('kad-dht with multiple hops', () => {
