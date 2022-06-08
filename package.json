@@ -184,7 +184,7 @@
     "libp2p-webrtc-star-signalling-server": "^0.1.0",
     "libp2p-websockets": "^0.16.1",
     "multiformats": "^9.3.0",
-    "nanoid": "^3.1.10",
+    "nanoid": "^4.0.0",
     "p-defer": "^3.0.0",
     "p-retry": "^4.1.0",
     "peer-id": "^0.16.0",
