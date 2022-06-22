@@ -42,14 +42,11 @@ export function createProc (addrs, factory, relay) {
         }
       },
       libp2p: {
-        config: {
-          transports: [
-            new WebSockets({
-              filter: filters.all
-            })
-          ],
-          dht: undefined
-        }
+        transports: [
+          new WebSockets({
+            filter: filters.all
+          })
+        ]
       }
     }
   })
@@ -78,11 +75,6 @@ export function createJs (addrs, factory, relay) {
           enabled: true,
           hop: {
             enabled: true
-          }
-        },
-        libp2p: {
-          config: {
-            dht: undefined
           }
         }
       }
