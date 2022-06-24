@@ -6,6 +6,7 @@ import { expect } from 'aegir/chai'
 import { daemonFactory } from './utils/daemon-factory.js'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
+import { isPeerId } from '@libp2p/interfaces/peer-id'
 
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
@@ -96,7 +97,8 @@ describe('pubsub', function () {
             expect(msg).to.have.property('sequenceNumber')
             expect(msg.sequenceNumber).to.be.a('bigint')
             expect(msg).to.have.property('topic', topic)
-            expect(msg).to.have.property('from', daemon1.peer.id.toString())
+            expect(isPeerId(msg.from)).to.be.true()
+            expect(msg.from.toString()).to.equal(daemon1.peer.id.toString())
             resolve()
           })
         })
@@ -123,7 +125,8 @@ describe('pubsub', function () {
             expect(msg).to.have.property('sequenceNumber')
             expect(msg.sequenceNumber).to.be.a('bigint')
             expect(msg).to.have.property('topic', topic)
-            expect(msg).to.have.property('from', daemon1.peer.id.toString())
+            expect(isPeerId(msg.from)).to.be.true()
+            expect(msg.from.toString()).to.equal(daemon1.peer.id.toString())
             resolve()
           })
         })
@@ -150,7 +153,8 @@ describe('pubsub', function () {
             expect(msg).to.have.property('sequenceNumber')
             expect(msg.sequenceNumber).to.be.a('bigint')
             expect(msg).to.have.property('topic', topic)
-            expect(msg).to.have.property('from', daemon1.peer.id.toString())
+            expect(isPeerId(msg.from)).to.be.true()
+            expect(msg.from.toString()).to.equal(daemon1.peer.id.toString())
             resolve()
           })
         })
@@ -177,7 +181,8 @@ describe('pubsub', function () {
             expect(msg).to.have.property('sequenceNumber')
             expect(msg.sequenceNumber).to.be.a('bigint')
             expect(msg).to.have.property('topic', topic)
-            expect(msg).to.have.property('from', daemon1.peer.id.toString())
+            expect(isPeerId(msg.from)).to.be.true()
+            expect(msg.from.toString()).to.equal(daemon1.peer.id.toString())
             resolve()
           })
         })

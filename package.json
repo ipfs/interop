@@ -158,6 +158,7 @@
     "dep-check": "aegir dep-check package.json"
   },
   "dependencies": {
+    "@libp2p/interfaces": "^2.0.2",
     "@libp2p/peer-id": "^1.1.10",
     "@libp2p/webrtc-star-signalling-server": "^1.0.4",
     "@libp2p/websockets": "^1.0.8",
