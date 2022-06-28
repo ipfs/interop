@@ -158,10 +158,10 @@
     "dep-check": "aegir dep-check package.json"
   },
   "dependencies": {
-    "@libp2p/interfaces": "^2.0.2",
+    "@libp2p/interface-peer-id": "^1.0.4",
     "@libp2p/peer-id": "^1.1.10",
-    "@libp2p/webrtc-star-signalling-server": "^1.0.4",
-    "@libp2p/websockets": "^1.0.8",
+    "@libp2p/webrtc-star-signalling-server": "^2.0.1",
+    "@libp2p/websockets": "^3.0.0",
     "@types/is-ci": "^3.0.0",
     "aegir": "^37.0.15",
     "assert": "^2.0.0",
@@ -174,11 +174,11 @@
     "got": "^12.0.0",
     "gunzip-maybe": "^1.4.2",
     "hasha": "^5.2.2",
-    "import-meta-resolve": "^1.1.1",
+    "import-meta-resolve": "^2.0.3",
     "ipfs-unixfs": "^6.0.3",
     "ipfs-utils": "^9.0.1",
     "ipfsd-ctl": "^11.0.0",
-    "ipns": "^1.0.0",
+    "ipns": "^2.0.0",
     "is-ci": "^3.0.0",
     "iso-random-stream": "^2.0.0",
     "it-all": "^1.0.1",
@@ -187,7 +187,7 @@
     "it-last": "^1.0.1",
     "it-to-buffer": "^2.0.1",
     "multiformats": "^9.3.0",
-    "nanoid": "^3.1.10",
+    "nanoid": "^4.0.0",
     "p-defer": "^4.0.0",
     "p-retry": "^5.1.1",
     "p-wait-for": "^4.1.0",
@@ -201,9 +201,10 @@
     "wherearewe": "^1.0.0"
   },
   "devDependencies": {
-    "go-ipfs": "^0.12.2",
-    "ipfs": "^0.62.3",
-    "ipfs-http-client": "^56.0.3"
+    "@types/rimraf": "^3.0.2",
+    "go-ipfs": "^0.13.0",
+    "ipfs": "^0.63.5",
+    "ipfs-http-client": "^57.0.3"
   },
   "browser": {
     "go-ipfs": false,

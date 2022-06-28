@@ -6,7 +6,7 @@ import { expect } from 'aegir/chai'
 import { daemonFactory } from './utils/daemon-factory.js'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
-import { isPeerId } from '@libp2p/interfaces/peer-id'
+import { isPeerId } from '@libp2p/interface-peer-id'
 
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
