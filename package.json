@@ -175,7 +175,7 @@
     "gunzip-maybe": "^1.4.2",
     "hasha": "^5.2.2",
     "import-meta-resolve": "^2.0.3",
-    "ipfs-unixfs": "^6.0.3",
+    "ipfs-unixfs": "^7.0.0",
     "ipfs-utils": "^9.0.1",
     "ipfsd-ctl": "^12.0.0",
     "ipns": "^2.0.0",
@@ -190,7 +190,7 @@
     "nanoid": "^4.0.0",
     "p-defer": "^4.0.0",
     "p-retry": "^5.1.1",
-    "p-wait-for": "^4.1.0",
+    "p-wait-for": "^5.0.0",
     "pretty-bytes": "^6.0.0",
     "promisify-es6": "^1.0.3",
     "random-fs": "^1.0.3",
@@ -202,7 +202,7 @@
   },
   "devDependencies": {
     "@types/rimraf": "^3.0.2",
-    "go-ipfs": "^0.13.0",
+    "go-ipfs": "^0.14.0",
     "ipfs": "^0.63.5",
     "ipfs-http-client": "^57.0.3"
   },
