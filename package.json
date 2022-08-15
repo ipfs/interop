@@ -22,9 +22,8 @@
   "bin": {
     "ipfs-interop": "bin/ipfs-interop.js"
   },
-  "main": "src/index.js",
   "type": "module",
-  "types": "dist/src/index.d.ts",
+  "types": "./dist/src/index.d.ts",
   "typesVersions": {
     "*": {
       "*": [
@@ -42,11 +41,14 @@
     }
   },
   "files": [
-    "*",
+    "src",
+    "dist",
+    "!dist/test",
     "!**/*.tsbuildinfo"
   ],
   "exports": {
     ".": {
+      "types": "./dist/src/index.d.ts",
       "import": "./src/index.js"
     }
   },
@@ -86,15 +88,15 @@
               "release": "patch"
             },
             {
-              "type": "chore",
-              "release": "patch"
-            },
-            {
               "type": "docs",
               "release": "patch"
             },
             {
               "type": "test",
+              "release": "patch"
+            },
+            {
+              "type": "deps",
               "release": "patch"
             },
             {
@@ -124,7 +126,11 @@
               },
               {
                 "type": "docs",
-                "section": "Trivial Changes"
+                "section": "Documentation"
+              },
+              {
+                "type": "deps",
+                "section": "Dependencies"
               },
               {
                 "type": "test",
@@ -135,12 +141,7 @@
         }
       ],
       "@semantic-release/changelog",
-      [
-        "@semantic-release/npm",
-        {
-          "pkgRoot": "dist"
-        }
-      ],
+      "@semantic-release/npm",
       "@semantic-release/github",
       "@semantic-release/git"
     ]
@@ -151,11 +152,10 @@
     "build": "aegir build",
     "release": "aegir release",
     "postinstall": "cross-env node ./scripts/setup-libp2p-relay-daemon.js",
-    "pretest": "aegir build",
     "test": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test",
-    "test:node": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t node -f test/node.js",
-    "test:browser": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t browser -f test/browser.js",
-    "dep-check": "aegir dep-check package.json"
+    "test:node": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t node -f test/node.js --cov",
+    "test:browser": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t browser -f test/browser.js --cov",
+    "dep-check": "aegir dep-check"
   },
   "dependencies": {
     "@libp2p/interface-peer-id": "^1.0.4",
@@ -198,7 +198,7 @@
     "tar-fs": "^2.1.1",
     "uint8arrays": "^3.0.0",
     "unzip-stream": "^0.3.1",
-    "wherearewe": "^1.0.0"
+    "wherearewe": "^2.0.1"
   },
   "devDependencies": {
     "@types/rimraf": "^3.0.2",

@@ -93,6 +93,10 @@ describe('pubsub', function () {
         /** @type {() => Promise<void>} */
         const subscriber = () => new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
+            if (msg.type !== 'signed') {
+              throw new Error('Message was unsigned')
+            }
+
             expect(uint8ArrayEquals(data, msg.data)).to.be.true()
             expect(msg).to.have.property('sequenceNumber')
             expect(msg.sequenceNumber).to.be.a('bigint')
@@ -121,6 +125,10 @@ describe('pubsub', function () {
         /** @type {() => Promise<void>} */
         const subscriber = () => new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
+            if (msg.type !== 'signed') {
+              throw new Error('Message was unsigned')
+            }
+
             expect(uint8ArrayEquals(data, msg.data)).to.be.true()
             expect(msg).to.have.property('sequenceNumber')
             expect(msg.sequenceNumber).to.be.a('bigint')
@@ -149,6 +157,10 @@ describe('pubsub', function () {
         /** @type {() => Promise<void>} */
         const subscriber = () => new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
+            if (msg.type !== 'signed') {
+              throw new Error('Message was unsigned')
+            }
+
             expect(uint8ArrayEquals(data, msg.data)).to.be.true()
             expect(msg).to.have.property('sequenceNumber')
             expect(msg.sequenceNumber).to.be.a('bigint')
@@ -177,6 +189,10 @@ describe('pubsub', function () {
         /** @type {() => Promise<void>} */
         const subscriber = () => new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
+            if (msg.type !== 'signed') {
+              throw new Error('Message was unsigned')
+            }
+
             expect(uint8ArrayEquals(data, msg.data)).to.be.true()
             expect(msg).to.have.property('sequenceNumber')
             expect(msg.sequenceNumber).to.be.a('bigint')
