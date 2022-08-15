@@ -300,7 +300,7 @@ export async function connect (nodeA, nodeB, relay, timeout = 1000) {
      */
     const listConnections = async (name, node) => {
       const peers = await node.api.swarm.peers()
-      console.log(`${name} has connections`, peers.map(p => `${p.addr.toString()}/p2p/${p.peer.toString()}`))
+      console.log(`${name} has connections`, peers.map(p => p.addr.toString()))
     }
     await listConnections('nodeA', nodeA)
     await listConnections('nodeB', nodeB)
