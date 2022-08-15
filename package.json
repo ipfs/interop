@@ -41,7 +41,12 @@
     }
   },
   "files": [
-    "*",
+    ".aegir.js",
+    "bin",
+    "src",
+    "scripts",
+    "test",
+    "dist",
     "!**/*.tsbuildinfo"
   ],
   "exports": {
