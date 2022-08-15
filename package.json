@@ -41,12 +41,7 @@
     }
   },
   "files": [
-    "bin",
-    "src",
-    "scripts",
-    "test",
-    "dist",
-    "!dist/test",
+    "*",
     "!**/*.tsbuildinfo"
   ],
   "exports": {
