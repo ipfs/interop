@@ -93,7 +93,7 @@ const inRoutingTable = async (nodeA, nodeB) => {
    */
   const canFind = async (nodeA, nodeB) => {
     pWaitFor(async () => {
-      for await (const event of nodeB.api.dht.findPeer(nodeB.peer.id)) {
+      for await (const event of nodeA.api.dht.findPeer(nodeB.peer.id)) {
         if (event.name === 'FINAL_PEER') {
           return true
         }
@@ -306,8 +306,7 @@ describe('kad-dht', function () {
         spawnGoDaemon(factory, [bootstrapAddr])
       ])
     })
-    /*
-TODO: this is flaky
+
     createBootstrappedNetwork('a Go bootstrap node in the land of JS', factory => spawnGoDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnJsDaemon(factory, [bootstrapAddr]),
@@ -315,7 +314,7 @@ TODO: this is flaky
         spawnJsDaemon(factory, [bootstrapAddr])
       ])
     })
-*/
+
     createBootstrappedNetwork('a JS bootstrap node in a hybrid land', factory => spawnJsDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnGoDaemon(factory, [bootstrapAddr]),
@@ -324,8 +323,6 @@ TODO: this is flaky
       ])
     })
 
-    /*
-TODO: this is flaky
     createBootstrappedNetwork('a Go bootstrap node in a hybrid land', factory => spawnGoDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnJsDaemon(factory, [bootstrapAddr]),
@@ -333,7 +330,6 @@ TODO: this is flaky
         spawnJsDaemon(factory, [bootstrapAddr])
       ])
     })
-*/
   })
 
   describe('kad-dht with multiple hops', () => {
