@@ -267,10 +267,14 @@ const createDisjointNetwork = function (name, createNodes) {
     it('join network', async () => {
       const [node0, _node1, node2, node3, _node4, node5] = await nodes // eslint-disable-line no-unused-vars
 
+      // FIXME: sometimes we cannot resolve the content - this can happen when the PeerId is closer
+      // to the KAD ID of the content than other nodes in the network. Our test suite here needs
+      // more peer diversity to make this unlikely to happen.
+
       // nodes at opposite ends should not find content
-      await expect(addFileAndCat(node0, [node3], {
-        timeout: 5000
-      })).to.eventually.be.rejected()
+      // await expect(addFileAndCat(node0, [node3], {
+      //  timeout: 5000
+      // })).to.eventually.be.rejected()
 
       /*
       * Make connections between nodes
