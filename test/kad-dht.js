@@ -144,6 +144,8 @@ const createBootstrappedNetwork = function (name, createBootstrapper, createNode
     const bootstrapAddr = await getNodeAddr(bootstrapper)
     const nodes = await createNodes(factory, bootstrapAddr)
 
+    await delay(5000)
+
     while (true) {
       const peers = await bootstrapper.api.swarm.peers()
 
@@ -304,8 +306,7 @@ describe('kad-dht', function () {
         spawnGoDaemon(factory, [bootstrapAddr])
       ])
     })
-    /*
-TODO: this is flaky
+
     createBootstrappedNetwork('a Go bootstrap node in the land of JS', factory => spawnGoDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnJsDaemon(factory, [bootstrapAddr]),
@@ -313,7 +314,7 @@ TODO: this is flaky
         spawnJsDaemon(factory, [bootstrapAddr])
       ])
     })
-*/
+
     createBootstrappedNetwork('a JS bootstrap node in a hybrid land', factory => spawnJsDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnGoDaemon(factory, [bootstrapAddr]),
@@ -322,8 +323,6 @@ TODO: this is flaky
       ])
     })
 
-    /*
-TODO: this is flaky
     createBootstrappedNetwork('a Go bootstrap node in a hybrid land', factory => spawnGoDaemon(factory), (factory, bootstrapAddr) => {
       return Promise.all([
         spawnJsDaemon(factory, [bootstrapAddr]),
@@ -331,7 +330,6 @@ TODO: this is flaky
         spawnJsDaemon(factory, [bootstrapAddr])
       ])
     })
-*/
   })
 
   describe('kad-dht with multiple hops', () => {
