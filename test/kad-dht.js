@@ -9,6 +9,7 @@ import { fromString as uint8ArrayFromString } from 'uint8arrays'
 import { isNode } from 'wherearewe'
 import toBuffer from 'it-to-buffer'
 import pWaitFor from 'p-wait-for'
+import all from 'it-all'
 
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
