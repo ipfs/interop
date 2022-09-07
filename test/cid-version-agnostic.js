@@ -23,12 +23,12 @@ describe('CID version agnostic', function () {
     Object.assign(daemons, { js0, js1, go0, go1 })
 
     await Promise.all([
-      js0.api.swarm.connect(js1.api.peerId.addresses[0]),
-      js1.api.swarm.connect(js0.api.peerId.addresses[0]),
-      go0.api.swarm.connect(go1.api.peerId.addresses[0]),
-      go1.api.swarm.connect(go0.api.peerId.addresses[0]),
-      js0.api.swarm.connect(go0.api.peerId.addresses[0]),
-      go0.api.swarm.connect(js0.api.peerId.addresses[0])
+      js0.api.swarm.connect(js1.peer.addresses[0]),
+      js1.api.swarm.connect(js0.peer.addresses[0]),
+      go0.api.swarm.connect(go1.peer.addresses[0]),
+      go1.api.swarm.connect(go0.peer.addresses[0]),
+      js0.api.swarm.connect(go0.peer.addresses[0]),
+      go0.api.swarm.connect(js0.peer.addresses[0])
     ])
   })
 

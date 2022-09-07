@@ -119,16 +119,16 @@ describe('exchange files', function () {
       before('connect', async function () {
         this.timeout(timeout); // eslint-disable-line
 
-        await daemon1.api.swarm.connect(daemon2.api.peerId.addresses[0])
-        await daemon2.api.swarm.connect(daemon1.api.peerId.addresses[0])
+        await daemon1.api.swarm.connect(daemon2.peer.addresses[0])
+        await daemon2.api.swarm.connect(daemon1.peer.addresses[0])
 
         const [peer1, peer2] = await Promise.all([
           daemon1.api.swarm.peers(),
           daemon2.api.swarm.peers()
         ])
 
-        expect(peer1.map((p) => p.peer.toString())).to.include(daemon2.api.peerId.id)
-        expect(peer2.map((p) => p.peer.toString())).to.include(daemon1.api.peerId.id)
+        expect(peer1.map((p) => p.peer.toString())).to.include(daemon2.peer.id)
+        expect(peer2.map((p) => p.peer.toString())).to.include(daemon1.peer.id)
       })
 
       after(() => factory.clean())

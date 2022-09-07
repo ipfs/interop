@@ -60,8 +60,8 @@ describe('ipns-pubsub', function () {
     // TODO: go-ipfs needs two nodes in the DHT to be able to publish a record
     // Remove the second connect when js-ipfs runs a DHT server
     await Promise.all([
-      nodes[0].api.swarm.connect(nodes[1].api.peerId.addresses[0]),
-      nodes[0].api.swarm.connect(nodes[2].api.peerId.addresses[0])
+      nodes[0].api.swarm.connect(nodes[1].peer.addresses[0]),
+      nodes[0].api.swarm.connect(nodes[2].peer.addresses[0])
     ])
   })
 
@@ -78,15 +78,15 @@ describe('ipns-pubsub', function () {
   it('should publish the received record to a go node and a js subscriber should receive it', async function () {
     // TODO find out why JS doesn't resolve, might be just missing a DHT
     await Promise.all([
-      subscribeToReceiveByPubsub(nodes[0], nodes[1], nodes[0].api.peerId.id, nodes[1].api.peerId.id),
-      expect(last(nodes[1].api.name.resolve(nodes[0].api.peerId.id, { stream: false }))).to.eventually.be.rejected.with(/was not found in the network/)
+      subscribeToReceiveByPubsub(nodes[0], nodes[1], nodes[0].peer.id, nodes[1].peer.id),
+      expect(last(nodes[1].api.name.resolve(nodes[0].peer.id, { stream: false }))).to.eventually.be.rejected.with(/was not found in the network/)
     ])
   })
 
   it('should publish the received record to a js node and a go subscriber should receive it', async function () {
     await Promise.all([
-      subscribeToReceiveByPubsub(nodes[1], nodes[0], nodes[1].api.peerId.id, nodes[0].api.peerId.id),
-      last(nodes[0].api.name.resolve(nodes[1].api.peerId.id, { stream: false }))
+      subscribeToReceiveByPubsub(nodes[1], nodes[0], nodes[1].peer.id, nodes[0].peer.id),
+      last(nodes[0].api.name.resolve(nodes[1].peer.id, { stream: false }))
     ])
   })
 })

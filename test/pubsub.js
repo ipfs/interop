@@ -58,16 +58,16 @@ describe('pubsub', function () {
       before('connect', async function () {
         this.timeout(timeout)
 
-        await daemon1.api.swarm.connect(daemon2.api.peerId.addresses[0])
-        await daemon2.api.swarm.connect(daemon1.api.peerId.addresses[0])
+        await daemon1.api.swarm.connect(daemon2.peer.addresses[0])
+        await daemon2.api.swarm.connect(daemon1.peer.addresses[0])
 
         const peers = await Promise.all([
           daemon1.api.swarm.peers(),
           daemon2.api.swarm.peers()
         ])
 
-        expect(peers[0].map((p) => p.peer.toString())).to.include(daemon2.api.peerId.id)
-        expect(peers[1].map((p) => p.peer.toString())).to.include(daemon1.api.peerId.id)
+        expect(peers[0].map((p) => p.peer.toString())).to.include(daemon2.peer.id)
+        expect(peers[1].map((p) => p.peer.toString())).to.include(daemon1.peer.id)
       })
 
       after(() => factory.clean())
@@ -82,13 +82,13 @@ describe('pubsub', function () {
             expect(msg).to.have.property('seqno')
             expect(msg.seqno).to.be.an.instanceof(Uint8Array)
             expect(msg).to.have.property('topicIDs').and.to.include(topic)
-            expect(msg).to.have.property('from', daemon1.api.peerId.id)
+            expect(msg).to.have.property('from', daemon1.peer.id)
             resolve()
           })
         })
 
         const publisher = async () => {
-          await waitForTopicPeer(topic, daemon2.api.peerId, daemon1)
+          await waitForTopicPeer(topic, daemon2.peer, daemon1)
           await daemon1.api.pubsub.publish(topic, data)
         }
 
@@ -108,13 +108,13 @@ describe('pubsub', function () {
             expect(msg).to.have.property('seqno')
             expect(msg.seqno).to.be.an.instanceof(Uint8Array)
             expect(msg).to.have.property('topicIDs').and.to.include(topic)
-            expect(msg).to.have.property('from', daemon1.api.peerId.id)
+            expect(msg).to.have.property('from', daemon1.peer.id)
             resolve()
           })
         })
 
         const publisher = async () => {
-          await waitForTopicPeer(topic, daemon2.api.peerId, daemon1)
+          await waitForTopicPeer(topic, daemon2.peer, daemon1)
           await daemon1.api.pubsub.publish(topic, data)
         }
 
@@ -134,13 +134,13 @@ describe('pubsub', function () {
             expect(msg).to.have.property('seqno')
             expect(msg.seqno).to.be.an.instanceof(Uint8Array)
             expect(msg).to.have.property('topicIDs').and.to.include(topic)
-            expect(msg).to.have.property('from', daemon1.api.peerId.id)
+            expect(msg).to.have.property('from', daemon1.peer.id)
             resolve()
           })
         })
 
         const publisher = async () => {
-          await waitForTopicPeer(topic, daemon2.api.peerId, daemon1)
+          await waitForTopicPeer(topic, daemon2.peer, daemon1)
           await daemon1.api.pubsub.publish(topic, data)
         }
 
@@ -160,13 +160,13 @@ describe('pubsub', function () {
             expect(msg).to.have.property('seqno')
             expect(msg.seqno).to.be.an.instanceof(Uint8Array)
             expect(msg).to.have.property('topicIDs').and.to.include(topic)
-            expect(msg).to.have.property('from', daemon1.api.peerId.id)
+            expect(msg).to.have.property('from', daemon1.peer.id)
             resolve()
           })
         })
 
         const publisher = async () => {
-          await waitForTopicPeer(topic, daemon2.api.peerId, daemon1)
+          await waitForTopicPeer(topic, daemon2.peer, daemon1)
           await daemon1.api.pubsub.publish(topic, data)
         }
 

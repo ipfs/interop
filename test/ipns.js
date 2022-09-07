@@ -37,7 +37,7 @@ const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
   await publisherDaemon.init()
   await publisherDaemon.start()
 
-  const nodeId = publisherDaemon.api.peerId.id
+  const nodeId = publisherDaemon.peer.id
 
   await publisherDaemon.api.name.publish(ipfsRef, {
     resolve: false,

@@ -238,8 +238,8 @@ export async function getTcpAddr (api) {
 
 export async function connect (nodeA, nodeB, relay, timeout = 1000) {
   const relayWsAddr = await getWsAddr(relay.api)
-  const nodeAId = nodeA.api.peerId.id
-  const nodeBId = nodeB.api.peerId.id
+  const nodeAId = nodeA.peer.id
+  const nodeBId = nodeB.peer.id
 
   if (process.env.DEBUG) console.log(`connect A (${nodeAId}) to relay at`, relayWsAddr)
   await nodeA.api.swarm.connect(relayWsAddr)
@@ -249,7 +249,7 @@ export async function connect (nodeA, nodeB, relay, timeout = 1000) {
 
   // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
   await delay(timeout)
-  const nodeBCircuitAddr = `${relayWsAddr}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+  const nodeBCircuitAddr = `${relayWsAddr}/p2p-circuit/p2p/${nodeB.peer.id}`
   if (process.env.DEBUG) console.log('connect A to B over circuit', nodeBCircuitAddr)
   await nodeA.api.swarm.connect(nodeBCircuitAddr)
 

@@ -106,7 +106,7 @@ export default {
       await relay.api.swarm.connect(await getWrtcStarAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(5000)
-      const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+      const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.peer.id}`
       await nodeA.api.swarm.connect(nodeBCircuitAddr)
     },
     skip: () => true // go-ipfs does not know what p2p-webrtc-star is
@@ -122,7 +122,7 @@ export default {
       await relay.api.swarm.connect(await getWrtcStarAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(3000)
-      const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+      const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.peer.id}`
       await nodeA.api.swarm.connect(nodeBCircuitAddr)
     },
     skip: () => isWebWorker // no webrtc support in webworkers
@@ -138,7 +138,7 @@ export default {
       await relay.api.swarm.connect(await getWsAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(5000)
-      const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+      const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.peer.id}`
       await nodeA.api.swarm.connect(nodeBCircuitAddr)
     },
     skip: () => isWebWorker // no webrtc support in webworkers
@@ -154,7 +154,7 @@ export default {
       await relay.api.swarm.connect(await getWsAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(3000)
-      const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.api.peerId.id}`
+      const nodeBCircuitAddr = `${await getWrtcStarAddr(relay.api)}/p2p-circuit/p2p/${nodeB.peer.id}`
       await nodeA.api.swarm.connect(nodeBCircuitAddr)
     },
     skip: () => isWebWorker // no webrtc support in webworkers
