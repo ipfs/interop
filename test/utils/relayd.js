@@ -37,7 +37,9 @@ export async function getRelayV (version) {
       id = text.split('I am')[1].split('\n')[0].trim()
     }
   }
-  const config = JSON.parse(fs.readFileSync(configPath).toString())
+  const config = JSON.parse(fs.readFileSync(configPath, {
+    encoding: 'utf-8'
+  }))
   const result = {
     relayd,
     // Mock: make it look like other things returned by ipfsd-ctl to reuse existing code.
