@@ -15,7 +15,7 @@ import os from 'os'
 import hasha from 'hasha'
 
 // libp2p-relay-daemon version from https://dist.ipfs.io/libp2p-relay-daemon/
-const LIBP2P_RELAY_DAEMON_VERSION = 'v0.1.0'
+const LIBP2P_RELAY_DAEMON_VERSION = 'v0.2.0'
 
 /**
  * avoid expensive fetch if file is already in cache
@@ -148,8 +148,8 @@ async function download ({ version, platform, arch, installPath, distUrl }) {
 
 download({
   version: LIBP2P_RELAY_DAEMON_VERSION,
-  platform: process.env.TARGET_OS || goenv.GOOS,
-  arch: process.env.TARGET_ARCH || goenv.GOARCH,
+  platform: process.env.TARGET_OS || goenv.GOOS || os.platform(),
+  arch: process.env.TARGET_ARCH || goenv.GOARCH || os.arch(),
   distUrl: process.env.GO_IPFS_DIST_URL || 'https://dist.ipfs.io',
   installPath: path.resolve('scripts')
 })
