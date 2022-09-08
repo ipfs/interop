@@ -76,7 +76,7 @@ describe('pubsub', function () {
         const data = uint8ArrayFromString('hello world')
         const topic = 'pubsub-ascii'
 
-        const subscriber = () => new Promise((resolve) => {
+        const subscriber = () => /** @type {Promise<void>} */(new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
             expect(uint8ArrayEquals(data, msg.data)).to.be.true()
             expect(msg).to.have.property('seqno')
@@ -85,7 +85,7 @@ describe('pubsub', function () {
             expect(msg).to.have.property('from', daemon1.peer.id)
             resolve()
           })
-        })
+        }))
 
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon2.peer, daemon1)
@@ -102,7 +102,7 @@ describe('pubsub', function () {
         const data = uint8ArrayFromString('你好世界 zażółć gęślą jaźń')
         const topic = 'pubsub-non-ascii'
 
-        const subscriber = () => new Promise((resolve) => {
+        const subscriber = () => /** @type {Promise<void>} */(new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
             expect(uint8ArrayEquals(data, msg.data)).to.be.true()
             expect(msg).to.have.property('seqno')
@@ -111,7 +111,7 @@ describe('pubsub', function () {
             expect(msg).to.have.property('from', daemon1.peer.id)
             resolve()
           })
-        })
+        }))
 
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon2.peer, daemon1)
@@ -128,7 +128,7 @@ describe('pubsub', function () {
         const data = uint8ArrayFromString('a36161636179656162830103056164a16466666666f400010203040506070809', 'base16')
         const topic = 'pubsub-binary'
 
-        const subscriber = () => new Promise((resolve) => {
+        const subscriber = () => /** @type {Promise<void>} */(new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
             expect(uint8ArrayEquals(data, msg.data)).to.be.true()
             expect(msg).to.have.property('seqno')
@@ -137,7 +137,7 @@ describe('pubsub', function () {
             expect(msg).to.have.property('from', daemon1.peer.id)
             resolve()
           })
-        })
+        }))
 
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon2.peer, daemon1)
@@ -154,7 +154,7 @@ describe('pubsub', function () {
         const data = uint8ArrayFromString('你好世界\nzażółć\r\ngęślą\njaźń')
         const topic = 'pubsub\n你好世界\r\njaźń'
 
-        const subscriber = () => new Promise((resolve) => {
+        const subscriber = () => /** @type {Promise<void>} */(new Promise((resolve) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
             expect(uint8ArrayEquals(data, msg.data)).to.be.true()
             expect(msg).to.have.property('seqno')
@@ -163,7 +163,7 @@ describe('pubsub', function () {
             expect(msg).to.have.property('from', daemon1.peer.id)
             resolve()
           })
-        })
+        }))
 
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon2.peer, daemon1)

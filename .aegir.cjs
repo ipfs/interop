@@ -3,7 +3,7 @@
 const path = require('path')
 const signaller = require('libp2p-webrtc-star-signalling-server')
 
-/** @type {import('aegir').Options["build"]["config"]} */
+/** @type {import('esbuild').BuildOptions} */
 const esbuild = {
   inject: [path.join(__dirname, 'scripts/node-globals.js')],
   plugins: [

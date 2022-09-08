@@ -1,10 +1,11 @@
 
-import { createFactory } from 'ipfsd-ctl'
 import isNode from 'detect-node'
+import ipfsdWrapper from 'ipfsd-ctl-wrapper'
 
 export async function daemonFactory () {
   let ipfsHttpModule
   let ipfsModule
+  const { createFactory } = await ipfsdWrapper()
 
   try {
     ipfsHttpModule = await import(process.env.IPFS_JS_HTTP_MODULE)

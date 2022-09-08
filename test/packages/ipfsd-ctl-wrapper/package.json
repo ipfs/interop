@@ -1,0 +1,10 @@
+{
+  "name": "ipfsd-ctl-wrapper",
+  "exports": {
+    ".": {
+      "import": "./esm-index.mjs",
+      "require": "./cjs-index.cjs",
+      "default": "./cjs-index.cjs"
+    }
+  }
+}

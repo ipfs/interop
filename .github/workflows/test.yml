@@ -114,6 +114,9 @@ jobs:
         type:
           - electron-main
           - electron-renderer
+        moduleType:
+          - cjs
+          - esm
       fail-fast: false
     steps:
       - uses: actions/checkout@v2
@@ -130,7 +133,7 @@ jobs:
             ./scripts/custom-runtime.sh
       - uses: GabrielBB/xvfb-action@v1
         with:
-          run: npm run test -- -t ${{ matrix.type }} --bail -f dist/cjs/node-test/*js
+          run: npm run test -- -t ${{ matrix.type }} --bail -f dist/${{matrix.moduleType}}/node-test/*js
 
   release:
     needs: [test-node, test-browser, test-electron]
