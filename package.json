@@ -157,7 +157,8 @@
     "postinstall": "cross-env node ./scripts/setup-libp2p-relay-daemon.js",
     "test": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test",
     "test:node": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t node -f test/node.js --cov",
-    "test:browser": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t browser -f test/browser.js --cov",
+    "test:chrome": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t browser -f test/browser.js --cov",
+    "test:electron-main": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t electron-main -f test/node.js",
     "dep-check": "aegir dep-check"
   },
   "dependencies": {

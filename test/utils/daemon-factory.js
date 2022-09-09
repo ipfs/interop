@@ -1,5 +1,5 @@
 import { createFactory } from 'ipfsd-ctl'
-import { isNode } from 'wherearewe'
+import { isNode, isElectronMain } from 'wherearewe'
 
 export async function daemonFactory () {
   let ipfsHttpModule
@@ -42,7 +42,7 @@ export async function daemonFactory () {
  * @param {{ path: () => string }} [module]
  */
 async function findBin (envVar, moduleName, module) {
-  if (!isNode) {
+  if (!isNode && !isElectronMain) {
     return
   }
 

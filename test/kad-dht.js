@@ -6,7 +6,7 @@ import { daemonFactory } from './utils/daemon-factory.js'
 import delay from 'delay'
 import defer from 'p-defer'
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
-import { isNode } from 'wherearewe'
+import { isNode, isElectronMain } from 'wherearewe'
 import toBuffer from 'it-to-buffer'
 import pWaitFor from 'p-wait-for'
 import all from 'it-all'
@@ -292,7 +292,7 @@ const createDisjointNetwork = function (name, createNodes) {
 describe('kad-dht', function () {
   this.timeout(30 * 1000)
 
-  if (!isNode) {
+  if (!isNode && !isElectronMain) {
     it.skip('DHT tests are only run on node')
     return
   }

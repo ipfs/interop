@@ -1,4 +1,4 @@
-import { isNode } from 'wherearewe'
+import { isNode, isElectronMain } from 'wherearewe'
 import fs from 'fs'
 import path from 'path'
 import { execaCommand } from 'execa'
@@ -15,7 +15,7 @@ const relays = new Map()
  * @param {number} version
  */
 export async function getRelayV (version) {
-  if (!isNode) return
+  if (!isNode && !isElectronMain) return
   if (relays.has(version)) return relays.get(version)
   if (process.env.DEBUG) console.log(`Starting relayd_v${version}..`) // eslint-disable-line no-console
   if (version < 1 || version > 2) throw new Error('Unsupported circuit relay version')

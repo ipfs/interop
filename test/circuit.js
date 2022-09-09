@@ -5,7 +5,7 @@ import allV1 from './circuit/v1/all.js'
 import allV2 from './circuit/v2/all.js'
 import browserV1 from './circuit/v1/browser.js'
 import browserV2 from './circuit/v2/browser.js'
-import { isNode } from 'wherearewe'
+import { isNode, isElectronMain } from 'wherearewe'
 import { connect, send, clean } from './utils/circuit.js'
 import { closeRelays } from './utils/relayd.js'
 import { daemonFactory } from './utils/daemon-factory.js'
@@ -35,7 +35,7 @@ describe('circuit', () => {
     })
 
     /** @type {*} */
-    const tests = isNode ? allV1 : browserV1
+    const tests = isNode || isElectronMain ? allV1 : browserV1
 
     Object.keys(tests).forEach((test) => {
       /** @type {Controller} */
@@ -82,7 +82,7 @@ describe('circuit', () => {
     })
 
     /** @type {*} */
-    const tests = isNode ? allV2 : browserV2
+    const tests = isNode || isElectronMain ? allV2 : browserV2
 
     Object.keys(tests).forEach((test) => {
       /** @type {Controller} */
