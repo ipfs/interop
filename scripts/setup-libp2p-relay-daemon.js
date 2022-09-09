@@ -77,11 +77,11 @@ async function getDownloadURL (version, platform, arch, distUrl) {
   const data = await got(`${distUrl}/libp2p-relay-daemon/${version}/dist.json`).json()
 
   if (!data.platforms[platform]) {
-    throw new Error(`No binary available for platform '${platform}'`)
+    throw new Error(`No binary available for platform '${platform}'. Available platforms: ${Object.keys(data.platforms).join(', ')}`)
   }
 
   if (!data.platforms[platform].archs[arch]) {
-    throw new Error(`No binary available for platform '${platform}' and arch '${arch}'`)
+    throw new Error(`No binary available for platform '${platform}' and arch '${arch}'. Available architectures: ${Object.keys(data.platforms[platform].archs)}`)
   }
 
   const link = data.platforms[platform].archs[arch].link
@@ -153,8 +153,8 @@ async function download ({ version, platform, arch, installPath, distUrl }) {
 
 download({
   version: LIBP2P_RELAY_DAEMON_VERSION,
-  platform: process.env.TARGET_OS || goenv.GOOS,
-  arch: process.env.TARGET_ARCH || goenv.GOARCH,
+  platform: process.env.TARGET_OS || goenv.GOOS || os.platform(),
+  arch: process.env.TARGET_ARCH || goenv.GOARCH || os.arch(),
   distUrl: process.env.GO_IPFS_DIST_URL || 'https://dist.ipfs.io',
   installPath: path.resolve('scripts')
 })

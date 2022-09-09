@@ -1,3 +1,15 @@
+### [8.0.11](https://github.com/ipfs/interop/compare/v8.0.10...v8.0.11) (2022-09-07)
+
+
+### Bug Fixes
+
+* use os.arch() when arch is undefined ([#488](https://github.com/ipfs/interop/issues/488)) ([f0cf7d8](https://github.com/ipfs/interop/commit/f0cf7d86469f9230ad6bd7d1a3e7bc884388e139)), closes [#487](https://github.com/ipfs/interop/issues/487)
+
+
+### Trivial Changes
+
+* Update .github/workflows/stale.yml [skip ci] ([2288d77](https://github.com/ipfs/interop/commit/2288d77ffae13ca8eff9c8ff385895746f750b77))
+
 ### [8.0.10](https://github.com/ipfs/interop/compare/v8.0.9...v8.0.10) (2022-04-19)
 
 
