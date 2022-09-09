@@ -1,8 +1,6 @@
 'use strict'
 
 const path = require('path')
-const createServer = require('ipfsd-ctl').createServer
-const signaller = require('libp2p-webrtc-star-signalling-server')
 
 /** @type {import('aegir').Options["build"]["config"]} */
 const esbuild = {
@@ -39,6 +37,9 @@ module.exports = {
     },
     async before (options) {
       if (options.runner !== 'node') {
+        const { createServer } = await import('ipfsd-ctl')
+        const { sigServer } = await import('@libp2p/webrtc-star-signalling-server')
+
         const ipfsdServer = await createServer({
           host: '127.0.0.1',
           port: 43134
@@ -65,7 +66,7 @@ module.exports = {
           }
         }).start()
 
-        const signallingServer = await signaller.start({
+        const signallingServer = await sigServer({
           port: 24642,
           host: '0.0.0.0',
           metrics: false
