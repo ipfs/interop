@@ -10,7 +10,6 @@ on:
 jobs:
 
   test-node:
-    needs: check
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
