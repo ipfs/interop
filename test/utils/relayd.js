@@ -22,7 +22,7 @@ export async function getRelayV (version) {
   const binaryPath = path.join('scripts', `libp2p-relay-daemon${platform === 'windows' ? '.exe' : ''}`)
   const configPath = path.join('scripts', `relayd_v${version}.config.json`)
   const identityPath = path.join('scripts', `relayd_v${version}.identity`)
-  if (process.env.DEBUG) console.info(`${binaryPath} -config ${configPath} -id ${identityPath}`)  // eslint-disable-line no-console
+  if (process.env.DEBUG) console.info(`${binaryPath} -config ${configPath} -id ${identityPath}`) // eslint-disable-line no-console
   const relayd = execaCommand(`${binaryPath} -config ${configPath} -id ${identityPath}`, {
     all: true
   })
