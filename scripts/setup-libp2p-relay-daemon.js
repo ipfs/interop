@@ -143,6 +143,11 @@ async function download ({ version, platform, arch, installPath, distUrl }) {
   fs.rmSync(tmpDir, { recursive: true })
   console.info(`Unpacked binary placed in ${finalPath}`)
 
+  if (platform !== 'windows') {
+    console.info(`Ensuring ${finalPath} is executable`)
+    fs.chmodSync(finalPath, 0o755)
+  }
+
   return finalPath
 }
 

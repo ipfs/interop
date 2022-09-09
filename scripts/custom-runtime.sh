@@ -10,8 +10,8 @@
 #
 #  export IPFS_GO_EXEC=/tmp/go-ipfs/cmd/ipfs/ipfs
 #  export IPFS_JS_EXEC=/tmp/js-ipfs/packages/ipfs/src/cli.js
-#  export IPFS_JS_MODULE=/tmp/js-ipfs/packages/ipfs/dist/cjs/src/index.js
-#  export IPFS_JS_HTTP_MODULE=/tmp/js-ipfs/packages/ipfs-http-client/dist/cjs/src/index.js
+#  export IPFS_JS_MODULE=/tmp/js-ipfs/packages/ipfs/src/index.js
+#  export IPFS_JS_HTTP_MODULE=/tmp/js-ipfs/packages/ipfs-http-client/src/index.js
 #  ./scripts/custom-runtime.sh
 #  node bin/ipfs-interop.js -- -t node --grep "pubsub"
 
