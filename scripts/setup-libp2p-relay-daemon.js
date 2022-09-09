@@ -145,7 +145,7 @@ async function download ({ version, platform, arch, installPath, distUrl }) {
 
   if (platform !== 'windows') {
     console.info(`Ensuring ${finalPath} is executable`)
-    fs.chmodSync(finalPath, 0755)
+    fs.chmodSync(finalPath, 0o755)
   }
 
   return finalPath
