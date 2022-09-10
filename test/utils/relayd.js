@@ -1,4 +1,4 @@
-import { isNode } from 'wherearewe'
+import { isNode, isElectronMain } from 'wherearewe'
 import fs from 'fs'
 import path from 'path'
 import { execaCommand } from 'execa'
@@ -18,7 +18,7 @@ const RELAY_STARTUP_TIMEOUT = Number(process.env.RELAY_STARTUP_TIMEOUT || 30000)
  * @param {number} version
  */
 export async function getRelayV (version) {
-  if (!isNode) {
+  if (!isNode && !isElectronMain) {
     return
   }
 
