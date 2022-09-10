@@ -3,6 +3,8 @@ import fs from 'fs'
 import path from 'path'
 import { execaCommand } from 'execa'
 import pTimeout from 'p-timeout'
+import { download, LIBP2P_RELAY_DAEMON_VERSION } from '../../scripts/download-relay-daemon.js'
+import os from 'os'
 // @ts-expect-error no types
 import goenv from 'go-platform'
 const platform = process.env.TARGET_OS || goenv.GOOS
@@ -36,7 +38,18 @@ export async function getRelayV (version) {
 
   const binaryPath = path.join('scripts', `libp2p-relay-daemon${platform === 'windows' ? '.exe' : ''}`)
   const configPath = path.join('scripts', `relayd_v${version}.config.json`)
-  const identityPath = path.join('scripts', `relayd_v${version}-${Math.random()}.identity`)
+  const identityPath = path.join(os.tmpdir(), `relayd_v${version}-${Math.random()}.identity`)
+
+  if (!fs.existsSync(binaryPath)) {
+    console.info('libp2p-relay-daemon binary not found at', binaryPath) // eslint-disable-line no-console
+    await download({
+      version: LIBP2P_RELAY_DAEMON_VERSION,
+      platform: process.env.TARGET_OS || goenv.GOOS || os.platform(),
+      arch: process.env.TARGET_ARCH || goenv.GOARCH || os.arch(),
+      distUrl: process.env.GO_IPFS_DIST_URL || 'https://dist.ipfs.io',
+      installPath: path.resolve('scripts')
+    })
+  }
 
   if (process.env.DEBUG) {
     console.info(`${binaryPath} -config ${configPath} -id ${identityPath}`) // eslint-disable-line no-console
