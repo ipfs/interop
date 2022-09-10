@@ -85,7 +85,14 @@ export async function getRelayV (version) {
     }
   }
 
-  const id = await pTimeout(waitForStartup(), {
+  const promise = waitForStartup()
+  // @ts-ignore
+  promise.cancel = () => {
+    console.error(`Timed out waiting for ${binaryPath} to start after ${RELAY_STARTUP_TIMEOUT}ms, killing process`) // eslint-disable-line no-console
+    relayd.kill()
+  }
+
+  const id = await pTimeout(promise, {
     milliseconds: RELAY_STARTUP_TIMEOUT
   })
 
