@@ -155,9 +155,9 @@
     "build": "aegir build",
     "release": "aegir release",
     "test": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test",
-    "test:node": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t node -f test/node.js --cov",
+    "test:node": "cross-env DEBUG=ipfs* LIBP2P_TCP_REUSEPORT=false aegir test -t node -f test/node.js --cov",
     "test:chrome": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t browser -f test/browser.js --cov",
-    "test:electron-main": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t electron-main -f test/node.js",
+    "test:electron-main": "LIBP2P_TCP_REUSEPORT=false aegir test -t electron-main -f test/node.js",
     "dep-check": "aegir dep-check"
   },
   "dependencies": {
