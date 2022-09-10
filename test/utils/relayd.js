@@ -2,6 +2,7 @@ import { isNode } from 'wherearewe'
 import fs from 'fs'
 import path from 'path'
 import { execaCommand } from 'execa'
+import pTimeout from 'p-timeout'
 // @ts-expect-error no types
 import goenv from 'go-platform'
 const platform = process.env.TARGET_OS || goenv.GOOS
@@ -10,6 +11,8 @@ const platform = process.env.TARGET_OS || goenv.GOOS
 // possible without changing too much in existing tests.  We keep one instance
 // per circuit relay version.
 const relays = new Map()
+
+const RELAY_STARTUP_TIMEOUT = Number(process.env.RELAY_STARTUP_TIMEOUT || 30000)
 
 /**
  * @param {number} version
@@ -26,20 +29,37 @@ export async function getRelayV (version) {
   const relayd = execaCommand(`${binaryPath} -config ${configPath} -id ${identityPath}`, {
     all: true
   })
-  let id = ''
 
-  if (relayd.all == null) {
+  const all = relayd.all
+
+  if (all == null) {
     throw new Error('No stdout/stderr on execa return value')
   }
 
-  for await (const line of relayd.all) {
-    const text = line.toString()
-    if (process.env.DEBUG) console.log(text) // eslint-disable-line no-console
-    if (text.includes(`RelayV${version} is running!`)) break
-    if (text.includes('I am')) {
-      id = text.split('I am')[1].split('\n')[0].trim()
+  const waitForStartup = async () => {
+    let id = ''
+
+    for await (const line of all) {
+      const text = line.toString()
+
+      if (process.env.DEBUG) {
+        console.log(text) // eslint-disable-line no-console
+      }
+
+      if (text.includes(`RelayV${version} is running!`)) {
+        return id
+      }
+
+      if (text.includes('I am')) {
+        id = text.split('I am')[1].split('\n')[0].trim()
+      }
     }
   }
+
+  const id = await pTimeout(waitForStartup(), {
+    milliseconds: RELAY_STARTUP_TIMEOUT
+  })
+
   const config = JSON.parse(fs.readFileSync(configPath, {
     encoding: 'utf-8'
   }))

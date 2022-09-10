@@ -194,6 +194,7 @@
     "nanoid": "^4.0.0",
     "p-defer": "^4.0.0",
     "p-retry": "^5.1.1",
+    "p-timeout": "^6.0.0",
     "p-wait-for": "^5.0.0",
     "pretty-bytes": "^6.0.0",
     "promisify-es6": "^1.0.3",
