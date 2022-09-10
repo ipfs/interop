@@ -150,7 +150,7 @@
     ]
   },
   "scripts": {
-    "clean": "rimraf /tmp/js-ipfs /tmp/go-ipfs ./go-libp2p-relay-daemon dist",
+    "clean": "rimraf /tmp/js-ipfs /tmp/go-ipfs scripts/go-libp2p-relay-daemon dist",
     "lint": "aegir lint",
     "build": "aegir build",
     "release": "aegir release",
