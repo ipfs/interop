@@ -68,7 +68,7 @@ const publishAndResolve = async (publisherDaemon, resolverDaemon) => {
 }
 
 describe('ipns locally using the same repo across implementations', function () {
-  this.timeout(160 * 1000)
+  this.timeout(160e3)
 
   /** @type {Factory} */
   let factory

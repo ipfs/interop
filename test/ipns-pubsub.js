@@ -43,7 +43,7 @@ describe('ipns-pubsub', function () {
 
   // Spawn daemons
   beforeEach('create the nodes', async function () {
-    this.timeout(20e3)
+    this.timeout(120e3)
 
     goNode0 = await factory.spawn({
       type: 'go',
@@ -70,7 +70,7 @@ describe('ipns-pubsub', function () {
 
   // Connect nodes and wait for republish
   beforeEach('connect the nodes', async function () {
-    this.timeout(10e3)
+    this.timeout(60e3)
     await goNode0.api.swarm.connect(goNode1.peer.addresses[0])
     await goNode0.api.swarm.connect(jsNode0.peer.addresses[0])
     await goNode0.api.swarm.connect(jsNode1.peer.addresses[0])

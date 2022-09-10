@@ -39,7 +39,7 @@ const daemonOptions = {
 const timeout = 20e3
 
 describe('pubsub', function () {
-  this.timeout(60 * 1000)
+  this.timeout(60e3)
 
   /** @type {Record<string, ((fac: Factory) => Promise<Controller>)[]>} */
   const tests = {

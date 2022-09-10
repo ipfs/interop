@@ -14,8 +14,8 @@ import { daemonFactory } from './utils/daemon-factory.js'
  */
 
 describe('pin', function () {
-  this.timeout(60 * 1000)
-  this.slow(30 * 1000)
+  this.timeout(60e3)
+  this.slow(30e3)
 
   /** @type {Factory} */
   let factory
@@ -76,7 +76,7 @@ describe('pin', function () {
   }
 
   afterEach(async function () {
-    this.timeout(25 * 1000)
+    this.timeout(25e3)
     await factory.clean()
     daemons = []
   })

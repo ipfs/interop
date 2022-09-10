@@ -162,7 +162,7 @@ const compareErrors = async (expectedMessage, ...ops) => {
 }
 
 describe('files', function () {
-  this.timeout(500 * 1000)
+  this.timeout(500e3)
 
   /** @type {Controller} */
   let go

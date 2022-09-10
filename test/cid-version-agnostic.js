@@ -12,7 +12,7 @@ import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
  */
 
 describe('CID version agnostic', function () {
-  this.timeout(50 * 1000)
+  this.timeout(50e3)
   /** @type {Record<string, Controller>} */
   const daemons = {}
   /**
