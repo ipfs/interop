@@ -154,7 +154,6 @@
     "lint": "aegir lint",
     "build": "aegir build",
     "release": "aegir release",
-    "postinstall": "cross-env node ./scripts/setup-libp2p-relay-daemon.js",
     "test": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test",
     "test:node": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t node -f test/node.js --cov",
     "test:chrome": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t browser -f test/browser.js --cov",
