@@ -21,7 +21,7 @@ export async function getRelayV (version) {
   if (version < 1 || version > 2) throw new Error('Unsupported circuit relay version')
   const binaryPath = path.join('scripts', `libp2p-relay-daemon${platform === 'windows' ? '.exe' : ''}`)
   const configPath = path.join('scripts', `relayd_v${version}.config.json`)
-  const identityPath = path.join('scripts', `relayd_v${version}.identity`)
+  const identityPath = path.join('scripts', `relayd_v${version}-${Math.random()}.identity`)
   if (process.env.DEBUG) console.info(`${binaryPath} -config ${configPath} -id ${identityPath}`) // eslint-disable-line no-console
   const relayd = execaCommand(`${binaryPath} -config ${configPath} -id ${identityPath}`, {
     all: true
