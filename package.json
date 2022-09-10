@@ -214,6 +214,8 @@
   "browser": {
     "go-ipfs": false,
     "fs": false,
-    "execa": false
+    "execa": false,
+    "os": false,
+    "./scripts/download-relay-daemon.js": false
   }
 }
