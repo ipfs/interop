@@ -290,7 +290,7 @@ const createDisjointNetwork = function (name, createNodes) {
 }
 
 describe('kad-dht', function () {
-  this.timeout(30e3)
+  this.timeout(180e3)
 
   if (!isNode && !isElectronMain) {
     it.skip('DHT tests are only run on node')
