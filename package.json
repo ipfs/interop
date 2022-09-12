@@ -165,7 +165,7 @@
     "@libp2p/peer-id": "^1.1.10",
     "@libp2p/webrtc-star-signalling-server": "^2.0.1",
     "@libp2p/websockets": "^3.0.0",
-    "@multiformats/multiaddr": "^10.4.1",
+    "@multiformats/multiaddr": "^10.4.2",
     "@types/is-ci": "^3.0.0",
     "aegir": "^37.0.15",
     "assert": "^2.0.0",
