@@ -1,8 +1,8 @@
 diff --git a/node_modules/@multiformats/multiaddr/dist/src/ip.js b/node_modules/@multiformats/multiaddr/dist/src/ip.js
-index 19eee54..40623de 100644
+index 19eee54..15f7f9f 100644
 --- a/node_modules/@multiformats/multiaddr/dist/src/ip.js
 +++ b/node_modules/@multiformats/multiaddr/dist/src/ip.js
-@@ -3,17 +3,27 @@ import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
+@@ -3,17 +3,19 @@ import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
  export { isIP } from 'is-ip';
  export const isV4 = isIPv4;
  export const isV6 = isIPv6;
@@ -12,35 +12,38 @@ index 19eee54..40623de 100644
  // but with buf/offset args removed because we don't use them
  export const toBytes = function (ip) {
      let offset = 0;
-     let result;
+-    let result;
 -    ip = ip.trim();
 +    ip = ip.toString().trim();
      if (isV4(ip)) {
-+        if (ip === '127.0.0.1') {
-+            log('got 127.0.0.1')
-+        }
-+
-         result = new Uint8Array(offset + 4);
+-        result = new Uint8Array(offset + 4);
++        const result = new Uint8Array(offset + 4);
          ip.split(/\./g).forEach((byte) => {
              result[offset++] = parseInt(byte, 10) & 0xff;
          });
-+
-+        if (ip === '127.0.0.1') {
-+            log('result', result)
-+        }
++        return result;
      }
      else if (isV6(ip)) {
          const sections = ip.split(':', 8);
-@@ -54,7 +64,11 @@ export const toBytes = function (ip) {
+@@ -46,17 +48,16 @@ export const toBytes = function (ip) {
+             }
+             sections.splice.apply(sections, argv);
          }
-     }
-     if (result == null) {
--        throw new Error(`invalid ip address "${ip}"`);
-+        if (ip === '127.0.0.1') {
-+            log('wat', result)
-+        }
+-        result = new Uint8Array(offset + 16);
++        const result = new Uint8Array(offset + 16);
+         for (i = 0; i < sections.length; i++) {
+             const word = parseInt(sections[i], 16);
+             result[offset++] = (word >> 8) & 0xff;
+             result[offset++] = word & 0xff;
+         }
 +
-+        throw new Error(`invalid ip address "${ip}" isV4(${isV4(ip)}) isV6(${isV6(ip)}) ${typeof ip}`);
++        return result;
      }
-     return result;
+-    if (result == null) {
+-        throw new Error(`invalid ip address "${ip}"`);
+-    }
+-    return result;
++    throw new Error(`invalid ip address "${ip}" isV4(${isV4(ip)}) isV6(${isV6(ip)}) ${typeof ip}`);
  };
+ // Copied from https://github.com/indutny/node-ip/blob/master/lib/ip.js#L63
+ export const toString = function (buf, offset = 0, length) {
