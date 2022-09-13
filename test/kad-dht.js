@@ -293,7 +293,7 @@ const createDisjointNetwork = function (name, createNodes) {
 describe('kad-dht', function () {
   this.timeout(180e3)
 
-  if (!isNode && !isElectronMain && !isWindows) {
+  if ((!isNode && !isElectronMain) || isWindows) {
     it.skip('DHT tests are only run on node/electron main and not on windows')
     return
   }
