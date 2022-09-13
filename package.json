@@ -155,7 +155,7 @@
     "build": "aegir build",
     "release": "aegir release",
     "test": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test",
-    "test:node": "cross-env DEBUG=ipfs*,libp2p*,-*:trace,-libp2p:mss*,-libp2p:mplex*,-libp2p:kad-dht* LIBP2P_TCP_REUSEPORT=false aegir test -t node -f test/node.js --cov -- --grep dht",
+    "test:node": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t node -f test/node.js --cov",
     "test:chrome": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t browser -f test/browser.js --cov",
     "test:electron-main": "LIBP2P_TCP_REUSEPORT=false aegir test -t electron-main -f test/node.js",
     "dep-check": "aegir dep-check",
