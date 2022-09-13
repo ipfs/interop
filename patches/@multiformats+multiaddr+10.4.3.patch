@@ -1,0 +1,22 @@
+diff --git a/node_modules/@multiformats/multiaddr/dist/src/ip.js b/node_modules/@multiformats/multiaddr/dist/src/ip.js
+index 19eee54..0a0252c 100644
+--- a/node_modules/@multiformats/multiaddr/dist/src/ip.js
++++ b/node_modules/@multiformats/multiaddr/dist/src/ip.js
+@@ -8,7 +8,7 @@ export const isV6 = isIPv6;
+ export const toBytes = function (ip) {
+     let offset = 0;
+     let result;
+-    ip = ip.trim();
++    ip = ip.toString().trim();
+     if (isV4(ip)) {
+         result = new Uint8Array(offset + 4);
+         ip.split(/\./g).forEach((byte) => {
+@@ -54,7 +54,7 @@ export const toBytes = function (ip) {
+         }
+     }
+     if (result == null) {
+-        throw new Error(`invalid ip address "${ip}"`);
++        throw new Error(`invalid ip address "${ip}" isV4(${isV4(ip)}) isV6(${isV6(ip)}) ${typeof ip}`);
+     }
+     return result;
+ };
