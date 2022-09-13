@@ -1,21 +1,45 @@
 diff --git a/node_modules/@multiformats/multiaddr/dist/src/ip.js b/node_modules/@multiformats/multiaddr/dist/src/ip.js
-index 19eee54..0a0252c 100644
+index 19eee54..40623de 100644
 --- a/node_modules/@multiformats/multiaddr/dist/src/ip.js
 +++ b/node_modules/@multiformats/multiaddr/dist/src/ip.js
-@@ -8,7 +8,7 @@ export const isV6 = isIPv6;
+@@ -3,17 +3,27 @@ import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
+ export { isIP } from 'is-ip';
+ export const isV4 = isIPv4;
+ export const isV6 = isIPv6;
++import { logger } from '@libp2p/logger'
++const log = logger('ipfs:multiaddr')
+ // Copied from https://github.com/indutny/node-ip/blob/master/lib/ip.js#L7
+ // but with buf/offset args removed because we don't use them
  export const toBytes = function (ip) {
      let offset = 0;
      let result;
 -    ip = ip.trim();
 +    ip = ip.toString().trim();
      if (isV4(ip)) {
++        if (ip === '127.0.0.1') {
++            log('got 127.0.0.1')
++        }
++
          result = new Uint8Array(offset + 4);
          ip.split(/\./g).forEach((byte) => {
-@@ -54,7 +54,7 @@ export const toBytes = function (ip) {
+             result[offset++] = parseInt(byte, 10) & 0xff;
+         });
++
++        if (ip === '127.0.0.1') {
++            log('result', result)
++        }
+     }
+     else if (isV6(ip)) {
+         const sections = ip.split(':', 8);
+@@ -54,7 +64,11 @@ export const toBytes = function (ip) {
          }
      }
      if (result == null) {
 -        throw new Error(`invalid ip address "${ip}"`);
++        if (ip === '127.0.0.1') {
++            log('wat', result)
++        }
++
 +        throw new Error(`invalid ip address "${ip}" isV4(${isV4(ip)}) isV6(${isV6(ip)}) ${typeof ip}`);
      }
      return result;
