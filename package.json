@@ -158,8 +158,7 @@
     "test:node": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t node -f test/node.js --cov",
     "test:chrome": "cross-env LIBP2P_TCP_REUSEPORT=false aegir test -t browser -f test/browser.js --cov",
     "test:electron-main": "LIBP2P_TCP_REUSEPORT=false aegir test -t electron-main -f test/node.js",
-    "dep-check": "aegir dep-check",
-    "postinstall": "patch-package"
+    "dep-check": "aegir dep-check"
   },
   "dependencies": {
     "@libp2p/interface-peer-id": "^1.0.4",
@@ -210,8 +209,7 @@
     "@types/rimraf": "^3.0.2",
     "go-ipfs": "^0.15.0",
     "ipfs": "^0.64.0",
-    "ipfs-http-client": "^58.0.0",
-    "patch-package": "^6.4.7"
+    "ipfs-http-client": "^58.0.0"
   },
   "browser": {
     "go-ipfs": false,
@@ -219,6 +217,7 @@
     "execa": false,
     "os": false,
     "path": false,
-    "./scripts/download-relay-daemon.js": false
+    "./scripts/download-relay-daemon.js": false,
+    "./test/utils/is-windows.js": "./test/utils/is-windows.browser.js"
   }
 }

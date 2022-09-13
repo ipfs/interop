@@ -16,8 +16,7 @@ import globSource from 'ipfs-utils/src/files/glob-source.js'
 import { expect } from 'aegir/chai'
 import { daemonFactory } from './utils/daemon-factory.js'
 import last from 'it-last'
-
-const isWindows = os.platform() === 'win32'
+import isWindows from './utils/is-windows.js'
 
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller

@@ -7,6 +7,7 @@ import delay from 'delay'
 import defer from 'p-defer'
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
 import { isNode, isElectronMain } from 'wherearewe'
+import isWindows from './utils/is-windows.js'
 import toBuffer from 'it-to-buffer'
 import pWaitFor from 'p-wait-for'
 import all from 'it-all'
@@ -292,8 +293,8 @@ const createDisjointNetwork = function (name, createNodes) {
 describe('kad-dht', function () {
   this.timeout(180e3)
 
-  if (!isNode && !isElectronMain) {
-    it.skip('DHT tests are only run on node')
+  if (!isNode && !isElectronMain && !isWindows) {
+    it.skip('DHT tests are only run on node/electron main and not on windows')
     return
   }
 
