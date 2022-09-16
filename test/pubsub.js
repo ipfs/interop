@@ -7,6 +7,7 @@ import { daemonFactory } from './utils/daemon-factory.js'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { isPeerId } from '@libp2p/interface-peer-id'
+import pTimeout from 'p-timeout'
 
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
@@ -117,8 +118,14 @@ describe('pubsub', function () {
         }
 
         return Promise.all([
-          subscriber(),
-          publisher()
+          pTimeout(subscriber(), {
+            milliseconds: timeout,
+            message: 'subscriber timed out'
+          }),
+          pTimeout(publisher(), {
+            milliseconds: timeout,
+            message: 'publisher timed out'
+          })
         ])
       })
 
@@ -153,8 +160,14 @@ describe('pubsub', function () {
         }
 
         return Promise.all([
-          subscriber(),
-          publisher()
+          pTimeout(subscriber(), {
+            milliseconds: timeout,
+            message: 'subscriber timed out'
+          }),
+          pTimeout(publisher(), {
+            milliseconds: timeout,
+            message: 'publisher timed out'
+          })
         ])
       })
 
@@ -189,8 +202,14 @@ describe('pubsub', function () {
         }
 
         return Promise.all([
-          subscriber(),
-          publisher()
+          pTimeout(subscriber(), {
+            milliseconds: timeout,
+            message: 'subscriber timed out'
+          }),
+          pTimeout(publisher(), {
+            milliseconds: timeout,
+            message: 'publisher timed out'
+          })
         ])
       })
 
@@ -225,8 +244,14 @@ describe('pubsub', function () {
         }
 
         return Promise.all([
-          subscriber(),
-          publisher()
+          pTimeout(subscriber(), {
+            milliseconds: timeout,
+            message: 'subscriber timed out'
+          }),
+          pTimeout(publisher(), {
+            milliseconds: timeout,
+            message: 'publisher timed out'
+          })
         ])
       })
     })
