@@ -91,19 +91,23 @@ describe('pubsub', function () {
         const topic = 'pubsub-ascii'
 
         /** @type {() => Promise<void>} */
-        const subscriber = () => new Promise((resolve) => {
+        const subscriber = () => new Promise((resolve, reject) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
-            if (msg.type !== 'signed') {
-              throw new Error('Message was unsigned')
-            }
+            try {
+              if (msg.type !== 'signed') {
+                throw new Error('Message was unsigned')
+              }
 
-            expect(uint8ArrayEquals(data, msg.data)).to.be.true()
-            expect(msg).to.have.property('sequenceNumber')
-            expect(msg.sequenceNumber).to.be.a('bigint')
-            expect(msg).to.have.property('topic', topic)
-            expect(isPeerId(msg.from)).to.be.true()
-            expect(msg.from.toString()).to.equal(daemon1.peer.id.toString())
-            resolve()
+              expect(uint8ArrayEquals(data, msg.data)).to.be.true()
+              expect(msg).to.have.property('sequenceNumber')
+              expect(msg.sequenceNumber).to.be.a('bigint')
+              expect(msg).to.have.property('topic', topic)
+              expect(isPeerId(msg.from)).to.be.true()
+              expect(msg.from.toString()).to.equal(daemon1.peer.id.toString())
+              resolve()
+            } catch (err) {
+              reject(err)
+            }
           })
         })
 
@@ -123,19 +127,23 @@ describe('pubsub', function () {
         const topic = 'pubsub-non-ascii'
 
         /** @type {() => Promise<void>} */
-        const subscriber = () => new Promise((resolve) => {
+        const subscriber = () => new Promise((resolve, reject) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
-            if (msg.type !== 'signed') {
-              throw new Error('Message was unsigned')
-            }
+            try {
+              if (msg.type !== 'signed') {
+                throw new Error('Message was unsigned')
+              }
 
-            expect(uint8ArrayEquals(data, msg.data)).to.be.true()
-            expect(msg).to.have.property('sequenceNumber')
-            expect(msg.sequenceNumber).to.be.a('bigint')
-            expect(msg).to.have.property('topic', topic)
-            expect(isPeerId(msg.from)).to.be.true()
-            expect(msg.from.toString()).to.equal(daemon1.peer.id.toString())
-            resolve()
+              expect(uint8ArrayEquals(data, msg.data)).to.be.true()
+              expect(msg).to.have.property('sequenceNumber')
+              expect(msg.sequenceNumber).to.be.a('bigint')
+              expect(msg).to.have.property('topic', topic)
+              expect(isPeerId(msg.from)).to.be.true()
+              expect(msg.from.toString()).to.equal(daemon1.peer.id.toString())
+              resolve()
+            } catch (err) {
+              reject(err)
+            }
           })
         })
 
@@ -155,19 +163,23 @@ describe('pubsub', function () {
         const topic = 'pubsub-binary'
 
         /** @type {() => Promise<void>} */
-        const subscriber = () => new Promise((resolve) => {
+        const subscriber = () => new Promise((resolve, reject) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
-            if (msg.type !== 'signed') {
-              throw new Error('Message was unsigned')
-            }
+            try {
+              if (msg.type !== 'signed') {
+                throw new Error('Message was unsigned')
+              }
 
-            expect(uint8ArrayEquals(data, msg.data)).to.be.true()
-            expect(msg).to.have.property('sequenceNumber')
-            expect(msg.sequenceNumber).to.be.a('bigint')
-            expect(msg).to.have.property('topic', topic)
-            expect(isPeerId(msg.from)).to.be.true()
-            expect(msg.from.toString()).to.equal(daemon1.peer.id.toString())
-            resolve()
+              expect(uint8ArrayEquals(data, msg.data)).to.be.true()
+              expect(msg).to.have.property('sequenceNumber')
+              expect(msg.sequenceNumber).to.be.a('bigint')
+              expect(msg).to.have.property('topic', topic)
+              expect(isPeerId(msg.from)).to.be.true()
+              expect(msg.from.toString()).to.equal(daemon1.peer.id.toString())
+              resolve()
+            } catch (err) {
+              reject(err)
+            }
           })
         })
 
@@ -187,19 +199,23 @@ describe('pubsub', function () {
         const topic = 'pubsub\n你好世界\r\njaźń'
 
         /** @type {() => Promise<void>} */
-        const subscriber = () => new Promise((resolve) => {
+        const subscriber = () => new Promise((resolve, reject) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
-            if (msg.type !== 'signed') {
-              throw new Error('Message was unsigned')
-            }
+            try {
+              if (msg.type !== 'signed') {
+                throw new Error('Message was unsigned')
+              }
 
-            expect(uint8ArrayEquals(data, msg.data)).to.be.true()
-            expect(msg).to.have.property('sequenceNumber')
-            expect(msg.sequenceNumber).to.be.a('bigint')
-            expect(msg).to.have.property('topic', topic)
-            expect(isPeerId(msg.from)).to.be.true()
-            expect(msg.from.toString()).to.equal(daemon1.peer.id.toString())
-            resolve()
+              expect(uint8ArrayEquals(data, msg.data)).to.be.true()
+              expect(msg).to.have.property('sequenceNumber')
+              expect(msg.sequenceNumber).to.be.a('bigint')
+              expect(msg).to.have.property('topic', topic)
+              expect(isPeerId(msg.from)).to.be.true()
+              expect(msg.from.toString()).to.equal(daemon1.peer.id.toString())
+              resolve()
+            } catch (err) {
+              reject(err)
+            }
           })
         })
 
