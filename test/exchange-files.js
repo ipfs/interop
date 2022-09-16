@@ -18,12 +18,12 @@ import last from 'it-last'
 /**
  * @param {string} dir
  * @param {number} depth
- * @param {number} num
+ * @param {number} numFiles
  */
-async function * dirContent (dir, depth, num) {
+async function * dirContent (dir, depth, numFiles) {
   const dirs = new Array(depth).fill(0).map(() => nanoid())
 
-  for (let i = 0; i < num; i++) {
+  for (let i = 0; i < numFiles; i++) {
     const path = `${dir}/${dirs.slice(0, depth).join('/')}/${nanoid()}.txt`
 
     yield {
@@ -50,53 +50,17 @@ const sizes = [
   8 * MB,
   64 * MB,
   128 * MB
-  // 512 * MB
-  // GB
-  // 10 * GB,
-  // 100 * GB,
-  // 1000 * GB
 ]
-
-if (isCi) {
-  sizes.push(
-    // 512 * MB,
-    // GB
-    // 10 * GB,
-    // 100 * GB,
-    // 1000 * GB
-  )
-}
 
 const dirs = [
   5,
   10
-  // 50,
-  // 100,
-  // 1000,
-  // 10000
 ]
-
-if (isCi) {
-  dirs.push(
-    // 50,
-    // 100,
-    // 1000
-    // 10000
-  )
-}
 
 const depth = [
   5,
   10
 ]
-
-if (isCi) {
-  depth.push(
-    // 100
-    // 1000
-    // 10000
-  )
-}
 
 const min = 60 * 1000
 const timeout = isCi ? 2 * min : min
