@@ -8,6 +8,7 @@ import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { equals as uint8ArrayEquals } from 'uint8arrays/equals'
 import { isPeerId } from '@libp2p/interface-peer-id'
 import pTimeout from 'p-timeout'
+import delay from 'delay'
 
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
@@ -111,7 +112,7 @@ describe('pubsub', function () {
 
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon2.peer, daemon1)
-          await waitForTopicPeer(topic, daemon1.peer, daemon2)
+          await delay(1000)
           await daemon1.api.pubsub.publish(topic, data)
         }
 
@@ -154,7 +155,7 @@ describe('pubsub', function () {
 
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon2.peer, daemon1)
-          await waitForTopicPeer(topic, daemon1.peer, daemon2)
+          await delay(1000)
           await daemon1.api.pubsub.publish(topic, data)
         }
 
@@ -197,7 +198,7 @@ describe('pubsub', function () {
 
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon2.peer, daemon1)
-          await waitForTopicPeer(topic, daemon1.peer, daemon2)
+          await delay(1000)
           await daemon1.api.pubsub.publish(topic, data)
         }
 
@@ -240,7 +241,7 @@ describe('pubsub', function () {
 
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon2.peer, daemon1)
-          await waitForTopicPeer(topic, daemon1.peer, daemon2)
+          await delay(1000)
           await daemon1.api.pubsub.publish(topic, data)
         }
 
