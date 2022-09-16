@@ -88,7 +88,7 @@ if (isCi) {
 
 const depth = [
   5,
-  //10
+  10
 ]
 
 if (isCi) {
