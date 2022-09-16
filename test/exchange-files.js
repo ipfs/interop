@@ -150,8 +150,6 @@ describe('exchange files', function () {
 
       describe('cat file', () => sizes.forEach((size) => {
         it(`${name}: ${pretty(size)}`, async function () {
-          this.timeout(timeout)
-
           const data = randomBytes(size)
 
           const { cid } = await daemon1.api.add(data)
@@ -163,8 +161,6 @@ describe('exchange files', function () {
 
       describe('get directory', () => depth.forEach((d) => dirs.forEach((num) => {
         it(`${name}: depth: ${d}, num: ${num}`, async function () {
-          this.timeout(timeout)
-
           const dir = `/${nanoid()}`
 
           const res = await last(daemon1.api.addAll(randomDir(dir, d, num), {
