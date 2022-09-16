@@ -111,6 +111,7 @@ describe('pubsub', function () {
 
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon2.peer, daemon1)
+          await waitForTopicPeer(topic, daemon1.peer, daemon2)
           await daemon1.api.pubsub.publish(topic, data)
         }
 
@@ -153,6 +154,7 @@ describe('pubsub', function () {
 
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon2.peer, daemon1)
+          await waitForTopicPeer(topic, daemon1.peer, daemon2)
           await daemon1.api.pubsub.publish(topic, data)
         }
 
@@ -195,6 +197,7 @@ describe('pubsub', function () {
 
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon2.peer, daemon1)
+          await waitForTopicPeer(topic, daemon1.peer, daemon2)
           await daemon1.api.pubsub.publish(topic, data)
         }
 
@@ -237,6 +240,7 @@ describe('pubsub', function () {
 
         const publisher = async () => {
           await waitForTopicPeer(topic, daemon2.peer, daemon1)
+          await waitForTopicPeer(topic, daemon1.peer, daemon2)
           await daemon1.api.pubsub.publish(topic, data)
         }
 
