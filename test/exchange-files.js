@@ -3,30 +3,35 @@
 
 import randomBytes from 'iso-random-stream/src/random.js'
 import pretty from 'pretty-bytes'
-// @ts-expect-error no types
-import randomFs from 'random-fs'
-import { promisify } from 'util'
-import rimraf from 'rimraf'
-import { join } from 'path'
 import { nanoid } from 'nanoid'
 import isCi from 'is-ci'
-import os from 'os'
 import concat from 'it-concat'
-import globSource from 'ipfs-utils/src/files/glob-source.js'
 import { expect } from 'aegir/chai'
 import { daemonFactory } from './utils/daemon-factory.js'
 import last from 'it-last'
-import isWindows from './utils/is-windows.js'
 
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
  * @typedef {import('ipfsd-ctl').Factory} Factory
  */
 
-const rmDir = promisify(rimraf)
+/**
+ * @param {string} dir
+ * @param {number} depth
+ * @param {number} num
+ */
+async function * randomDir (dir, depth, num) {
+  const dirs = new Array(depth).fill(0).map(() => nanoid())
 
-function tmpDir () {
-  return join(os.tmpdir(), `ipfs_${nanoid()}`)
+  for (let i = 0; i < num; i++) {
+    const index = Math.round(Math.random() * depth)
+    const path = `${dir}/${dirs.slice(0, index).join('/')}/${nanoid()}.txt`
+
+    yield {
+      path,
+      content: randomBytes(5)
+    }
+  }
 }
 
 const KB = 1024
@@ -83,7 +88,7 @@ if (isCi) {
 
 const depth = [
   5,
-  10
+  //10
 ]
 
 if (isCi) {
@@ -156,36 +161,23 @@ describe('exchange files', function () {
         })
       }))
 
-      if (isWindows) { return }
-      // TODO fix dir tests on Windows
-
       describe('get directory', () => depth.forEach((d) => dirs.forEach((num) => {
         it(`${name}: depth: ${d}, num: ${num}`, async function () {
           this.timeout(timeout)
 
-          const dir = tmpDir()
+          const dir = `/${nanoid()}`
 
-          try {
-            await randomFs({
-              path: dir,
-              depth: d,
-              number: num
-            })
+          const res = await last(daemon1.api.addAll(randomDir(dir, d, num), {
+            wrapWithDirectory: true
+          }))
 
-            const res = await last(daemon1.api.addAll(globSource(dir, '**/*'), {
-              wrapWithDirectory: true
-            }))
-
-            if (res == null) {
-              throw new Error('Nothing added')
-            }
-
-            const { cid } = res
-
-            await expect(countFiles(cid, daemon2.api)).to.eventually.equal(num)
-          } finally {
-            await rmDir(dir)
+          if (res == null) {
+            throw new Error('Nothing added')
           }
+
+          const { cid } = res
+
+          await expect(countFiles(cid, daemon2.api)).to.eventually.equal(num)
         })
       })))
     })
