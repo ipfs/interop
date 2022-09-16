@@ -5,13 +5,19 @@ import all from 'it-all'
 import last from 'it-last'
 import drain from 'it-drain'
 import { tmpPath, removeAllPins } from './utils/pin-utils.js'
-import { expect } from 'aegir/utils/chai.js'
+import { expect } from 'aegir/chai'
 import { daemonFactory } from './utils/daemon-factory.js'
 
-describe('pin', function () {
-  this.timeout(60 * 1000)
-  this.slow(30 * 1000)
+/**
+ * @typedef {import('ipfsd-ctl').Controller} Controller
+ * @typedef {import('ipfsd-ctl').Factory} Factory
+ */
 
+describe('pin', function () {
+  this.timeout(60e3)
+  this.slow(30e3)
+
+  /** @type {Factory} */
   let factory
 
   before(async () => {
@@ -25,6 +31,10 @@ describe('pin', function () {
   }]
 
   let daemons = []
+  /**
+   * @param {'go' | 'js'} type
+   * @param {string} [repoPath]
+   */
   async function spawnAndStart (type, repoPath = tmpPath()) {
     const daemonOptions = {
       ipfsOptions: {
@@ -50,6 +60,11 @@ describe('pin', function () {
     return daemon
   }
 
+  /**
+   * @template T
+   * @param {(controller: Controller) => Promise<T>} pipeline
+   * @returns {Promise<[T, T]>}
+   */
   async function withDaemons (pipeline) {
     const goDaemon = await spawnAndStart('go')
     await removeAllPins(goDaemon)
@@ -61,7 +76,7 @@ describe('pin', function () {
   }
 
   afterEach(async function () {
-    this.timeout(25 * 1000)
+    this.timeout(25e3)
     await factory.clean()
     daemons = []
   })
@@ -69,8 +84,18 @@ describe('pin', function () {
   describe('pin add', function () {
     // Pinning a large file recursively results in the same pins
     it('pin recursively', async function () {
+      /**
+       * @param {Controller} daemon
+       */
       async function pipeline (daemon) {
-        const { cid } = await last(daemon.api.addAll(jupiter, { pin: false }))
+        const res = await last(daemon.api.addAll(jupiter, { pin: false }))
+
+        if (!res) {
+          throw new Error('Nothing added')
+        }
+
+        const { cid } = res
+
         await daemon.api.pin.add(cid)
 
         return all(daemon.api.pin.ls())
@@ -85,8 +110,18 @@ describe('pin', function () {
 
     // Pinning a large file with recursive=false results in the same direct pin
     it('pin directly', async function () {
+      /**
+       * @param {Controller} daemon
+       */
       async function pipeline (daemon) {
-        const { cid } = await last(daemon.api.addAll(jupiter, { pin: false }))
+        const res = await last(daemon.api.addAll(jupiter, { pin: false }))
+
+        if (!res) {
+          throw new Error('Nothing added')
+        }
+
+        const { cid } = res
+
         await daemon.api.pin.add(cid, { recursive: false })
 
         return all(daemon.api.pin.ls())
@@ -104,8 +139,18 @@ describe('pin', function () {
     // removing a root pin removes children as long as they're
     // not part of another pin's dag
     it('pin recursively, remove the root pin', async function () {
+      /**
+       * @param {Controller} daemon
+       */
       async function pipeline (daemon) {
-        const { cid } = await last(daemon.api.addAll(jupiter))
+        const res = await last(daemon.api.addAll(jupiter))
+
+        if (!res) {
+          throw new Error('Nothing added')
+        }
+
+        const { cid } = res
+
         await daemon.api.pin.rm(cid)
 
         return all(daemon.api.pin.ls())
@@ -120,9 +165,21 @@ describe('pin', function () {
     // When a pin contains the root of another pin and we remove it, it is
     // instead kept but its type is changed to 'indirect'
     it('remove a child shared by multiple pins', async function () {
+      /** @type {Awaited<ReturnType<Controller["api"]["files"]["stat"]>>} */
       let jupiterDir
+
+      /**
+       * @param {Controller} daemon
+       */
       async function pipeline (daemon) {
-        const { cid } = await last(daemon.api.addAll(jupiter, { pin: false, wrapWithDirectory: true }))
+        const res = await last(daemon.api.addAll(jupiter, { pin: false, wrapWithDirectory: true }))
+
+        if (!res) {
+          throw new Error('Nothing added')
+        }
+
+        const { cid } = res
+
         jupiterDir = jupiterDir || await daemon.api.files.stat(`/ipfs/${cid}/test/fixtures/planets`)
 
         // by separately pinning all the DAG nodes created when adding,
@@ -149,12 +206,15 @@ describe('pin', function () {
       expect(jsPins).to.deep.include.members(goPins)
 
       const dirPin = goPins.find(pin => pin.cid.equals(jupiterDir.cid))
-      expect(dirPin.type).to.eql('indirect')
+      expect(dirPin).to.have.property('type', 'indirect')
     })
   })
 
   describe('ls', function () {
     it('print same pins', async function () {
+      /**
+       * @param {Controller} daemon
+       */
       async function pipeline (daemon) {
         await drain(daemon.api.addAll(jupiter))
 

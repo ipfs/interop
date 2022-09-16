@@ -1,18 +1,19 @@
-
 import { createFactory } from 'ipfsd-ctl'
-import isNode from 'detect-node'
+import { isNode, isElectronMain } from 'wherearewe'
 
 export async function daemonFactory () {
   let ipfsHttpModule
   let ipfsModule
 
   try {
+    // @ts-expect-error env var could be undefined
     ipfsHttpModule = await import(process.env.IPFS_JS_HTTP_MODULE)
   } catch {
     ipfsHttpModule = await import('ipfs-http-client')
   }
 
   try {
+    // @ts-expect-error env var could be undefined
     ipfsModule = await import(process.env.IPFS_JS_MODULE)
   } catch {
     ipfsModule = await import('ipfs')
@@ -41,7 +42,7 @@ export async function daemonFactory () {
  * @param {{ path: () => string }} [module]
  */
 async function findBin (envVar, moduleName, module) {
-  if (!isNode) {
+  if (!isNode && !isElectronMain) {
     return
   }
 

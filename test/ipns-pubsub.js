@@ -1,21 +1,20 @@
 /* eslint-env mocha */
 
-import PeerID from 'peer-id'
-import { base58btc } from 'multiformats/bases/base58'
-import { getIdKeys } from 'ipns'
-import last from 'it-last'
-import pRetry from 'p-retry'
-import { waitFor } from './utils/wait-for.js'
-import { expect } from 'aegir/utils/chai.js'
+import { peerIdToRoutingKey } from 'ipns'
+import { expect } from 'aegir/chai'
 import { daemonFactory } from './utils/daemon-factory.js'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+import last from 'it-last'
+import { peerIdFromString } from '@libp2p/peer-id'
+import defer from 'p-defer'
+
+/**
+ * @typedef {import('ipfsd-ctl').Controller} Controller
+ * @typedef {import('ipfsd-ctl').Factory} Factory
+ */
 
 const daemonsOptions = {
   args: ['--enable-namesys-pubsub'] // enable ipns over pubsub
-}
-
-const retryOptions = {
-  retries: 5
 }
 
 const namespace = '/record/'
@@ -23,120 +22,136 @@ const namespace = '/record/'
 const ipfsRef = '/ipfs/QmPFVLPmp9zv5Z5KUqLhe2EivAGccQW2r7M7jhVJGLZoZU'
 
 describe('ipns-pubsub', function () {
-  let nodes = []
+  /** @type {Controller} */
+  let goNode0
+
+  /** @type {Controller} */
+  let goNode1
+
+  /** @type {Controller} */
+  let jsNode0
+
+  /** @type {Controller} */
+  let jsNode1
+
+  /** @type {Factory} */
   let factory
 
-  before(async () => {
+  beforeEach(async () => {
     factory = await daemonFactory()
   })
 
   // Spawn daemons
-  before('create the nodes', async function () {
-    this.timeout(20e3)
-    nodes = await Promise.all([
-      factory.spawn({
-        type: 'go',
-        test: true,
-        ...daemonsOptions
-      }),
-      factory.spawn({
-        type: 'js',
-        test: true,
-        ...daemonsOptions
-      }),
-      // TODO: go-ipfs needs two nodes in the DHT to be able to publish a record
-      // Remove this when js-ipfs has a DHT
-      factory.spawn({
-        type: 'go',
-        test: true,
-        ...daemonsOptions
-      })
-    ])
+  beforeEach('create the nodes', async function () {
+    this.timeout(120e3)
+
+    goNode0 = await factory.spawn({
+      type: 'go',
+      test: true,
+      ...daemonsOptions
+    })
+    goNode1 = await factory.spawn({
+      type: 'go',
+      test: true,
+      ...daemonsOptions
+    })
+
+    jsNode0 = await factory.spawn({
+      type: 'js',
+      test: true,
+      ...daemonsOptions
+    })
+    jsNode1 = await factory.spawn({
+      type: 'js',
+      test: true,
+      ...daemonsOptions
+    })
   })
 
   // Connect nodes and wait for republish
-  before('connect the nodes', async function () {
-    this.timeout(10e3)
-    // TODO: go-ipfs needs two nodes in the DHT to be able to publish a record
-    // Remove the second connect when js-ipfs runs a DHT server
-    await Promise.all([
-      nodes[0].api.swarm.connect(nodes[1].api.peerId.addresses[0]),
-      nodes[0].api.swarm.connect(nodes[2].api.peerId.addresses[0])
-    ])
+  beforeEach('connect the nodes', async function () {
+    this.timeout(60e3)
+    await goNode0.api.swarm.connect(goNode1.peer.addresses[0])
+    await goNode0.api.swarm.connect(jsNode0.peer.addresses[0])
+    await goNode0.api.swarm.connect(jsNode1.peer.addresses[0])
+
+    await jsNode0.api.swarm.connect(jsNode1.peer.addresses[0])
+    await jsNode0.api.swarm.connect(goNode1.peer.addresses[0])
   })
 
-  after(() => factory.clean())
+  afterEach(() => factory.clean())
 
   it('should get enabled state of pubsub', async function () {
-    for (const node of nodes) {
-      const state = await node.api.name.pubsub.state()
-      expect(state).to.exist()
-      expect(state.enabled).to.equal(true)
+    for (const node of [goNode0, goNode1, jsNode0, jsNode1]) {
+      await expect(node.api.name.pubsub.state()).to.eventually.have.property('enabled', true)
     }
   })
 
   it('should publish the received record to a go node and a js subscriber should receive it', async function () {
-    // TODO find out why JS doesn't resolve, might be just missing a DHT
-    await Promise.all([
-      subscribeToReceiveByPubsub(nodes[0], nodes[1], nodes[0].api.peerId.id, nodes[1].api.peerId.id),
-      expect(last(nodes[1].api.name.resolve(nodes[0].api.peerId.id, { stream: false }))).to.eventually.be.rejected.with(/was not found in the network/)
-    ])
+    await resolveByPubSub(goNode0, jsNode0)
   })
 
   it('should publish the received record to a js node and a go subscriber should receive it', async function () {
-    await Promise.all([
-      subscribeToReceiveByPubsub(nodes[1], nodes[0], nodes[1].api.peerId.id, nodes[0].api.peerId.id),
-      last(nodes[0].api.name.resolve(nodes[1].api.peerId.id, { stream: false }))
-    ])
+    await resolveByPubSub(goNode0, jsNode0)
+  })
+
+  it('should publish the received record to a go node and a go subscriber should receive it', async function () {
+    await resolveByPubSub(goNode0, goNode1)
+  })
+
+  it('should publish the received record to a js node and a js subscriber should receive it', async function () {
+    await resolveByPubSub(jsNode0, jsNode1)
   })
 })
 
 //  * IPNS resolve subscription test
-//  * 1) name.resolve() , which subscribes the topic
-//  * 2) wait to guarantee the subscription
-//  * 3) subscribe again just to know until when to wait (inside the scope of the test)
-//  * 4) wait for the other peer to get notified of the subscription
-//  * 5) publish new ipns record
-//  * 6) wait until the record is received in the test scope subscribe
+//  * 1) name.resolve(), which subscribes the topic
+//  * 2) check we are subscribed via name.subs
+//  * 3) subscribe to the actual pubsub topic
+//  * 4) publish new ipns record
+//  * 6) ensure we have received an update via pubsub
 //  * 7) resolve ipns record
-const subscribeToReceiveByPubsub = async (nodeA, nodeB, idA, idB) => {
-  let subscribed = false
-  function checkMessage (msg) {
-    subscribed = true
-  }
+/**
+ * @param {Controller} publisher
+ * @param {Controller} subscriber
+ */
+const resolveByPubSub = async (publisher, subscriber) => {
+  const routingKey = peerIdToRoutingKey(publisher.peer.id)
+  const topic = `${namespace}${uint8ArrayToString(routingKey, 'base64url')}`
 
-  const keys = getIdKeys(base58btc.decode(`z${idA}`))
-  const topic = `${namespace}${uint8ArrayToString(keys.routingKey.uint8Array(), 'base64url')}`
+  // should not be subscribed to anything
+  await expect(subscriber.api.name.pubsub.subs()).to.eventually.have.lengthOf(0)
 
-  await waitForPeerToSubscribe(nodeB.api, topic)
-  await nodeB.api.pubsub.subscribe(topic, checkMessage)
-  await waitForNotificationOfSubscription(nodeA.api, topic, idB)
-  const res1 = await nodeA.api.name.publish(ipfsRef, { resolve: false })
-  await waitFor(() => subscribed === true, (50 * 1000))
-  const res2 = await last(nodeB.api.name.resolve(idA))
+  try {
+    // attempt to resolve the peer id - n.b js throws here, go does not because streaming API errors don't work over http
+    await last(subscriber.api.name.resolve(publisher.peer.id, {
+      timeout: 1000
+    }))
+  } catch {}
 
-  expect(PeerID.parse(res1.name).toString()).to.equal(PeerID.parse(idA).toString()) // Published to Node A ID
+  // should now be subscribed to updates for the publisher's peer id
+  const subs = await subscriber.api.name.pubsub.subs()
+  expect(subs).to.have.lengthOf(1)
+  const subbed = peerIdFromString(subs[0].split('/ipns/').pop() || '')
+  expect(subbed.equals(publisher.peer.id)).to.be.true()
+
+  // set up a listener for the pubsub topic for the IPNS key
+  const deferred = defer()
+  await subscriber.api.pubsub.subscribe(topic, () => {
+    deferred.resolve()
+  })
+
+  // publish an update
+  const res1 = await publisher.api.name.publish(ipfsRef, { resolve: false })
+
+  // should receive a message on the topic for the IPNS key
+  await deferred.promise
+
+  // should succeed and be fast
+  const res2 = await last(subscriber.api.name.resolve(publisher.peer.id, {
+    timeout: 1000
+  }))
+
+  expect(peerIdFromString(res1.name).toString()).to.equal(publisher.peer.id.toString()) // Published to Node A ID
   expect(res2).to.equal(ipfsRef)
-}
-
-// wait until a peer know about other peer to subscribe a topic
-const waitForNotificationOfSubscription = (daemon, topic, peerId) => pRetry(async () => {
-  const res = await daemon.pubsub.peers(topic)
-
-  if (!res || !res.length || !res.includes(peerId)) {
-    throw new Error('Could not find peer subscribing')
-  }
-}, retryOptions)
-
-// Wait until a peer subscribes a topic
-const waitForPeerToSubscribe = async (daemon, topic) => {
-  await pRetry(async () => {
-    const res = await daemon.pubsub.ls()
-
-    if (!res || !res.length || !res.includes(topic)) {
-      throw new Error(`Could not find subscription to ${topic} in "${JSON.stringify(res)}"`)
-    }
-
-    return res[0]
-  }, retryOptions)
 }

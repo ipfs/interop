@@ -1,7 +1,11 @@
 import delay from 'delay'
 
-/*
- * Wait for a condition to become true.
+/**
+ * Wait for a condition to become true
+ *
+ * @param {() => boolean} predicate
+ * @param {number} ttl
+ * @param {number} checkInterval
  */
 export async function waitFor (predicate, ttl = 10e3, checkInterval = 50) {
   const timeout = Date.now() + ttl

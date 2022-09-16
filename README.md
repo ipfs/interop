@@ -1,22 +1,38 @@
-# Interoperability Tests for IPFS
+# ipfs-interop <!-- omit in toc -->
 
-[![](https://img.shields.io/badge/made%20by-Protocol%20Labs-blue.svg?style=flat-square)](http://ipn.io)
-[![](https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square)](http://ipfs.io/)
-[![](https://img.shields.io/badge/freenode-%23ipfs-blue.svg?style=flat-square)](http://webchat.freenode.net/?channels=%23ipfs)
-[![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
-[![Travis CI](https://travis-ci.com/ipfs/interop.svg?branch=master)](https://travis-ci.com/ipfs/interop)
+[![ipfs.io](https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square)](http://ipfs.io)
+[![IRC](https://img.shields.io/badge/freenode-%23ipfs-blue.svg?style=flat-square)](http://webchat.freenode.net/?channels=%23ipfs)
+[![Discord](https://img.shields.io/discord/806902334369824788?style=flat-square)](https://discord.gg/ipfs)
+[![codecov](https://img.shields.io/codecov/c/github/ipfs/interop.svg?style=flat-square)](https://codecov.io/gh/ipfs/interop)
+[![CI](https://img.shields.io/github/workflow/status/ipfs/interop/test%20&%20maybe%20release/master?style=flat-square)](https://github.com/ipfs/interop/actions/workflows/js-test-and-release.yml)
 
-> Interoperability tests for IPFS Implementations
+> Interoperability Tests for IPFS
+
+## Table of contents <!-- omit in toc -->
+
+- [Install](#install)
+- [Usage](#usage)
+  - [Run the tests](#run-the-tests)
+  - [Run a particular test locally](#run-a-particular-test-locally)
+- [Testing with different versions of go/js IPFS](#testing-with-different-versions-of-gojs-ipfs)
+  - [As a project](#as-a-project)
+  - [As environmental variables](#as-environmental-variables)
+  - [As a custom runtime](#as-a-custom-runtime)
+- [Releasing a new version](#releasing-a-new-version)
+- [Interop release process for when breaking changes are introduced](#interop-release-process-for-when-breaking-changes-are-introduced)
+- [Contribute](#contribute)
+- [License](#license)
+- [Contribute](#contribute-1)
+
+## Install
+
+```console
+$ npm i ipfs-interop
+```
 
 This repository will be used for interop tests. Please jump into the issues if you'd like to help out setting this up!
 
 ## Usage
-
-### Install
-
-```console
-$ npm install -g ipfs-interop
-```
 
 ### Run the tests
 
@@ -76,7 +92,7 @@ $ IPFS_GO_EXEC=/path IPFS_JS_EXEC=/path IPFS_JS_MODULE=/path IPFS_JS_HTTP_MODULE
 ### As a custom runtime
 
 If you want to run interop on CI against specific repo and git revision of
-go-ipfs or js-ipfs* then set everything up in `./scripts/custom-runtime.sh`
+go-ipfs or js-ipfs\* then set everything up in `./scripts/custom-runtime.sh`
 and enable it by uncommenting `env:` `IPFS_(..)` definitions in `.github/workflows/test.yml`
 
 If you want to test against unrelased things locally, make sure the same env
@@ -85,25 +101,21 @@ variables are set on your machine.
 For example, to run pubsub tests against go-ipfs and js-ipfs revision defined
 in `./scripts/custom-runtime.sh`, one can:
 
-```
-export IPFS_GO_EXEC=/tmp/go-ipfs/cmd/ipfs/ipfs
-export IPFS_JS_EXEC=/tmp/js-ipfs/packages/ipfs/src/cli.js
-export IPFS_JS_MODULE=/tmp/js-ipfs/packages/ipfs/dist/cjs/src/index.js
-export IPFS_JS_HTTP_MODULE=/tmp/js-ipfs/packages/ipfs-http-client/dist/cjs/src/index.js
-./scripts/custom-runtime.sh
-node bin/ipfs-interop.js -- -t node --grep "pubsub"
-```
+    export IPFS_GO_EXEC=/tmp/go-ipfs/cmd/ipfs/ipfs
+    export IPFS_JS_EXEC=/tmp/js-ipfs/packages/ipfs/src/cli.js
+    export IPFS_JS_MODULE=/tmp/js-ipfs/packages/ipfs/src/index.js
+    export IPFS_JS_HTTP_MODULE=/tmp/js-ipfs/packages/ipfs-http-client/src/index.js
+    ./scripts/custom-runtime.sh
+    node bin/ipfs-interop.js -- -t node --grep "pubsub"
 
 ## Releasing a new version
 
 This repo does not use aegir for releases.
 Use `npm` directly  and publish entire root (CI in go-ipfs requires it).
 
-```
-npm version [major|minor|patch]
-npm publish
-npm push origin && npm push origin v[N.N.N]
-```
+    npm version [major|minor|patch]
+    npm publish
+    npm push origin && npm push origin v[N.N.N]
 
 ## Interop release process for when breaking changes are introduced
 
@@ -124,4 +136,15 @@ This repository falls under the IPFS [Code of Conduct](https://github.com/ipfs/c
 
 ## License
 
-[MIT](./LICENSE)
+Licensed under either of
+
+- Apache 2.0, ([LICENSE-APACHE](LICENSE-APACHE) / <http://www.apache.org/licenses/LICENSE-2.0>)
+- MIT ([LICENSE-MIT](LICENSE-MIT) / <http://opensource.org/licenses/MIT>)
+
+## Contribute
+
+Feel free to join in. All welcome. Open an [issue](https://github.com/ipfs/js-ipfs-unixfs-importer/issues)!
+
+This repository falls under the IPFS [Code of Conduct](https://github.com/ipfs/community/blob/master/code-of-conduct.md).
+
+[![](https://cdn.rawgit.com/jbenet/contribute-ipfs-gif/master/img/contribute.gif)](https://github.com/ipfs/community/blob/master/CONTRIBUTING.md)
