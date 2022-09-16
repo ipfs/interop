@@ -20,12 +20,11 @@ import last from 'it-last'
  * @param {number} depth
  * @param {number} num
  */
-async function * randomDir (dir, depth, num) {
+async function * dirContent (dir, depth, num) {
   const dirs = new Array(depth).fill(0).map(() => nanoid())
 
   for (let i = 0; i < num; i++) {
-    const index = Math.round(Math.random() * depth)
-    const path = `${dir}/${dirs.slice(0, index).join('/')}/${nanoid()}.txt`
+    const path = `${dir}/${dirs.slice(0, depth).join('/')}/${nanoid()}.txt`
 
     yield {
       path,
@@ -163,7 +162,7 @@ describe('exchange files', function () {
         it(`${name}: depth: ${d}, num: ${num}`, async function () {
           const dir = `/${nanoid()}`
 
-          const res = await last(daemon1.api.addAll(randomDir(dir, d, num), {
+          const res = await last(daemon1.api.addAll(dirContent(dir, d, num), {
             wrapWithDirectory: true
           }))
 
