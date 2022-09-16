@@ -100,7 +100,7 @@ if (isCi) {
 }
 
 const min = 60 * 1000
-const timeout = isCi ? 2 * min : 1 * min
+const timeout = isCi ? 2 * min : min
 
 describe('exchange files', function () {
   this.timeout(timeout)
