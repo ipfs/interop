@@ -13,6 +13,7 @@ import delay from 'delay'
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
  * @typedef {import('ipfsd-ctl').Factory} Factory
+ * @typedef {import('ipfsd-ctl').ControllerOptions} ControllerOptions
  */
 
 const retryOptions = {
@@ -34,6 +35,9 @@ const waitForTopicPeer = (topic, peer, daemon) => {
   }, retryOptions)
 }
 
+/**
+ * @type {ControllerOptions}
+ */
 const daemonOptions = {
   args: ['--enable-pubsub-experiment']
 }

@@ -13,6 +13,7 @@ import last from 'it-last'
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
  * @typedef {import('ipfsd-ctl').Factory} Factory
+ * @typedef {import('ipfsd-ctl').ControllerOptions} ControllerOptions
  */
 
 /**
@@ -65,6 +66,19 @@ const depth = [
 const min = 60 * 1000
 const timeout = isCi ? 2 * min : min
 
+/**
+ * @type {ControllerOptions}
+ */
+const daemonOptions = {
+  ipfsOptions: {
+    config: {
+      Routing: {
+        Type: 'none'
+      }
+    }
+  }
+}
+
 describe('exchange files', function () {
   this.timeout(timeout)
 
@@ -91,7 +105,7 @@ describe('exchange files', function () {
       let daemon2
 
       before('spawn nodes', async function () {
-        [daemon1, daemon2] = await Promise.all(tests[name].map(type => factory.spawn({ type })))
+        [daemon1, daemon2] = await Promise.all(tests[name].map(type => factory.spawn({ ...daemonOptions, type })))
       })
 
       before('connect', async function () {
