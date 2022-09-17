@@ -39,6 +39,7 @@ const waitForTopicPeer = (topic, peer, daemon) => {
  * @type {ControllerOptions}
  */
 const daemonOptions = {
+  test: true,
   args: ['--enable-pubsub-experiment']
 }
 

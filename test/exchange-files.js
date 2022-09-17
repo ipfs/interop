@@ -70,6 +70,7 @@ const timeout = isCi ? 2 * min : min
  * @type {ControllerOptions}
  */
 const daemonOptions = {
+  test: true,
   ipfsOptions: {
     config: {
       Routing: {
