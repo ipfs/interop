@@ -1,6 +1,6 @@
 {
   "name": "ipfs-interop",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "description": "Interoperability Tests for IPFS",
   "author": "David Dias <daviddias@ipfs.io>",
   "license": "Apache-2.0 OR MIT",

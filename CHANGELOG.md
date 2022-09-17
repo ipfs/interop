@@ -1,3 +1,19 @@
+## [9.0.0](https://github.com/ipfs/interop/compare/v8.0.11...v9.0.0) (2022-09-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* uses ESM release of ipfs/libp2p
+
+### Features
+
+* upgrade to esm libp2p/ipfs ([#462](https://github.com/ipfs/interop/issues/462)) ([b006606](https://github.com/ipfs/interop/commit/b006606a6d26673991dce94a558da40922e7b34c))
+
+
+### Bug Fixes
+
+* remove randomness from get directory tests ([#497](https://github.com/ipfs/interop/issues/497)) ([56f3370](https://github.com/ipfs/interop/commit/56f33706331fb95e98622d33143a17fec499e0b6))
+
 ### [8.0.11](https://github.com/ipfs/interop/compare/v8.0.10...v8.0.11) (2022-09-07)
 
 
