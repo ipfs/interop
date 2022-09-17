@@ -13,19 +13,19 @@ import last from 'it-last'
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
  * @typedef {import('ipfsd-ctl').Factory} Factory
+ * @typedef {import('ipfsd-ctl').ControllerOptions} ControllerOptions
  */
 
 /**
  * @param {string} dir
  * @param {number} depth
- * @param {number} num
+ * @param {number} numFiles
  */
-async function * randomDir (dir, depth, num) {
+async function * dirContent (dir, depth, numFiles) {
   const dirs = new Array(depth).fill(0).map(() => nanoid())
 
-  for (let i = 0; i < num; i++) {
-    const index = Math.round(Math.random() * depth)
-    const path = `${dir}/${dirs.slice(0, index).join('/')}/${nanoid()}.txt`
+  for (let i = 0; i < numFiles; i++) {
+    const path = `${dir}/${dirs.slice(0, depth).join('/')}/${nanoid()}.txt`
 
     yield {
       path,
@@ -51,56 +51,34 @@ const sizes = [
   8 * MB,
   64 * MB,
   128 * MB
-  // 512 * MB
-  // GB
-  // 10 * GB,
-  // 100 * GB,
-  // 1000 * GB
 ]
-
-if (isCi) {
-  sizes.push(
-    // 512 * MB,
-    // GB
-    // 10 * GB,
-    // 100 * GB,
-    // 1000 * GB
-  )
-}
 
 const dirs = [
   5,
   10
-  // 50,
-  // 100,
-  // 1000,
-  // 10000
 ]
-
-if (isCi) {
-  dirs.push(
-    // 50,
-    // 100,
-    // 1000
-    // 10000
-  )
-}
 
 const depth = [
   5,
   10
 ]
 
-if (isCi) {
-  depth.push(
-    // 100
-    // 1000
-    // 10000
-  )
-}
-
 const min = 60 * 1000
 const timeout = isCi ? 2 * min : min
+
+/**
+ * @type {ControllerOptions}
+ */
+const daemonOptions = {
+  test: true,
+  ipfsOptions: {
+    config: {
+      Routing: {
+        Type: 'none'
+      }
+    }
+  }
+}
 
 describe('exchange files', function () {
   this.timeout(timeout)
@@ -128,7 +106,7 @@ describe('exchange files', function () {
       let daemon2
 
       before('spawn nodes', async function () {
-        [daemon1, daemon2] = await Promise.all(tests[name].map(type => factory.spawn({ type })))
+        [daemon1, daemon2] = await Promise.all(tests[name].map(type => factory.spawn({ ...daemonOptions, type })))
       })
 
       before('connect', async function () {
@@ -163,7 +141,7 @@ describe('exchange files', function () {
         it(`${name}: depth: ${d}, num: ${num}`, async function () {
           const dir = `/${nanoid()}`
 
-          const res = await last(daemon1.api.addAll(randomDir(dir, d, num), {
+          const res = await last(daemon1.api.addAll(dirContent(dir, d, num), {
             wrapWithDirectory: true
           }))
 
