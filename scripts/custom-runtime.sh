@@ -12,6 +12,7 @@
 #  export IPFS_JS_EXEC=/tmp/js-ipfs/packages/ipfs/src/cli.js
 #  export IPFS_JS_MODULE=/tmp/js-ipfs/packages/ipfs/src/index.js
 #  export IPFS_JS_HTTP_MODULE=/tmp/js-ipfs/packages/ipfs-http-client/src/index.js
+#  export KUBO_RPC_MODULE=/tmp/kubo-rpc-client/src/index.js
 #  ./scripts/custom-runtime.sh
 #  node bin/ipfs-interop.js -- -t node --grep "pubsub"
 

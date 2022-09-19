@@ -22,6 +22,7 @@ export const LIBP2P_RELAY_DAEMON_VERSION = 'v0.1.0'
 
 /**
  * avoid expensive fetch if file is already in cache
+ *
  * @param {string} url
  */
 async function cachingFetchAndVerify (url) {

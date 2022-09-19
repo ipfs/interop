@@ -4,12 +4,20 @@ import { isNode, isElectronMain } from 'wherearewe'
 export async function daemonFactory () {
   let ipfsHttpModule
   let ipfsModule
+  let kuboRpcModule
 
   try {
     // @ts-expect-error env var could be undefined
     ipfsHttpModule = await import(process.env.IPFS_JS_HTTP_MODULE)
   } catch {
     ipfsHttpModule = await import('ipfs-http-client')
+  }
+
+  try {
+    // @ts-expect-error env var could be undefined
+    kuboRpcModule = await import(process.env.KUBO_RPC_MODULE)
+  } catch {
+    kuboRpcModule = await import('kubo-rpc-client')
   }
 
   try {
@@ -21,17 +29,18 @@ export async function daemonFactory () {
 
   return createFactory({
     type: 'go',
-    test: true,
-    ipfsHttpModule
+    test: true
   }, {
     proc: {
       ipfsModule
     },
     js: {
-      ipfsBin: await findBin('IPFS_JS_EXEC', 'ipfs', ipfsModule)
+      ipfsBin: await findBin('IPFS_JS_EXEC', 'ipfs', ipfsModule),
+      ipfsHttpModule
     },
     go: {
-      ipfsBin: await findBin('IPFS_GO_EXEC', 'go-ipfs')
+      ipfsBin: await findBin('IPFS_GO_EXEC', 'go-ipfs'),
+      kuboRpcModule
     }
   })
 }

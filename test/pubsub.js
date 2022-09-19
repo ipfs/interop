@@ -98,6 +98,7 @@ describe('pubsub', function () {
         const subscriber = () => new Promise((resolve, reject) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
             try {
+              // @ts-ignore
               if (msg.type !== 'signed') {
                 throw new Error('Message was unsigned')
               }
@@ -141,6 +142,7 @@ describe('pubsub', function () {
         const subscriber = () => new Promise((resolve, reject) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
             try {
+              // @ts-ignore
               if (msg.type !== 'signed') {
                 throw new Error('Message was unsigned')
               }
@@ -184,6 +186,7 @@ describe('pubsub', function () {
         const subscriber = () => new Promise((resolve, reject) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
             try {
+              // @ts-ignore
               if (msg.type !== 'signed') {
                 throw new Error('Message was unsigned')
               }
@@ -227,6 +230,7 @@ describe('pubsub', function () {
         const subscriber = () => new Promise((resolve, reject) => {
           daemon2.api.pubsub.subscribe(topic, (msg) => {
             try {
+              // @ts-ignore
               if (msg.type !== 'signed') {
                 throw new Error('Message was unsigned')
               }

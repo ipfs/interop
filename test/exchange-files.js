@@ -151,6 +151,7 @@ describe('exchange files', function () {
 
           const { cid } = res
 
+          // @ts-ignore
           await expect(countFiles(cid, daemon2.api)).to.eventually.equal(num)
         })
       })))
@@ -165,10 +166,12 @@ describe('exchange files', function () {
 async function countFiles (cid, ipfs) {
   let fileCount = 0
 
+  // @ts-ignore
   for await (const entry of ipfs.ls(cid)) {
     if (entry.type === 'file') {
       fileCount++
     } else if (entry.type === 'dir') {
+      // @ts-ignore
       fileCount += await countFiles(entry.cid, ipfs)
     }
   }
