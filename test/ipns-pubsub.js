@@ -71,11 +71,16 @@ describe('ipns-pubsub', function () {
   // Connect nodes and wait for republish
   beforeEach('connect the nodes', async function () {
     this.timeout(60e3)
+    // @ts-ignore
     await goNode0.api.swarm.connect(goNode1.peer.addresses[0])
+    // @ts-ignore
     await goNode0.api.swarm.connect(jsNode0.peer.addresses[0])
+    // @ts-ignore
     await goNode0.api.swarm.connect(jsNode1.peer.addresses[0])
 
+    // @ts-ignore
     await jsNode0.api.swarm.connect(jsNode1.peer.addresses[0])
+    // @ts-ignore
     await jsNode0.api.swarm.connect(goNode1.peer.addresses[0])
   })
 

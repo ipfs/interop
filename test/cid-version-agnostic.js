@@ -32,11 +32,17 @@ describe('CID version agnostic', function () {
     Object.assign(daemons, { js0, js1, go0, go1 })
 
     await Promise.all([
+      // @ts-ignore
       js0.api.swarm.connect(js1.peer.addresses[0]),
+      // @ts-ignore
       js1.api.swarm.connect(js0.peer.addresses[0]),
+      // @ts-ignore
       go0.api.swarm.connect(go1.peer.addresses[0]),
+      // @ts-ignore
       go1.api.swarm.connect(go0.peer.addresses[0]),
+      // @ts-ignore
       js0.api.swarm.connect(go0.peer.addresses[0]),
+      // @ts-ignore
       go0.api.swarm.connect(js0.peer.addresses[0])
     ])
   })

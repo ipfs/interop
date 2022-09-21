@@ -154,6 +154,7 @@ const createBootstrappedNetwork = function (name, createBootstrapper, createNode
   createNetwork(name, async factory => {
     const bootstrapper = await createBootstrapper(factory)
     const bootstrapAddr = await getNodeAddr(bootstrapper)
+    // @ts-ignore
     const nodes = await createNodes(factory, bootstrapAddr)
 
     await delay(5000)
@@ -211,8 +212,11 @@ const createLinearNetwork = function (name, createNodes) {
      * +-+       +-+
      */
 
+    // @ts-ignore
     await node3.api.swarm.connect(node0.peer.addresses[0])
+    // @ts-ignore
     await node0.api.swarm.connect(node1.peer.addresses[0])
+    // @ts-ignore
     await node1.api.swarm.connect(node2.peer.addresses[0])
 
     // ensure nodes have their peers in their routing tables
@@ -248,7 +252,9 @@ const createDisjointNetwork = function (name, createNodes) {
     // Make connections between nodes
 
     // 0 -> 1 -> 2
+    // @ts-ignore
     await node0.api.swarm.connect(node1.peer.addresses[0])
+    // @ts-ignore
     await node1.api.swarm.connect(node2.peer.addresses[0])
 
     // ensure nodes have their peers in their routing tables
@@ -256,7 +262,9 @@ const createDisjointNetwork = function (name, createNodes) {
     await inRoutingTable(node1, node2)
 
     // 3 -> 4 -> 5
+    // @ts-ignore
     await node3.api.swarm.connect(node4.peer.addresses[0])
+    // @ts-ignore
     await node4.api.swarm.connect(node5.peer.addresses[0])
 
     // ensure nodes have their peers in their routing tables
@@ -281,6 +289,7 @@ const createDisjointNetwork = function (name, createNodes) {
       * Make connections between nodes
       * 0 -> 1 -> 2 -> 5 -> 4 -> 3
       */
+      // @ts-ignore
       await node2.api.swarm.connect(node5.peer.addresses[0])
       await inRoutingTable(node2, node5)
 

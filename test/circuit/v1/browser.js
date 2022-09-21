@@ -140,7 +140,9 @@ export default {
      * @param {Controller} relay
      */
     connect: async (nodeA, nodeB, relay) => {
+      // @ts-ignore
       await relay.api.swarm.connect(await getWsAddr(nodeA.api))
+      // @ts-ignore
       await relay.api.swarm.connect(await getWrtcStarAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(5000)
@@ -164,7 +166,9 @@ export default {
      * @param {Controller} relay
      */
     connect: async (nodeA, nodeB, relay) => {
+      // @ts-ignore
       await relay.api.swarm.connect(await getWsAddr(nodeA.api))
+      // @ts-ignore
       await relay.api.swarm.connect(await getWrtcStarAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(3000)
@@ -188,7 +192,9 @@ export default {
      * @param {Controller} relay
      */
     connect: async (nodeA, nodeB, relay) => {
+      // @ts-ignore
       await relay.api.swarm.connect(await getWrtcStarAddr(nodeA.api))
+      // @ts-ignore
       await relay.api.swarm.connect(await getWsAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(5000)
@@ -212,7 +218,9 @@ export default {
      * @param {Controller} relay
      */
     connect: async (nodeA, nodeB, relay) => {
+      // @ts-ignore
       await relay.api.swarm.connect(await getWrtcStarAddr(nodeA.api))
+      // @ts-ignore
       await relay.api.swarm.connect(await getWsAddr(nodeB.api))
       // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
       await delay(3000)
