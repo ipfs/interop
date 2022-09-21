@@ -6,7 +6,7 @@ import { WebSockets } from '@libp2p/websockets'
 import pRetry from 'p-retry'
 import * as filters from '@libp2p/websockets/filters'
 import { expect } from 'aegir/chai'
-import { Multiaddr } from '@multiformats/multiaddr'
+import { multiaddr } from '@multiformats/multiaddr'
 
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
@@ -207,7 +207,7 @@ export async function getWsAddr (api) {
       throw new Error(`No ws address found in ${id.addresses}`)
     }
 
-    return new Multiaddr(result)
+    return multiaddr(result)
   })
 }
 
@@ -226,7 +226,7 @@ export async function getWsStarAddr (api) {
       throw new Error(`No wsstar address found in ${id.addresses}`)
     }
 
-    return new Multiaddr(result)
+    return multiaddr(result)
   })
 }
 
@@ -245,7 +245,7 @@ export async function getWrtcStarAddr (api) {
       throw new Error(`No webrtcstar address found in ${id.addresses}`)
     }
 
-    return new Multiaddr(result)
+    return multiaddr(result)
   })
 }
 
@@ -264,7 +264,7 @@ export async function getTcpAddr (api) {
       throw new Error(`No TCP address found in ${id.addresses}`)
     }
 
-    return new Multiaddr(result)
+    return multiaddr(result)
   })
 }
 
@@ -287,7 +287,7 @@ export async function connect (nodeA, nodeB, relay, timeout = 1000) {
 
   // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
   await delay(timeout)
-  const nodeBCircuitAddr = new Multiaddr(`${relayWsAddr}/p2p-circuit/p2p/${nodeBId.toString()}`)
+  const nodeBCircuitAddr = multiaddr(`${relayWsAddr}/p2p-circuit/p2p/${nodeBId.toString()}`)
   if (process.env.DEBUG) console.log('connect A to B over circuit', nodeBCircuitAddr.toString())
   await nodeA.api.swarm.connect(nodeBCircuitAddr)
 
