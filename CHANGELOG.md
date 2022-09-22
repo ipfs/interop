@@ -1,3 +1,11 @@
+## [9.0.1](https://github.com/ipfs/interop/compare/v9.0.0...v9.0.1) (2022-09-22)
+
+
+### Dependencies
+
+* bump got from 12.4.1 to 12.5.0 ([#498](https://github.com/ipfs/interop/issues/498)) ([b20d5cf](https://github.com/ipfs/interop/commit/b20d5cfe22974306b23c6df6dafc8c532d435d12))
+* update @multiformats/multiaddr to 11.0.0 ([#507](https://github.com/ipfs/interop/issues/507)) ([3baea6a](https://github.com/ipfs/interop/commit/3baea6a81324c124c1b5fd4f3f902bfc9a856817))
+
 ## [9.0.0](https://github.com/ipfs/interop/compare/v8.0.11...v9.0.0) (2022-09-17)
 
 
