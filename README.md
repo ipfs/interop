@@ -20,9 +20,8 @@
   - [As a custom runtime](#as-a-custom-runtime)
 - [Releasing a new version](#releasing-a-new-version)
 - [Interop release process for when breaking changes are introduced](#interop-release-process-for-when-breaking-changes-are-introduced)
-- [Contribute](#contribute)
 - [License](#license)
-- [Contribute](#contribute-1)
+- [Contribute](#contribute)
 
 ## Install
 
@@ -125,14 +124,6 @@ Use `npm` directly  and publish entire root (CI in go-ipfs requires it).
 4. Release go and js-ipfs (not necessarily together) and after each is released (or RC'd) bump interop to use the release instead of the commit hash
 5. Release interop
 6. Bump go and js-ipfs to use released interop instead of master
-
-## Contribute
-
-Feel free to join in. All welcome. Open an [issue](https://github.com/ipfs/ipfs-interop/issues)!
-
-This repository falls under the IPFS [Code of Conduct](https://github.com/ipfs/community/blob/master/code-of-conduct.md).
-
-[![](https://cdn.rawgit.com/jbenet/contribute-ipfs-gif/master/img/contribute.gif)](https://github.com/ipfs/community/blob/master/CONTRIBUTING.md)
 
 ## License
 
