@@ -159,7 +159,7 @@ describe('exchange files', function () {
 })
 
 /**
- * @param {import('multiformats/cid').CID} cid
+ * @param {import('../src/types.js').CID} cid
  * @param {Controller["api"]} ipfs
  */
 async function countFiles (cid, ipfs) {
