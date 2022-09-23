@@ -113,7 +113,6 @@ describe('exchange files', function () {
         this.timeout(timeout); // eslint-disable-line
 
         await daemon1.api.swarm.connect(daemon2.peer.addresses[0])
-
         await daemon2.api.swarm.connect(daemon1.peer.addresses[0])
 
         const [peer1, peer2] = await Promise.all([
