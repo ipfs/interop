@@ -86,7 +86,6 @@ export async function getRelayV (version) {
   }
 
   const promise = waitForStartup()
-  // @ts-ignore
   promise.cancel = () => {
     console.error(`Timed out waiting for ${binaryPath} to start after ${RELAY_STARTUP_TIMEOUT}ms, killing process`) // eslint-disable-line no-console
     relayd.kill()

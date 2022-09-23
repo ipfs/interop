@@ -280,18 +280,15 @@ export async function connect (nodeA, nodeB, relay, timeout = 1000) {
   const nodeBId = (await nodeB.api.id()).id
 
   if (process.env.DEBUG) console.log(`connect A (${nodeAId.toString()}) to relay at`, relayWsAddr.toString())
-  // @ts-ignore
   await nodeA.api.swarm.connect(relayWsAddr)
 
   if (process.env.DEBUG) console.log(`connect B (${nodeBId.toString()}) to relay at`, relayWsAddr.toString())
-  // @ts-ignore
   await nodeB.api.swarm.connect(relayWsAddr)
 
   // TODO: needed until https://github.com/ipfs/interop/issues/17 is resolved
   await delay(timeout)
   const nodeBCircuitAddr = multiaddr(`${relayWsAddr}/p2p-circuit/p2p/${nodeBId.toString()}`)
   if (process.env.DEBUG) console.log('connect A to B over circuit', nodeBCircuitAddr.toString())
-  // @ts-ignore
   await nodeA.api.swarm.connect(nodeBCircuitAddr)
 
   if (process.env.DEBUG) {
