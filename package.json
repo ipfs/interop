@@ -181,7 +181,7 @@
     "import-meta-resolve": "^2.0.3",
     "ipfs-unixfs": "^7.0.0",
     "ipfs-utils": "^9.0.1",
-    "ipfsd-ctl": "https://gitpkg.now.sh/SgtPooki/js-ipfsd-ctl?feature/add-js-kubo-rpc-client&scripts.postinstall=npm%20install%20--ignore-scripts%20%26%26%20npm%20run%20build",
+    "ipfsd-ctl": "^12.2.0",
     "ipns": "^3.0.0",
     "is-ci": "^3.0.0",
     "iso-random-stream": "^2.0.0",
