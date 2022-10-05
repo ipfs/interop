@@ -1,6 +1,6 @@
 {
   "name": "ipfs-interop",
-  "version": "9.0.2",
+  "version": "9.0.3",
   "description": "Interoperability Tests for IPFS",
   "author": "David Dias <daviddias@ipfs.io>",
   "license": "Apache-2.0 OR MIT",
@@ -204,7 +204,7 @@
     "wherearewe": "^2.0.1"
   },
   "devDependencies": {
-    "go-ipfs": "^0.15.0",
+    "go-ipfs": "^0.16.0",
     "ipfs": "^0.64.2",
     "ipfs-http-client": "^58.0.1",
     "kubo-rpc-client": "^1.0.1"

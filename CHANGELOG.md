@@ -1,3 +1,12 @@
+## [9.0.3](https://github.com/ipfs/interop/compare/v9.0.2...v9.0.3) (2022-10-04)
+
+
+### Dependencies
+
+* bump @multiformats/multiaddr from 11.0.0 to 11.0.3 ([#513](https://github.com/ipfs/interop/issues/513)) ([440d572](https://github.com/ipfs/interop/commit/440d5728634fdd798761081e5a46ac530e0a572e))
+* bump aegir from 37.5.3 to 37.5.5 ([#514](https://github.com/ipfs/interop/issues/514)) ([ba73da4](https://github.com/ipfs/interop/commit/ba73da44da8b3075701fec385489c7b7d9f7c35d))
+* **dev:** bump go-ipfs version to v0.16.0 ([#511](https://github.com/ipfs/interop/issues/511)) ([9a9e118](https://github.com/ipfs/interop/commit/9a9e118d8921af333c4b70fa92c6ff036494fa4a))
+
 ## [9.0.2](https://github.com/ipfs/interop/compare/v9.0.1...v9.0.2) (2022-09-29)
 
 
