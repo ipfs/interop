@@ -1,3 +1,10 @@
+## [9.1.0](https://github.com/ipfs/interop/compare/v9.0.3...v9.1.0) (2022-10-06)
+
+
+### Features
+
+* add kubo-rpc-client ([#499](https://github.com/ipfs/interop/issues/499)) ([d710daa](https://github.com/ipfs/interop/commit/d710daa4e8b2f5527db10e2231dd9574c0a2c6ce))
+
 ## [9.0.3](https://github.com/ipfs/interop/compare/v9.0.2...v9.0.3) (2022-10-04)
 
 
