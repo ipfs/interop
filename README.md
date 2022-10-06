@@ -49,7 +49,7 @@ $ node bin/ipfs-interop.js -- -t node --grep {substring-test-name}
 
 ### As a project
 
-This module declares peer dependencies of `ipfs`, `ipfs-http-client` and `go-ipfs` so if you have `ipfs-interop` as a dependecy of your project, simply add the extra IPFS dependencies:
+This module declares peer dependencies of `ipfs`, `ipfs-http-client`, `kubo-rpc-client` and `go-ipfs` so if you have `ipfs-interop` as a dependecy of your project, simply add the extra IPFS dependencies:
 
 ```json
 {
@@ -61,7 +61,8 @@ This module declares peer dependencies of `ipfs`, `ipfs-http-client` and `go-ipf
     "go-ipfs": "...",
     "ipfs": "...",
     "ipfs-http-client": "...",
-    "ipfs-interop": "..."
+    "ipfs-interop": "...",
+    "kubo-rpc-client": "..."
   }
 }
 ```
@@ -80,6 +81,7 @@ Specify the following environmental variables to control which versions of IPFS 
 - `IPFS_JS_EXEC` A path to `/src/cli.js` inside a js-IPFS install
 - `IPFS_JS_MODULE` A path to a js-IPFS install
 - `IPFS_JS_HTTP_MODULE` A path to a ipfs-http-client install (optional)
+- `KUBO_RPC_MODULE` A path to a kubo-rpc-client install (optional)
 
 Then run:
 
@@ -104,6 +106,7 @@ in `./scripts/custom-runtime.sh`, one can:
     export IPFS_JS_EXEC=/tmp/js-ipfs/packages/ipfs/src/cli.js
     export IPFS_JS_MODULE=/tmp/js-ipfs/packages/ipfs/src/index.js
     export IPFS_JS_HTTP_MODULE=/tmp/js-ipfs/packages/ipfs-http-client/src/index.js
+    export KUBO_RPC_MODULE=/tmp/kubo-rpc-client/src/index.js
     ./scripts/custom-runtime.sh
     node bin/ipfs-interop.js -- -t node --grep "pubsub"
 

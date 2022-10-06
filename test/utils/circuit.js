@@ -11,6 +11,7 @@ import { multiaddr } from '@multiformats/multiaddr'
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
  * @typedef {import('ipfsd-ctl').Factory} Factory
+ * @typedef {import('@libp2p/interface-transport').MultiaddrFilter} MultiaddrFilter
  */
 
 export const randomWsAddr = '/ip4/127.0.0.1/tcp/0/ws'
@@ -44,7 +45,7 @@ export function createProc (addrs, factory, relay) {
       libp2p: {
         transports: [
           new WebSockets({
-            filter: filters.all
+            filter: /** @type {MultiaddrFilter} */(/** @type {unknown} */(filters.all))
           })
         ]
       }

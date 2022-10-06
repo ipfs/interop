@@ -7,6 +7,7 @@ import { resolve } from 'import-meta-resolve'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ipfsModule = await resolve(process.env.IPFS_JS_HTTP_MODULE || 'ipfs', import.meta.url)
 const ipfsHttpModule = await resolve(process.env.IPFS_JS_HTTP_MODULE || 'ipfs-http-client', import.meta.url)
+const kuboRpcModule = await resolve(process.env.KUBO_RPC_MODULE || 'kubo-rpc-client', import.meta.url)
 
 async function findGoIpfsBin () {
   if (process.env.IPFS_GO_EXEC != null) {
@@ -32,6 +33,9 @@ const esbuild = {
         build.onResolve({ filter: /^ipfs-http-client$/ }, () => {
           return { path: ipfsHttpModule.replace('file://', '') }
         })
+        build.onResolve({ filter: /^kubo-rpc-client$/ }, () => {
+          return { path: kuboRpcModule.replace('file://', '') }
+        })
       }
     }
   ]
@@ -47,6 +51,7 @@ export default {
     },
     async before (options) {
       const ipfsHttpModule = await import(process.env.IPFS_JS_HTTP_MODULE || 'ipfs-http-client')
+      const kuboRpcModule = await import(process.env.KUBO_RPC_MODULE || 'kubo-rpc-client')
       const ipfsModule = await import(process.env.IPFS_JS_MODULE || 'ipfs')
 
       if (options.runner !== 'node') {
@@ -56,10 +61,10 @@ export default {
         }, {
           type: 'go',
           test: true,
-          ipfsHttpModule
         }, {
           go: {
-            ipfsBin: await findGoIpfsBin()
+            ipfsBin: await findGoIpfsBin(),
+            kuboRpcModule: kuboRpcModule
           },
           js: {
             ipfsOptions: {
@@ -72,7 +77,8 @@ export default {
               }
             },
             ipfsModule,
-            ipfsBin: process.env.IPFS_JS_EXEC || ipfsModule.path()
+            ipfsBin: process.env.IPFS_JS_EXEC || ipfsModule.path(),
+            ipfsHttpModule,
           }
         }).start()
 
