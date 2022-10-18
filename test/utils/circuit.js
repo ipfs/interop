@@ -2,7 +2,7 @@
 import delay from 'delay'
 import randomBytes from 'iso-random-stream/src/random.js'
 import concat from 'it-concat'
-import { WebSockets } from '@libp2p/websockets'
+import { webSockets } from '@libp2p/websockets'
 import pRetry from 'p-retry'
 import * as filters from '@libp2p/websockets/filters'
 import { expect } from 'aegir/chai'
@@ -44,7 +44,7 @@ export function createProc (addrs, factory, relay) {
       },
       libp2p: {
         transports: [
-          new WebSockets({
+          webSockets({
             filter: /** @type {MultiaddrFilter} */(/** @type {unknown} */(filters.all))
           })
         ]
