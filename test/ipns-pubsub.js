@@ -37,7 +37,7 @@ describe('ipns-pubsub', function () {
   /** @type {Factory} */
   let factory
 
-  beforeEach(async () => {
+  beforeEach('create daemon factory', async () => {
     factory = await daemonFactory()
   })
 
@@ -45,27 +45,33 @@ describe('ipns-pubsub', function () {
   beforeEach('create the nodes', async function () {
     this.timeout(120e3)
 
-    goNode0 = await factory.spawn({
-      type: 'go',
-      test: true,
-      ...daemonsOptions
-    })
-    goNode1 = await factory.spawn({
-      type: 'go',
-      test: true,
-      ...daemonsOptions
-    })
-
-    jsNode0 = await factory.spawn({
-      type: 'js',
-      test: true,
-      ...daemonsOptions
-    })
-    jsNode1 = await factory.spawn({
-      type: 'js',
-      test: true,
-      ...daemonsOptions
-    })
+    ;[
+      goNode0,
+      goNode1,
+      jsNode0,
+      jsNode1
+    ] = await Promise.all([
+      factory.spawn({
+        type: 'go',
+        test: true,
+        ...daemonsOptions
+      }),
+      factory.spawn({
+        type: 'go',
+        test: true,
+        ...daemonsOptions
+      }),
+      factory.spawn({
+        type: 'js',
+        test: true,
+        ...daemonsOptions
+      }),
+      factory.spawn({
+        type: 'js',
+        test: true,
+        ...daemonsOptions
+      })
+    ])
   })
 
   // Connect nodes and wait for republish
