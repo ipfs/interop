@@ -205,8 +205,8 @@
   },
   "devDependencies": {
     "go-ipfs": "^0.16.0",
-    "ipfs": "^0.64.2",
-    "ipfs-http-client": "^58.0.1",
+    "ipfs": "^0.65.0",
+    "ipfs-http-client": "^59.0.0",
     "kubo-rpc-client": "^1.0.1"
   },
   "browser": {
