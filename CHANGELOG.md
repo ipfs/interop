@@ -1,3 +1,10 @@
+## [9.2.0](https://github.com/ipfs/interop/compare/v9.1.0...v9.2.0) (2022-11-22)
+
+
+### Features
+
+* kubo v0.17.0 ([#539](https://github.com/ipfs/interop/issues/539)) ([b465053](https://github.com/ipfs/interop/commit/b465053d4640ed9e1cc23f73cdbfb85f5d632414))
+
 ## [9.1.0](https://github.com/ipfs/interop/compare/v9.0.3...v9.1.0) (2022-10-06)
 
 
