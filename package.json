@@ -162,7 +162,7 @@
   },
   "dependencies": {
     "@libp2p/interface-peer-id": "^1.0.4",
-    "@libp2p/peer-id": "^1.1.10",
+    "@libp2p/peer-id": "^2.0.0",
     "@libp2p/webrtc-star-signalling-server": "^2.0.1",
     "@libp2p/websockets": "^3.0.0",
     "@multiformats/multiaddr": "^11.0.0",
