@@ -7,6 +7,7 @@ import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import last from 'it-last'
 import { peerIdFromString } from '@libp2p/peer-id'
 import defer from 'p-defer'
+import pWaitFor from 'p-wait-for'
 
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
@@ -134,6 +135,13 @@ const resolveByPubSub = async (publisher, subscriber) => {
       timeout: 1000
     }))
   } catch {}
+
+  // wait for publisher to see subscriber's topic subscription
+  await pWaitFor(async () => {
+    const peers = await publisher.api.pubsub.peers(topic)
+
+    return peers.map(p => p.toString()).includes(subscriber.peer.id.toString())
+  })
 
   // should now be subscribed to updates for the publisher's peer id
   const subs = await subscriber.api.name.pubsub.subs()
