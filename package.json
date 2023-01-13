@@ -181,7 +181,7 @@
     "import-meta-resolve": "^2.0.3",
     "ipfs-unixfs": "^9.0.0",
     "ipfs-utils": "^9.0.1",
-    "ipfsd-ctl": "^12.2.0",
+    "ipfsd-ctl": "^13.0.0",
     "ipns": "^5.0.1",
     "is-ci": "^3.0.0",
     "iso-random-stream": "^2.0.0",
