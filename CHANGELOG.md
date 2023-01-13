@@ -1,3 +1,14 @@
+## [10.0.0](https://github.com/ipfs/interop/compare/v9.2.0...v10.0.0) (2023-01-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* update multiformats, libp2p etc (#530)
+
+### Dependencies
+
+* update multiformats, libp2p etc ([#530](https://github.com/ipfs/interop/issues/530)) ([ae2d3e2](https://github.com/ipfs/interop/commit/ae2d3e2cfe6068e6134188a084d22e86647d8514))
+
 ## [9.2.0](https://github.com/ipfs/interop/compare/v9.1.0...v9.2.0) (2022-11-22)
 
 
