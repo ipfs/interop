@@ -7,6 +7,7 @@ import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import last from 'it-last'
 import { peerIdFromString } from '@libp2p/peer-id'
 import defer from 'p-defer'
+import pWaitFor from 'p-wait-for'
 
 /**
  * @typedef {import('ipfsd-ctl').Controller} Controller
@@ -37,7 +38,7 @@ describe('ipns-pubsub', function () {
   /** @type {Factory} */
   let factory
 
-  beforeEach(async () => {
+  beforeEach('create daemon factory', async () => {
     factory = await daemonFactory()
   })
 
@@ -45,32 +46,38 @@ describe('ipns-pubsub', function () {
   beforeEach('create the nodes', async function () {
     this.timeout(120e3)
 
-    goNode0 = await factory.spawn({
-      type: 'go',
-      test: true,
-      ...daemonsOptions
-    })
-    goNode1 = await factory.spawn({
-      type: 'go',
-      test: true,
-      ...daemonsOptions
-    })
-
-    jsNode0 = await factory.spawn({
-      type: 'js',
-      test: true,
-      ...daemonsOptions
-    })
-    jsNode1 = await factory.spawn({
-      type: 'js',
-      test: true,
-      ...daemonsOptions
-    })
+    ;[
+      goNode0,
+      goNode1,
+      jsNode0,
+      jsNode1
+    ] = await Promise.all([
+      factory.spawn({
+        type: 'go',
+        test: true,
+        ...daemonsOptions
+      }),
+      factory.spawn({
+        type: 'go',
+        test: true,
+        ...daemonsOptions
+      }),
+      factory.spawn({
+        type: 'js',
+        test: true,
+        ...daemonsOptions
+      }),
+      factory.spawn({
+        type: 'js',
+        test: true,
+        ...daemonsOptions
+      })
+    ])
   })
 
   // Connect nodes and wait for republish
   beforeEach('connect the nodes', async function () {
-    this.timeout(60e3)
+    this.timeout(120e3)
     await goNode0.api.swarm.connect(goNode1.peer.addresses[0])
     await goNode0.api.swarm.connect(jsNode0.peer.addresses[0])
     await goNode0.api.swarm.connect(jsNode1.peer.addresses[0])
@@ -128,6 +135,13 @@ const resolveByPubSub = async (publisher, subscriber) => {
       timeout: 1000
     }))
   } catch {}
+
+  // wait for publisher to see subscriber's topic subscription
+  await pWaitFor(async () => {
+    const peers = await publisher.api.pubsub.peers(topic)
+
+    return peers.map(p => p.toString()).includes(subscriber.peer.id.toString())
+  })
 
   // should now be subscribed to updates for the publisher's peer id
   const subs = await subscriber.api.name.pubsub.subs()
