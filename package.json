@@ -207,7 +207,7 @@
     "go-ipfs": "^0.17.0",
     "ipfs": "^0.66.0",
     "ipfs-http-client": "^60.0.0",
-    "kubo-rpc-client": "^2.0.2"
+    "kubo-rpc-client": "^3.0.0"
   },
   "browser": {
     "go-ipfs": false,
