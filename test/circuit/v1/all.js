@@ -67,55 +67,5 @@ export default {
         createJs([randomWsAddr], factory)
       ])
     }
-  },
-
-  // Below are legacy tests that use js-ipfs as v1 relay
-  // (no tests for go-ipfs as relay v1, because since 0.11 it only supports v2)
-  // FIXME: remove after js-ipfs migrates to v2
-
-  'go-js-go': {
-    /**
-     * @param {Factory} factory
-     */
-    create: async (factory) => {
-      return Promise.all([
-        createGo([randomWsAddr], factory),
-        createJs([randomWsAddr], factory),
-        createGo([randomWsAddr], factory)
-      ])
-    }
-  },
-  'js-js-go': {
-    /**
-     * @param {Factory} factory
-     */
-    create: async (factory) => {
-      return Promise.all([
-        createJs([randomWsAddr], factory),
-        createJs([randomWsAddr], factory),
-        createGo([randomWsAddr], factory)
-      ])
-    }
-  },
-  'go-js-js': {
-    /**
-     * @param {Factory} factory
-     */
-    create: (factory) => Promise.all([
-      createGo([randomWsAddr], factory),
-      createJs([randomWsAddr], factory),
-      createJs([randomWsAddr], factory)
-    ])
-  },
-  'js-js-js': {
-    /**
-     * @param {Factory} factory
-     */
-    create: (factory) => Promise.all([
-      createJs([randomWsAddr], factory),
-      createJs([randomWsAddr], factory),
-      createJs([randomWsAddr], factory)
-    ])
   }
-
 }

@@ -21,9 +21,10 @@ export const randomWsAddr = '/ip4/127.0.0.1/tcp/0/ws'
  * @param {Factory} factory
  * @param {Controller} [relay]
  */
-export function createProc (addrs, factory, relay) {
+export async function createProc (addrs, factory, relay) {
+  let StaticRelays
   if (relay) {
-    throw new Error('createProc missing support for static relay v2')
+    StaticRelays = [await getWsAddr(relay.api)]
   }
   return factory.spawn({
     type: 'proc',
@@ -32,14 +33,23 @@ export function createProc (addrs, factory, relay) {
         Addresses: {
           Swarm: addrs
         },
+        Swarm: {
+          RelayClient: {
+            Enabled: true,
+            StaticRelays
+          },
+          RelayService: {
+            Enabled: false
+          }
+        },
+        Bootstraps: [],
+        Discovery: {
+          MDNS: {
+            Enabled: false
+          }
+        },
         Routing: {
           Type: 'none'
-        },
-        relay: { // FIXME: this is circuit v1, needs support of v2
-          enabled: true,
-          hop: {
-            enabled: true
-          }
         }
       },
       libp2p: {
@@ -58,9 +68,10 @@ export function createProc (addrs, factory, relay) {
  * @param {Factory} factory
  * @param {Controller} [relay]
  */
-export function createJs (addrs, factory, relay) {
+export async function createJs (addrs, factory, relay) {
+  let StaticRelays
   if (relay) {
-    throw new Error('createJs missing support for static relay v2')
+    StaticRelays = [await getWsAddr(relay.api)]
   }
   return factory.spawn({
     type: 'js',
@@ -69,14 +80,58 @@ export function createJs (addrs, factory, relay) {
         Addresses: {
           Swarm: addrs
         },
+        Swarm: {
+          RelayClient: {
+            Enabled: true,
+            StaticRelays
+          },
+          RelayService: {
+            Enabled: false
+          }
+        },
+        Bootstraps: [],
+        Discovery: {
+          MDNS: {
+            Enabled: false
+          }
+        },
         Routing: {
           Type: 'none'
+        }
+      }
+    }
+  })
+}
+
+/**
+ * @param {string[]} addrs
+ * @param {Factory} factory
+ */
+export async function createJsRelay (addrs, factory) {
+  return factory.spawn({
+    type: 'js',
+    ipfsOptions: {
+      config: {
+        Addresses: {
+          Swarm: addrs
         },
-        relay: { // FIXME: this is circuit v1, needs support of v2
-          enabled: true,
-          hop: {
-            enabled: true
+        Swarm: {
+          // go uses circuit v2
+          RelayClient: {
+            Enabled: false
+          },
+          RelayService: {
+            Enabled: true
           }
+        },
+        Bootstraps: [],
+        Discovery: {
+          MDNS: {
+            Enabled: false
+          }
+        },
+        Routing: {
+          Type: 'none'
         }
       }
     }
