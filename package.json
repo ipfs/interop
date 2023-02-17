@@ -167,7 +167,7 @@
     "@libp2p/websockets": "^5.0.0",
     "@multiformats/multiaddr": "^11.0.0",
     "@types/is-ci": "^3.0.0",
-    "aegir": "^37.0.15",
+    "aegir": "^38.1.5",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "cachedir": "^2.3.0",
