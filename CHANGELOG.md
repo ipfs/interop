@@ -1,3 +1,10 @@
+## [10.0.1](https://github.com/ipfs/interop/compare/v10.0.0...v10.0.1) (2023-02-23)
+
+
+### Bug Fixes
+
+* remove relay v1 go tests ([#592](https://github.com/ipfs/interop/issues/592)) ([38223f4](https://github.com/ipfs/interop/commit/38223f430550ad4528473c42a001a22ff3db40dc))
+
 ## [10.0.0](https://github.com/ipfs/interop/compare/v9.2.0...v10.0.0) (2023-01-13)
 
 
