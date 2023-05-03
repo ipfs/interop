@@ -1,3 +1,10 @@
+## [10.1.0](https://github.com/ipfs/interop/compare/v10.0.1...v10.1.0) (2023-05-03)
+
+
+### Features
+
+* upgrade Kubo and remove remaining Circuit V1 tests ([#599](https://github.com/ipfs/interop/issues/599)) ([d6475a7](https://github.com/ipfs/interop/commit/d6475a721a076265b035419585bce643103e5cc2))
+
 ## [10.0.1](https://github.com/ipfs/interop/compare/v10.0.0...v10.0.1) (2023-02-23)
 
 
