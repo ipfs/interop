@@ -1,3 +1,10 @@
+## [10.2.0](https://github.com/ipfs/interop/compare/v10.1.0...v10.2.0) (2023-05-03)
+
+
+### Features
+
+* update Kubo: v0.19.2 ([#600](https://github.com/ipfs/interop/issues/600)) ([e1fff3c](https://github.com/ipfs/interop/commit/e1fff3ca6d61e57f519909597cf78c83c80099f3))
+
 ## [10.1.0](https://github.com/ipfs/interop/compare/v10.0.1...v10.1.0) (2023-05-03)
 
 
