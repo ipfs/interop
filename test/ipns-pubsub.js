@@ -166,6 +166,6 @@ const resolveByPubSub = async (publisher, subscriber) => {
     timeout: 1000
   }))
 
-  expect(peerIdFromString(res1.name).toString()).to.equal(publisher.peer.id.toString()) // Published to Node A ID
+  expect(peerIdFromString(res1.name.replace('/ipns/', '')).toString()).to.equal(publisher.peer.id.toString()) // Published to Node A ID
   expect(res2).to.equal(ipfsRef)
 }
