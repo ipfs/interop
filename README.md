@@ -1,3 +1,9 @@
+# ⚠️ This package is outdated and no longer maintained. ⚠️
+
+This package contains tests between `{Kubo,js-ipfs} <-> {Kubo,js-ipfs}`.
+
+[Js-ipfs is no longer being maintained](https://github.com/ipfs/js-ipfs/issues/4336) and therefore Kubo <-> Helia [interop](https://github.com/ipfs/helia/tree/main/packages/interop) tests are used instead both within Helia and [within Kubo](https://github.com/ipfs/kubo/issues/10013) CI testing.
+
 # ipfs-interop <!-- omit in toc -->
 
 [![ipfs.io](https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square)](http://ipfs.io)
