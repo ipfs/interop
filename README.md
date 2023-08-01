@@ -2,7 +2,7 @@
 
 This package contains tests between `{Kubo,js-ipfs} <-> {Kubo,js-ipfs}`.
 
-[Js-ipfs is no longer being maintained](https://github.com/ipfs/js-ipfs/issues/4336) and [Kubo now uses Helia's interop tests](https://github.com/ipfs/kubo/issues/10013).
+[Js-ipfs is no longer being maintained](https://github.com/ipfs/js-ipfs/issues/4336) and therefore Kubo <-> Helia [interop](https://github.com/ipfs/helia/tree/main/packages/interop) tests are used instead both within Helia and [within Kubo](https://github.com/ipfs/kubo/issues/10013) CI testing.
 
 # ipfs-interop <!-- omit in toc -->
 
